@@ -11,7 +11,7 @@ PrgName=$(basename "$0")
 USAGE1="Usage: $PRG_NAME { dev, staging, prod }"
 
 # Run docker image for Systems service
-BUILD_DIR=../api-tst/target
+BUILD_DIR=../api/target
 ENV=$1
 TAG="tapis/systems:${ENV}"
 

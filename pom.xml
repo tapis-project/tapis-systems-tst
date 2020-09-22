@@ -14,7 +14,7 @@
       <relativePath></relativePath>
     </parent>
 
-    <artifactId>tapis-systems-tst</artifactId>
+    <artifactId>tapis-systems</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -22,8 +22,8 @@
     <description>Parent POM file for TAPIS Systems service</description>
 
     <scm>
-        <connection>scm:git:https://github.com/tapis-project/tapis-systems-tst.git</connection>
-        <url>https://github.com/tapis-project/tapis-systems-tst</url>
+        <connection>scm:git:https://github.com/tapis-project/tapis-systems.git</connection>
+        <url>https://github.com/tapis-project/tapis-systems</url>
     </scm>
 
     <properties>
@@ -90,8 +90,8 @@
   </dependencies>
 
   <modules>
-    <module>api-tst</module>
-    <module>lib-tst</module>
+    <module>api</module>
+    <module>lib</module>
   </modules>
 
 </project>

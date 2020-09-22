@@ -5,11 +5,11 @@
   
   <parent>
     <groupId>edu.utexas.tacc.tapis</groupId>
-    <artifactId>tapis-systems-tst</artifactId>
+    <artifactId>tapis-systems</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   
-  <artifactId>lib-tst</artifactId>
+  <artifactId>lib</artifactId>
   
   <name>Tapis Systems Library</name>
   <description>Backend library for Tapis Systems Service</description>

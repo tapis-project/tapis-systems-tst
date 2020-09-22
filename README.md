@@ -1,4 +1,4 @@
-# tapis-systems-tst
+# tapis-systems
 
-Tapis Systems Service repo for testing release flow
+Tapis Systems Service
 
