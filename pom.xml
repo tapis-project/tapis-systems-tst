@@ -6,7 +6,7 @@
          shared properties, dependency management, plugin management  -->
     <parent>
       <groupId>edu.utexas.tacc.tapis</groupId>
-      <artifactId>tapis-bom-tst</artifactId>
+      <artifactId>tapis-bom</artifactId>
       <version>[1.11,2.0)</version>
       <!-- Set empty relative path to avoid maven warning and-->
       <!--   ensure parent is found in local repository if that-->

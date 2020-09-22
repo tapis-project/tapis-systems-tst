@@ -75,12 +75,12 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tapis-shared-api-tst</artifactId>
+      <artifactId>tapis-shared-api</artifactId>
       <version>${tapis-shared-java.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tapis-shared-searchlib-tst</artifactId>
+      <artifactId>tapis-shared-searchlib</artifactId>
       <version>${tapis-shared-java.version}</version>
     </dependency>
     <dependency>
