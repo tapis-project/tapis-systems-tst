@@ -35,21 +35,6 @@
       <skipIntegrationTests>true</skipIntegrationTests>
     </properties>
 
-  <repositories>
-    <!-- Include snapshot repo so we can pickup snapshot version of parent bom -->
-    <repository>
-      <id>oss.sonatype.org-snapshot</id>
-      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <build>
     <!-- buildnumber-maven-plugin updates properties in resources -->
     <resources>

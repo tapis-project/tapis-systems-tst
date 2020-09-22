@@ -39,7 +39,7 @@ export PRG_RELPATH=$(dirname "$0")
 cd "$PRG_RELPATH"/. || exit
 export PRG_PATH=$(pwd)
 
-cd ../../lib
+cd ../lib-tst
 mvn verify -DskipIntegrationTests=false -Dp6spy.config.modulelist=
 RET_CODE=$?
 cd $RUN_DIR

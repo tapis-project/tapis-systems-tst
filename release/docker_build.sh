@@ -16,7 +16,7 @@ if [ -z "$REPO" ]; then
   REPO=tapis
 fi
 
-BUILD_DIR=../../api/target
+BUILD_DIR=../api-tst/target
 ENV=$1
 
 # Check number of arguments
