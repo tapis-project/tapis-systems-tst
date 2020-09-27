@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-client-java/security-client/security-client.iml" filepath="$PROJECT_DIR$/../../main/tapis-client-java/security-client/security-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-client-java/shared/shared.iml" filepath="$PROJECT_DIR$/../../main/tapis-client-java/shared/shared.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-client-java/systems-client/systems-client.iml" filepath="$PROJECT_DIR$/../../main/tapis-client-java/systems-client/systems-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../main/tapis-client-java/tapis-client-java.iml" filepath="$PROJECT_DIR$/../../main/tapis-client-java/tapis-client-java.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-client-java/tapis-client-java (1).iml" filepath="$PROJECT_DIR$/../../main/tapis-client-java/tapis-client-java (1).iml" />
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-shared-java/tapis-shared-api/tapis-shared-api.iml" filepath="$PROJECT_DIR$/../../main/tapis-shared-java/tapis-shared-api/tapis-shared-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../main/tapis-shared-java/tapis-shared-db/tapis-shared-db.iml" filepath="$PROJECT_DIR$/../../main/tapis-shared-java/tapis-shared-db/tapis-shared-db.iml" />

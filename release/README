@@ -11,7 +11,7 @@ run_integration_tests.sh - Use mvn to run the integration tests in the lib direc
        NOTE: Env variables must be set. Please see script.
 
 ==========================================================================
-Other files kept mainly as examples. Develope while working on k8s deploy
+Other files kept mainly as examples. Developed while working on k8s deploy
 ==========================================================================
 docker_create_db.sh
 docker_drop_db.sh
