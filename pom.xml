@@ -44,7 +44,38 @@
         <artifactId>gitflow-maven-plugin</artifactId>
         <version>1.14.0</version>
         <configuration>
-          <!-- optional configuration -->
+          <!-- Disable git push for testing -->
+          <pushRemote>false</pushRemote>
+          <!-- true = print output of executed commands -->
+          <verbose>true</verbose>
+          <!-- true = include mvn install during execution -->
+<!--          <installProject>true</installProject>-->
+          <gitFlowConfig>
+            <!-- Branch that will hold the officially released versions and be the source for hotfixes  -->
+            <productionBranch>main</productionBranch>
+            <!-- Branch for development that will always have the latest -->
+            <developmentBranch>dev</developmentBranch>
+            <!-- ???? -->
+            <releaseBranchPrefix>release/</releaseBranchPrefix>
+          </gitFlowConfig>
+          <!-- Full list of optional configuration settings (with defaults) -->
+<!--          <mvnExecutable>path_to_maven_executable</mvnExecutable>-->
+<!--          <gitExecutable>path_to_git_executable</gitExecutable>-->
+<!--          <installProject>false</installProject>-->
+<!--          <verbose>false</verbose>-->
+<!--          <gitFlowConfig>-->
+<!--            <productionBranch>master</productionBranch>-->
+<!--            <developmentBranch>develop</developmentBranch>-->
+<!--            <featureBranchPrefix>feature/</featureBranchPrefix>-->
+<!--            <releaseBranchPrefix>release/</releaseBranchPrefix>-->
+<!--            <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>-->
+<!--            <supportBranchPrefix>support/</supportBranchPrefix>-->
+<!--            <versionTagPrefix></versionTagPrefix>-->
+<!--            <origin>origin</origin>-->
+<!--          </gitFlowConfig>-->
+          <commitMessages>
+            <!-- since 1.2.1, see Customizing commit messages -->
+          </commitMessages>
         </configuration>
       </plugin>
     </plugins>
