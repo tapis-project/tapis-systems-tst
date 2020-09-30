@@ -36,7 +36,19 @@
     </properties>
 
   <build>
-    <!-- buildnumber-maven-plugin updates properties in resources -->
+    <plugins>
+      <!--  gitflow-maven-plugin supports various git workflow steps, such as gitflow:release-start-->
+      <!--    gitflow:release-finish, gitflow:release, gitflow:feature-start, gitflow:feature-finish-->
+      <plugin>
+        <groupId>com.amashchenko.maven.plugin</groupId>
+        <artifactId>gitflow-maven-plugin</artifactId>
+        <version>1.14.0</version>
+        <configuration>
+          <!-- optional configuration -->
+        </configuration>
+      </plugin>
+    </plugins>
+
     <resources>
       <!-- Write the project version number to the specified file. -->
       <!-- Setting the targetPath puts the file into the jar at the -->

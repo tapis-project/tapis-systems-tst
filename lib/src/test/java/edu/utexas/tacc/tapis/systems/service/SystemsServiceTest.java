@@ -54,8 +54,8 @@ public class SystemsServiceTest
   private AuthenticatedUser authenticatedOwnerUsr, authenticatedTestUsr0, authenticatedTestUsr1, authenticatedTestUsr2,
           authenticatedTestUsr3, authenticatedAdminUsr, authenticatedFilesSvc;
   // Test data
-  // TODO: Currently admin user for a tenant is hard coded to be 'admin'
-  private static final String adminUser = "admin";
+  // TODO: Currently admin user for a tenant is hard coded to be 'testuser9'
+  private static final String adminUser = "testuser9";
   private static final String masterTenantName = "master";
   private static final String filesSvcName = "files";
   private static final String testUser0 = "testuser0";
