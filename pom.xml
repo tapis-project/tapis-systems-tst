@@ -38,17 +38,17 @@
   <build>
     <plugins>
       <!--  gitflow-maven-plugin supports various git workflow steps, such as gitflow:release-start-->
-      <!--    gitflow:release-finish, gitflow:release, gitflow:feature-start, gitflow:feature-finish-->
+      <!--    gitflow:release-finish, gitflow:feature-start, gitflow:feature-finish-->
       <plugin>
         <groupId>com.amashchenko.maven.plugin</groupId>
         <artifactId>gitflow-maven-plugin</artifactId>
         <version>1.14.0</version>
         <configuration>
-          <!-- Disable git push for testing -->
-          <pushRemote>false</pushRemote>
+          <!-- false = disable git push for testing -->
+          <pushRemote>true</pushRemote>
           <!-- true = print output of executed commands -->
           <verbose>true</verbose>
-          <!-- true = include mvn install during execution -->
+          <!-- true = include mvn clean install during execution -->
           <installProject>true</installProject>
           <gitFlowConfig>
             <!-- Branch that will hold the officially released versions and be the source for hotfixes  -->
@@ -58,6 +58,12 @@
 	    <!-- Prefix when creating release branch. Format will be <prefix>X.Y.Z -->
             <releaseBranchPrefix>release/</releaseBranchPrefix>
           </gitFlowConfig>
+
+          <!-- If desired run verify first -->
+          <!-- Execute mvn verify before release -->
+<!--          <preReleaseGoals>verify</preReleaseGoals>-->
+<!--          <preHotfixGoals>verify</preHotfixGoals>-->
+
           <!-- Full list of optional configuration settings (with defaults) -->
 <!--          <mvnExecutable>path_to_maven_executable</mvnExecutable>-->
 <!--          <gitExecutable>path_to_git_executable</gitExecutable>-->
