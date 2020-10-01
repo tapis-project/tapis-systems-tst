@@ -45,7 +45,7 @@
         <version>1.14.0</version>
         <configuration>
           <!-- false = disable git push for testing -->
-          <pushRemote>true</pushRemote>
+          <pushRemote>false</pushRemote>
           <!-- true = print output of executed commands -->
           <verbose>true</verbose>
           <!-- true = include mvn clean install during execution -->
