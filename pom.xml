@@ -49,13 +49,13 @@
           <!-- true = print output of executed commands -->
           <verbose>true</verbose>
           <!-- true = include mvn install during execution -->
-<!--          <installProject>true</installProject>-->
+          <installProject>true</installProject>
           <gitFlowConfig>
             <!-- Branch that will hold the officially released versions and be the source for hotfixes  -->
             <productionBranch>main</productionBranch>
             <!-- Branch for development that will always have the latest -->
             <developmentBranch>dev</developmentBranch>
-            <!-- ???? -->
+	    <!-- Prefix when creating release branch. Format will be <prefix>X.Y.Z -->
             <releaseBranchPrefix>release/</releaseBranchPrefix>
           </gitFlowConfig>
           <!-- Full list of optional configuration settings (with defaults) -->
