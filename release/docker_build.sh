@@ -87,6 +87,8 @@ echo "Creating ENV image tag: $TAG_ENV"
 docker tag "$TAG_UNIQ" "$TAG_ENV"
 echo "Creating ENV_VER image tag: $TAG_ENV_VER"
 docker tag "$TAG_UNIQ" "$TAG_ENV_VER"
+echo "Creating RELEASE_CANDIDATE image tag: $TAG_RELEASE_CANDIDATE"
+docker tag "$TAG_UNIQ" "$TAG_RELEASE_CANDIDATE"
 
 # Push to remote repo
 if [ "x$2" = "x-push" ]; then
@@ -97,7 +99,7 @@ if [ "x$2" = "x-push" ]; then
   echo "Pushing images to docker hub."
   # NOTE: Use current login. Jenkins job does login
   docker push "$TAG_UNIQ"
-  docker push "$TAG_TAG_RELEASE_CANDIDATE"
+  docker push "$TAG_RELEASE_CANDIDATE"
   docker push "$TAG_ENV_VER"
   docker push "$TAG_ENV"
   if [ "$ENV" = "prod" ]; then
