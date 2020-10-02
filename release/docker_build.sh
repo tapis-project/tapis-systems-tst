@@ -61,6 +61,7 @@ VER=$(cat classes/tapis.version)
 GIT_BRANCH_LBL=$(awk '{print $1}' classes/git.info)
 GIT_COMMIT_LBL=$(awk '{print $2}' classes/git.info)
 TAG_UNIQ="${REPO}/systems:${ENV}-${VER}-$(date +%Y%m%d%H%M)-${GIT_COMMIT}"
+TAG_RELEASE_CANDIDATE="${REPO}/systems:${VER}-rc"
 TAG_ENV_VER="${REPO}/systems:${ENV}-${VER}"
 TAG_ENV="${REPO}/systems:${ENV}"
 TAG_LATEST="${REPO}/systems:latest"
@@ -96,6 +97,7 @@ if [ "x$2" = "x-push" ]; then
   echo "Pushing images to docker hub."
   # NOTE: Use current login. Jenkins job does login
   docker push "$TAG_UNIQ"
+  docker push "$TAG_TAG_RELEASE_CANDIDATE"
   docker push "$TAG_ENV_VER"
   docker push "$TAG_ENV"
   if [ "$ENV" = "prod" ]; then
