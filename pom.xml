@@ -15,7 +15,7 @@
     </parent>
 
     <artifactId>tapis-systems</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>TACC Tapis Systems Parent POM</name>
@@ -45,7 +45,7 @@
         <version>1.14.0</version>
         <configuration>
           <!-- false = disable git push for testing -->
-          <pushRemote>false</pushRemote>
+          <pushRemote>true</pushRemote>
           <!-- true = print output of executed commands -->
           <verbose>true</verbose>
           <!-- true = include mvn clean install during execution -->
@@ -55,20 +55,23 @@
             <productionBranch>main</productionBranch>
             <!-- Branch for development that will always have the latest -->
             <developmentBranch>dev</developmentBranch>
-	    <!-- Prefix when creating release branch. Format will be <prefix>X.Y.Z -->
+            <!-- Prefix when creating release branch. Format will be <prefix>X.Y.Z -->
             <releaseBranchPrefix>release/</releaseBranchPrefix>
           </gitFlowConfig>
 
-          <!-- If desired run verify first -->
-          <!-- Execute mvn verify before release -->
+          <!-- Full list of optional configuration settings (with defaults) -->
+<!-- If desired run verify first -->
+<!-- Execute mvn verify before release -->
 <!--          <preReleaseGoals>verify</preReleaseGoals>-->
 <!--          <preHotfixGoals>verify</preHotfixGoals>-->
-
-          <!-- Full list of optional configuration settings (with defaults) -->
 <!--          <mvnExecutable>path_to_maven_executable</mvnExecutable>-->
 <!--          <gitExecutable>path_to_git_executable</gitExecutable>-->
 <!--          <installProject>false</installProject>-->
 <!--          <verbose>false</verbose>-->
+<!--          &lt;!&ndash; true = retain the release branch upon release-finish &ndash;&gt;-->
+<!--          <keepBranch>false</keepBranch>-->
+<!--          &lt;!&ndash; false = disable git push for testing &ndash;&gt;-->
+<!--          <pushRemote>false</pushRemote>-->
 <!--          <gitFlowConfig>-->
 <!--            <productionBranch>master</productionBranch>-->
 <!--            <developmentBranch>develop</developmentBranch>-->
