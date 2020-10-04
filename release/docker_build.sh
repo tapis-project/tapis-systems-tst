@@ -1,6 +1,7 @@
 #!/bin/sh
 # Build and optionally push docker image for Systems service
 # This is the job run in Jenkins as part of job Java-MultiService-Build-Publish-Deploy-<ENV>
+#   and job Tapis jobs->DEV->release-systems-start
 # Environment name must be passed in as first argument
 # Existing docker login is used for push
 # Docker image is created with a unique tag: tapis/systems-<ENV>-<VER>-<COMMIT>-<YYYYmmddHHMM>
@@ -62,8 +63,8 @@ GIT_BRANCH_LBL=$(awk '{print $1}' classes/git.info)
 GIT_COMMIT_LBL=$(awk '{print $2}' classes/git.info)
 TAG_UNIQ="${REPO}/systems:${ENV}-${VER}-$(date +%Y%m%d%H%M)-${GIT_COMMIT}"
 TAG_RELEASE_CANDIDATE="${REPO}/systems:${VER}-rc"
-TAG_ENV_VER="${REPO}/systems:${ENV}-${VER}"
-TAG_ENV="${REPO}/systems:${ENV}"
+# TAG_ENV_VER="${REPO}/systems:${ENV}-${VER}"
+# TAG_ENV="${REPO}/systems:${ENV}"
 TAG_LATEST="${REPO}/systems:latest"
 
 # If branch name is UNKNOWN or empty as might be the case in a jenkins job then
@@ -83,10 +84,10 @@ docker build -f Dockerfile \
     -t "${TAG_UNIQ}" .
 
 # Create other tags for remote repo
-echo "Creating ENV image tag: $TAG_ENV"
-docker tag "$TAG_UNIQ" "$TAG_ENV"
-echo "Creating ENV_VER image tag: $TAG_ENV_VER"
-docker tag "$TAG_UNIQ" "$TAG_ENV_VER"
+# echo "Creating ENV image tag: $TAG_ENV"
+# docker tag "$TAG_UNIQ" "$TAG_ENV"
+# echo "Creating ENV_VER image tag: $TAG_ENV_VER"
+# docker tag "$TAG_UNIQ" "$TAG_ENV_VER"
 echo "Creating RELEASE_CANDIDATE image tag: $TAG_RELEASE_CANDIDATE"
 docker tag "$TAG_UNIQ" "$TAG_RELEASE_CANDIDATE"
 
