@@ -14,8 +14,10 @@
       <relativePath></relativePath>
     </parent>
 
+    <!-- Test release cycle ver 2 -->
+    
     <artifactId>tapis-systems</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
 
     <name>TACC Tapis Systems Parent POM</name>
