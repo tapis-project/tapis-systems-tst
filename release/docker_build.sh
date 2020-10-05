@@ -101,8 +101,8 @@ if [ "x$2" = "x-push" ]; then
   # NOTE: Use current login. Jenkins job does login
   docker push "$TAG_UNIQ"
   docker push "$TAG_RELEASE_CANDIDATE"
-  docker push "$TAG_ENV_VER"
-  docker push "$TAG_ENV"
+#  docker push "$TAG_ENV_VER"
+#  docker push "$TAG_ENV"
   if [ "$ENV" = "prod" ]; then
     docker push "$TAG_LATEST"
   fi
