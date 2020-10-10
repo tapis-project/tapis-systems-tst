@@ -1,10 +1,10 @@
 -- Initial DB schema creation for Tapis Systems Service
 -- postgres commands to create all tables, indices and other database artifacts required.
 -- Prerequisites:
--- Create DB named tapissysdb and user named tapis
+-- Create DB named tapissysdb and user named tapis_sys
 --   CREATE DATABASE tapissysdb ENCODING='UTF8' LC_COLLATE='en_US.utf8' LC_CTYPE='en_US.utf8';
---   CREATE USER tapis WITH ENCRYPTED PASSWORD '<password>'
---   GRANT ALL PRIVILEGES ON DATABASE tapissysdb TO tapis;
+--   CREATE USER tapis_sys WITH ENCRYPTED PASSWORD '<password>'
+--   GRANT ALL PRIVILEGES ON DATABASE tapissysdb TO tapis_sys;
 -- Fast way to check for table. Might use this at startup during an init phase.
 --   SELECT to_regclass('tapis_sys.systems');
 --
@@ -25,8 +25,8 @@
 --     Possibly another option would be to create a custom mapper to be used by Record.into()
 --
 -- Create the schema and set the search path
-CREATE SCHEMA IF NOT EXISTS tapis_sys AUTHORIZATION tapis;
-ALTER ROLE tapis SET search_path = 'tapis_sys';
+CREATE SCHEMA IF NOT EXISTS tapis_sys AUTHORIZATION tapis_sys;
+ALTER ROLE tapis_sys SET search_path = 'tapis_sys';
 SET search_path TO tapis_sys;
 -- SET search_path TO public;
 
