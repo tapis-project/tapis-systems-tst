@@ -414,6 +414,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   public void migrateDB() throws TapisException
   {
     Flyway flyway = Flyway.configure().dataSource(getDataSource()).load();
+    // TODO: remove this. Temp to avoid checksum errors during development.
+    flyway.repair();
     flyway.migrate();
   }
 

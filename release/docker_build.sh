@@ -8,6 +8,8 @@
 #   - other tags are created and updated as appropriate
 #
 # REPO env var may be set to push to $REPO/systems. Default is tapis/systems
+# Env var TAPIS_DEPLOY_MANUAL may be set to "true" to indicate it is a manual deployment and the
+#   image should also be tagged with $ENV
 
 PrgName=$(basename "$0")
 
@@ -64,7 +66,7 @@ GIT_COMMIT_LBL=$(awk '{print $2}' classes/git.info)
 TAG_UNIQ="${REPO}/systems:${ENV}-${VER}-$(date +%Y%m%d%H%M)-${GIT_COMMIT}"
 TAG_RELEASE_CANDIDATE="${REPO}/systems:${VER}-rc"
 # TAG_ENV_VER="${REPO}/systems:${ENV}-${VER}"
-# TAG_ENV="${REPO}/systems:${ENV}"
+TAG_ENV="${REPO}/systems:${ENV}"
 TAG_LATEST="${REPO}/systems:latest"
 
 # If branch name is UNKNOWN or empty as might be the case in a jenkins job then
@@ -84,8 +86,6 @@ docker build -f Dockerfile \
     -t "${TAG_UNIQ}" .
 
 # Create other tags for remote repo
-# echo "Creating ENV image tag: $TAG_ENV"
-# docker tag "$TAG_UNIQ" "$TAG_ENV"
 # echo "Creating ENV_VER image tag: $TAG_ENV_VER"
 # docker tag "$TAG_UNIQ" "$TAG_ENV_VER"
 echo "Creating RELEASE_CANDIDATE image tag: $TAG_RELEASE_CANDIDATE"
@@ -102,7 +102,11 @@ if [ "x$2" = "x-push" ]; then
   docker push "$TAG_UNIQ"
   docker push "$TAG_RELEASE_CANDIDATE"
 #  docker push "$TAG_ENV_VER"
-#  docker push "$TAG_ENV"
+  if [ "x$TAPIS_DEPLOY_MANUAL" = "xtrue" ]; then
+    echo "Creating ENV image tag: $TAG_ENV"
+    docker tag "$TAG_UNIQ" "$TAG_ENV"
+    docker push "$TAG_ENV"
+  fi
   if [ "$ENV" = "prod" ]; then
     docker push "$TAG_LATEST"
   fi

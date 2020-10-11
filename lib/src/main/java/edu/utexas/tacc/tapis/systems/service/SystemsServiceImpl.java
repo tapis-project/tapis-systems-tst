@@ -608,7 +608,7 @@ public class SystemsServiceImpl implements SystemsService
     {
       _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
     }
-    // Make sure DB is present and updated to latest version
+    // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
   }
 
