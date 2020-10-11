@@ -80,7 +80,7 @@ CREATE TABLE systems
   updated    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
   UNIQUE (tenant,name)
 );
-ALTER TABLE systems OWNER TO tapis;
+ALTER TABLE systems OWNER TO tapis_sys;
 CREATE INDEX sys_tenant_name_idx ON systems (tenant, name);
 COMMENT ON COLUMN systems.id IS 'System id';
 COMMENT ON COLUMN systems.tenant IS 'Tenant name associated with system';
@@ -124,7 +124,7 @@ CREATE TABLE system_updates
     upd_text VARCHAR,
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
 );
-ALTER TABLE system_updates OWNER TO tapis;
+ALTER TABLE system_updates OWNER TO tapis_sys;
 COMMENT ON COLUMN system_updates.id IS 'System update request id';
 COMMENT ON COLUMN system_updates.system_id IS 'Id of system being updated';
 COMMENT ON COLUMN system_updates.user_name IS 'Name of user who requested the update';
@@ -151,7 +151,7 @@ CREATE TABLE capabilities
     updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     UNIQUE (system_id, category, name)
 );
-ALTER TABLE capabilities OWNER TO tapis;
+ALTER TABLE capabilities OWNER TO tapis_sys;
 COMMENT ON COLUMN capabilities.id IS 'Capability id';
 COMMENT ON COLUMN capabilities.system_id IS 'Id of system supporting the capability';
 COMMENT ON COLUMN capabilities.category IS 'Category for grouping of capabilities';
