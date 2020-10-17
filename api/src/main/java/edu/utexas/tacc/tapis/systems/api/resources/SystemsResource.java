@@ -24,6 +24,7 @@ import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.security.ServiceJWT;
+import edu.utexas.tacc.tapis.systems.api.SystemsApplication;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceImpl;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
@@ -315,10 +316,7 @@ public class SystemsResource
   {
     Exception result = null;
     try {
-      // TODO: FIX-FOR-ASSOCIATE-SITES	
-      // Replace hardcoded site value.
-      String site = "tacc";
-      String jwt = serviceJWT.getAccessJWT(site);
+      String jwt = serviceJWT.getAccessJWT(SystemsApplication.getSiteId());
       if (StringUtils.isBlank(jwt)) result = new TapisClientException(LibUtils.getMsg("SYSLIB_CHECKJWT_EMPTY"));
     }
     catch (Exception e) { result = e; }

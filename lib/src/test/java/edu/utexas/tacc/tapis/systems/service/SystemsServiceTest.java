@@ -103,7 +103,6 @@ public class SystemsServiceTest
     svcImpl = locator.getService(SystemsServiceImpl.class);
 
     // Initialize authenticated user and service
- // TODO: FIX-FOR-ASSOCIATE-SITES
     authenticatedOwnerUsr = new AuthenticatedUser(ownerUser, tenantName, TapisThreadContext.AccountType.user.name(), null, ownerUser, tenantName, null, null, null);
     authenticatedAdminUsr = new AuthenticatedUser(adminUser, tenantName, TapisThreadContext.AccountType.user.name(), null, adminUser, tenantName, null, null, null);
     authenticatedTestUsr0 = new AuthenticatedUser(testUser0, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser0, tenantName, null, null, null);

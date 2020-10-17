@@ -75,10 +75,6 @@ public class SystemsServiceImpl implements SystemsService
   public static final String SYSTEMS_ADMIN_ROLE = "SystemsAdmin";
   public static final String SYSTEMS_ADMIN_DESCRIPTION = "Administrative role for Systems service";
   public static final String SYSTEMS_DEFAULT_MASTER_TENANT = "master";
-  
-  // TODO: temporary code to just for compilation in associate site environment.
-  // TODO: FIX-FOR-ASSOCIATE-SITES
-  public static final String DEFAULT_SITE = "tacc";
 
   // Tracing.
   private static final Logger _log = LoggerFactory.getLogger(SystemsServiceImpl.class);
@@ -114,6 +110,9 @@ public class SystemsServiceImpl implements SystemsService
 
   @Inject
   private ServiceJWT serviceJWT;
+
+  // We must be running on a specific site and this will never change.
+  private static String siteId;
 
   // ************************************************************************
   // *********************** Public Methods *********************************
@@ -214,16 +213,16 @@ public class SystemsServiceImpl implements SystemsService
 //      skClient.deleteRoleByName(systemTenantName, system.getOwner(), roleNameR);
       skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemName);
       // TODO REMOVE DEBUG
-      _log.error("authUser.user=" + authenticatedUser.getName());
-      _log.error("authUser.tenant=" + authenticatedUser.getTenantId());
-      _log.error("authUser.OboUser=" + authenticatedUser.getOboUser());
-      _log.error("authUser.OboTenant=" + authenticatedUser.getOboTenantId());
-      _log.error("systemTenantName=" + systemTenantName);
-      _log.error("system.getOwner=" + system.getOwner());
-      _log.error("roleNameR="+ roleNameR);
-      _log.error("systemsPermSpecR=" + systemsPermSpecR);
-      _log.error("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
-      _log.error("serviceJwt.getAccessJWT=" + serviceJWT.getAccessJWT(DEFAULT_SITE));
+      _log.debug("authUser.user=" + authenticatedUser.getName());
+      _log.debug("authUser.tenant=" + authenticatedUser.getTenantId());
+      _log.debug("authUser.OboUser=" + authenticatedUser.getOboUser());
+      _log.debug("authUser.OboTenant=" + authenticatedUser.getOboTenantId());
+      _log.debug("systemTenantName=" + systemTenantName);
+      _log.debug("system.getOwner=" + system.getOwner());
+      _log.debug("roleNameR="+ roleNameR);
+      _log.debug("systemsPermSpecR=" + systemsPermSpecR);
+      _log.debug("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
+      _log.debug("serviceJwt.getAccessJWT=" + serviceJWT.getAccessJWT(siteId));
       skClient.addRolePermission(systemTenantName, roleNameR, systemsPermSpecR);
 
       // ------------------- Add permissions and role assignments -----------------------------
@@ -580,16 +579,16 @@ public class SystemsServiceImpl implements SystemsService
    * Initialize the service:
    *   Check for Systems admin role. If not found create it
    */
-  public void initService() throws TapisException, TapisClientException
+  public void initService(String svcSiteId) throws TapisException, TapisClientException
   {
+    siteId = svcSiteId;
     // Get service master tenant
     String svcMasterTenant = RuntimeParameters.getInstance().getServiceMasterTenant();
     if (StringUtils.isBlank(svcMasterTenant)) svcMasterTenant = SYSTEMS_DEFAULT_MASTER_TENANT;
     // Create user for SK client
- // TODO: FIX-FOR-ASSOCIATE-SITES
     AuthenticatedUser svcUser =
         new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcMasterTenant, TapisThreadContext.AccountType.service.name(),
-                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, null, null);
+                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, null);
     // Use SK client to check for admin role and create it if necessary
     var skClient = getSKClient(svcUser);
     // Check for admin role
@@ -1325,7 +1324,7 @@ public class SystemsServiceImpl implements SystemsService
     skURL = skURL.substring(0, skURL.indexOf("/v3") + 3);
 
     skClient.setBasePath(skURL);
-    skClient.addDefaultHeader(HDR_TAPIS_TOKEN, serviceJWT.getAccessJWT(DEFAULT_SITE));
+    skClient.addDefaultHeader(HDR_TAPIS_TOKEN, serviceJWT.getAccessJWT(siteId));
 
     // For service jwt pass along oboTenant and oboUser in OBO headers
     // For user jwt use authenticated user name and tenant in OBO headers
