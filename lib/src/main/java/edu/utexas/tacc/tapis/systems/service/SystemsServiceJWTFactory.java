@@ -38,7 +38,6 @@ public class SystemsServiceJWTFactory implements Factory<ServiceJWT>
       svcJWTParms.setTenant(svcMasterTenant);
       // TODO: FIX-FOR-ASSOCIATE-SITES
       // TODO: How to get full list of sites?
-
       svcJWTParms.setTargetSites(Arrays.asList(runParms.getSiteId()));
       // Use TenantManager to get tenant info. Needed for tokens base URLs. E.g. https://dev.develop.tapis.io
       Tenant tenant = TenantManager.getInstance().getTenant(svcMasterTenant);
@@ -49,7 +48,12 @@ public class SystemsServiceJWTFactory implements Factory<ServiceJWT>
       tokenSvcUrl = tokenSvcUrl.substring(0, tokenSvcUrl.indexOf("/v3"));
       svcJWTParms.setTokensBaseUrl(tokenSvcUrl);
       // Get service password from the env
-      String svcPassword = RuntimeParameters.getInstance().getServicePassword();
+      String svcPassword = runParms.getServicePassword();
+      // TODO
+      // TODO normal service password not working. Hard code all svcs passwd
+      svcPassword="M2Y0YzFhOWY3MGFiYWY2NjA2MGM4ZThi";
+      System.out.println("WARNING - WARNING Using ALLSERVICES password - WARNING - WARNING");
+      // TODO
       if (StringUtils.isBlank(svcPassword))
       {
         String msg = LibUtils.getMsg("SYSLIB_NO_SVC_PASSWD", svcMasterTenant, tokenSvcUrl);

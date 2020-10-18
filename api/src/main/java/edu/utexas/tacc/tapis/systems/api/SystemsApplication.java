@@ -162,6 +162,7 @@ public class SystemsApplication extends ResourceConfig
     InjectionManager im = handler.getInjectionManager();
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
+    ServiceJWT serviceJWT = locator.getService(ServiceJWT.class);
     svcImpl.initService(SystemsApplication.getSiteId());
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config, false);

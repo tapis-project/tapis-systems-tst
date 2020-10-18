@@ -101,8 +101,11 @@ public class SystemsServiceTest
     // Initialize services
     svc = locator.getService(SystemsService.class);
     svcImpl = locator.getService(SystemsServiceImpl.class);
+    // TODO: This would allow us to get systems jwt. How to get jwt for files?
+    ServiceJWT serviceJWT = locator.getService(ServiceJWT.class);
 
     // Initialize authenticated user and service
+    // TODO: Need to get JWTs. SK now verifies that site is set in the JWT.
     authenticatedOwnerUsr = new AuthenticatedUser(ownerUser, tenantName, TapisThreadContext.AccountType.user.name(), null, ownerUser, tenantName, null, null, null);
     authenticatedAdminUsr = new AuthenticatedUser(adminUser, tenantName, TapisThreadContext.AccountType.user.name(), null, adminUser, tenantName, null, null, null);
     authenticatedTestUsr0 = new AuthenticatedUser(testUser0, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser0, tenantName, null, null, null);
