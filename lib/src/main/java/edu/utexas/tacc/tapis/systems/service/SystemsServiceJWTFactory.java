@@ -49,11 +49,6 @@ public class SystemsServiceJWTFactory implements Factory<ServiceJWT>
       svcJWTParms.setTokensBaseUrl(tokenSvcUrl);
       // Get service password from the env
       String svcPassword = runParms.getServicePassword();
-      // TODO
-      // TODO normal service password not working. Hard code all svcs passwd
-      svcPassword="M2Y0YzFhOWY3MGFiYWY2NjA2MGM4ZThi";
-      System.out.println("WARNING - WARNING Using ALLSERVICES password - WARNING - WARNING");
-      // TODO
       if (StringUtils.isBlank(svcPassword))
       {
         String msg = LibUtils.getMsg("SYSLIB_NO_SVC_PASSWD", svcMasterTenant, tokenSvcUrl);
