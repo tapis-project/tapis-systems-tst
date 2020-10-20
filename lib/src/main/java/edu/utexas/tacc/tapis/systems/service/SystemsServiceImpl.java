@@ -585,41 +585,36 @@ public class SystemsServiceImpl implements SystemsService
     // Get service master tenant
     String svcMasterTenant = RuntimeParameters.getInstance().getServiceMasterTenant();
     if (StringUtils.isBlank(svcMasterTenant)) svcMasterTenant = SYSTEMS_DEFAULT_MASTER_TENANT;
-    // TODO/TBD: svcUser has no JWT. How is that supposed to work? jwt is required.
-    // TODO: was working before but now SK does more checks on JWT.
-    // TODO: Probably just need to get a service JWT here ?
-    //  NO, even with svcJWT it fails due to
-    //   TAPIS_SECURITY_UNINITIALIZED_FILTER HTTP GET request rejected due to one or more missing initialization values: localSite.
-    //  error on SK side. Looks like maybe tenant mgr on SK side not properly initialized for service requests.
-    //  Check with Rich.
-//    // Create user for SK client
-//    String svcJwt = serviceJWT.getAccessJWT(siteId);
-//    AuthenticatedUser svcUser =
-//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcMasterTenant, TapisThreadContext.AccountType.service.name(),
-//                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, svcJwt);
-//    // Use SK client to check for admin role and create it if necessary
-//    var skClient = getSKClient(svcUser);
-//    // Check for admin role
-//    SkRole adminRole = null;
-//    try
-//    {
-//      adminRole = skClient.getRoleByName(svcMasterTenant, SYSTEMS_ADMIN_ROLE);
-//    }
-//    catch (TapisClientException e)
-//    {
-//      if (!e.getTapisMessage().startsWith("TAPIS_NOT_FOUND")) throw e;
-//    }
-//    // TODO: Move msgs to properties file
-//    if (adminRole == null)
-//    {
-//      _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
-//      skClient.createRole(svcMasterTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
-//      _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
-//    }
-//    else
-//    {
-//      _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
-//    }
+    // Create user for SK client
+    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
+    //       that in general this may be the pattern to follow.
+    String svcJwt = serviceJWT.getAccessJWT(siteId);
+    AuthenticatedUser svcUser =
+        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcMasterTenant, TapisThreadContext.AccountType.service.name(),
+                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, svcJwt);
+    // Use SK client to check for admin role and create it if necessary
+    var skClient = getSKClient(svcUser);
+    // Check for admin role
+    SkRole adminRole = null;
+    try
+    {
+      adminRole = skClient.getRoleByName(svcMasterTenant, SYSTEMS_ADMIN_ROLE);
+    }
+    catch (TapisClientException e)
+    {
+      if (!e.getTapisMessage().startsWith("TAPIS_NOT_FOUND")) throw e;
+    }
+    // TODO: Move msgs to properties file
+    if (adminRole == null)
+    {
+      _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
+      skClient.createRole(svcMasterTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
+      _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
+    }
+    else
+    {
+      _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
+    }
     // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
   }

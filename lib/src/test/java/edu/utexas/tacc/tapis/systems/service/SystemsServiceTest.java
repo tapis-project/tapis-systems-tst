@@ -54,6 +54,8 @@ public class SystemsServiceTest
   private AuthenticatedUser authenticatedOwnerUsr, authenticatedTestUsr0, authenticatedTestUsr1, authenticatedTestUsr2,
           authenticatedTestUsr3, authenticatedAdminUsr, authenticatedFilesSvc;
   // Test data
+  private static final String svcName = "systems";
+  private static final String siteId = "tacc";
   // TODO: Currently admin user for a tenant is hard coded to be 'testuser9'
   private static final String adminUser = "testuser9";
   private static final String masterTenantName = "master";
@@ -101,8 +103,7 @@ public class SystemsServiceTest
     // Initialize services
     svc = locator.getService(SystemsService.class);
     svcImpl = locator.getService(SystemsServiceImpl.class);
-    // TODO: This would allow us to get systems jwt. How to get jwt for files?
-    ServiceJWT serviceJWT = locator.getService(ServiceJWT.class);
+    svcImpl.initService(siteId);
 
     // Initialize authenticated user and service
     // TODO: Need to get JWTs. SK now verifies that site is set in the JWT.
