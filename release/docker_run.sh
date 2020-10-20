@@ -4,16 +4,18 @@
 # Service password must be set as the env variable TAPIS_SERVICE_PASSWORD
 # Following services from a running tapis3 are required: tenants, tokens, security-kernel
 # Base URL for remote services is determined by environment value passed in.
-# Systems service is available at http://localhost:8080/v3/systems
+# Service is available at http://localhost:8080/v3/<service_name>
 
 PrgName=$(basename "$0")
 
 USAGE1="Usage: $PRG_NAME { dev, staging, prod }"
 
-# Run docker image for Systems service
+SVC_NAME="systems"
+
+# Run docker image for the service
 BUILD_DIR=../api/target
 ENV=$1
-TAG="tapis/systems:${ENV}"
+TAG="tapis/${SVC_NAME}:${ENV}"
 
 ##########################################################
 # Check number of arguments.
