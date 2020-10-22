@@ -75,6 +75,12 @@ public class SystemsServiceTest
   private static final Capability capC2 = new Capability(Category.SOFTWARE, "OpenMP", "3.1");
   private static final List<Capability> cap2List = new ArrayList<>(List.of(capA2, capB2, capC2));
 
+  // TODO
+  int limit = -1;
+  int offset = 0;
+  String sortBy = "";
+  String startAfer= "";
+
   int numSystems = 19;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
@@ -349,7 +355,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[4];//8
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    List<TSystem> systems = svc.getSystems(authenticatedOwnerUsr, null);
+    List<TSystem> systems = svc.getSystems(authenticatedOwnerUsr, null, limit, offset, sortBy, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
     }
@@ -374,7 +380,7 @@ public class SystemsServiceTest
     itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // When retrieving systems as testUser3 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUsr3, null);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUsr3, null, limit, offset, sortBy, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
     for (TSystem system : systems)
     {

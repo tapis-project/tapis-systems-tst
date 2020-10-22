@@ -40,10 +40,10 @@ public interface SystemsService
   TSystem getSystemByName(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList)
+  List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit, int offset, String sortBy, String startAfter)
           throws TapisException, TapisClientException;
 
-  List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr)
+  List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit, int offset, String sortBy, String startAfter)
           throws TapisException, TapisClientException;
 
   List<String> getSystemNames(AuthenticatedUser authenticatedUser)

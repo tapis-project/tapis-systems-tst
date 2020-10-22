@@ -922,40 +922,19 @@ public class SystemResource
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided as a single
    * search query parameter.
-   * @param searchStr -  List of strings indicating search conditions to use when retrieving results
+   * NOTE: Query parameters here are actually picked up and set in the thread context by QueryParametersRequestFilter.
+   *       They are included here so they are available in the generated API client.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//    summary = "Retrieve list of systems",
-//    description = "Retrieve list of systems.",
-//    tags = "systems",
-//// TODO/TBD: In order to have select and search as parameters in the client we need to use @QueryParam
-////           but having it also in "parameters=" causes problems with the generated openapi.
-////  TBD: it causes duplicate entries in openapi.json, the file is then invalid json.
-////    parameters = {
-////      @Parameter(name = "select", description = "Resource attributes to include when returning results. " +
-////                                                "For example select=result.name,result.host",
-////                 in = ParameterIn.QUERY, schema = @Schema(type = "string")),
-////      @Parameter(name = "search", description = "Search conditions to use when retrieving results. " +
-////                                                "For example, search=name.eq.Lsystem1,enabled.eq.true",
-////                 in = ParameterIn.QUERY, schema = @Schema(type = "string"))
-////    },
-//    responses = {
-//      @ApiResponse(responseCode = "200", description = "Success.",
-//                   content = @Content(schema = @Schema(implementation = RespSystemArray.class))),
-//      @ApiResponse(responseCode = "400", description = "Input error.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "401", description = "Not authorized.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "500", description = "Server error.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//    }
-//  )
-  public Response getSystems(@QueryParam("search") String searchStr,
+  public Response getSystems(@QueryParam("search") @DefaultValue("") String searchStr,
+                             @QueryParam("limit") @DefaultValue("-1") int limit,
+                             @QueryParam("offset") @DefaultValue("0") int offset,
+                             @QueryParam("sort_by") @DefaultValue("") String sortBy,
+                             @QueryParam("start_after") @DefaultValue("") String startAfter,
                              @Context SecurityContext securityContext)
   {
     String opName = "getSystems";
@@ -977,7 +956,7 @@ public class SystemResource
     {
       // Extract the search conditions and validate their form. Back end will handle translating LIKE wildcard
       //   characters (* and !) and dealing with special characters in values.
-      searchList = SearchUtils.extractAndValidateSearchList(searchStr);
+      searchList = SearchUtils.extractAndValidateSearchList(threadContext.getSearch());
     }
     catch (Exception e)
     {
@@ -990,7 +969,7 @@ public class SystemResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystems(authenticatedUser, searchList); }
+    try { systems = systemsService.getSystems(authenticatedUser, searchList, limit, offset, sortBy, startAfter); }
     catch (Exception e)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -1015,7 +994,11 @@ public class SystemResource
   @Path("search/systems")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
+  public Response searchSystemsQueryParameters(@QueryParam("limit") @DefaultValue("-1") int limit,
+                                               @QueryParam("offset") @DefaultValue("0") int offset,
+                                               @QueryParam("sort_by") @DefaultValue("") String sortBy,
+                                               @QueryParam("start_after") @DefaultValue("") String startAfter,
+                                               @Context SecurityContext securityContext)
   {
     String opName = "searchSystemsGet";
     // Trace this request.
@@ -1050,7 +1033,7 @@ public class SystemResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystems(authenticatedUser, searchList); }
+    try { systems = systemsService.getSystems(authenticatedUser, searchList, limit, offset, sortBy, startAfter); }
     catch (Exception e)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -1079,6 +1062,10 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
+                                           @QueryParam("limit") @DefaultValue("-1") int limit,
+                                           @QueryParam("offset") @DefaultValue("0") int offset,
+                                           @QueryParam("sort_by") @DefaultValue("") String sortBy,
+                                           @QueryParam("start_after") @DefaultValue("") String startAfter,
                                            @Context SecurityContext securityContext)
   {
     String opName = "searchSystemsPost";
@@ -1136,7 +1123,7 @@ public class SystemResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr); }
+    try { systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, limit, offset, sortBy, startAfter); }
     catch (Exception e)
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
