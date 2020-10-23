@@ -16,7 +16,7 @@
   "type": "object",
   "required": [ "sgciResourceId", "systemType", "host", "defaultAccessMethod", "jobCanExec" ],
   "properties": {
-    "sgciResourceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "sgciResourceId": { "type": "string", "minLength": 1, "maxLength": 80 },
     "name": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemName" },
     "description": { "type": "string", "maxLength": 2048 },
     "owner": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/userName" },
@@ -31,7 +31,7 @@
     },
     "tags": {
       "type": "array",
-      "items": { "type":  "string", "minLength": 1, "maxLength": 256 }
+      "items": { "type":  "string", "minLength": 1, "maxLength": 128 }
     },
     "notes": { "type": "object" }
   }

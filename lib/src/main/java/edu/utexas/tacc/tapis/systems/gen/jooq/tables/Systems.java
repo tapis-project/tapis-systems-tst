@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -809239004;
+    private static final long serialVersionUID = -1693484455;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -67,7 +67,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.name</code>. Unique name for the system
      */
-    public final TableField<SystemsRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(256).nullable(false), this, "Unique name for the system");
+    public final TableField<SystemsRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(80).nullable(false), this, "Unique name for the system");
 
     /**
      * The column <code>tapis_sys.systems.description</code>. System description
@@ -112,7 +112,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.root_dir</code>. Name of root directory for a Unix system
      */
-    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.VARCHAR(1024), this, "Name of root directory for a Unix system");
+    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Name of root directory for a Unix system");
 
     /**
      * The column <code>tapis_sys.systems.transfer_methods</code>. List of supported transfer methods
@@ -147,22 +147,22 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.job_local_working_dir</code>. Parent directory from which a job is run and where inputs and application assets are staged
      */
-    public final TableField<SystemsRecord, String> JOB_LOCAL_WORKING_DIR = createField(DSL.name("job_local_working_dir"), org.jooq.impl.SQLDataType.VARCHAR(1024), this, "Parent directory from which a job is run and where inputs and application assets are staged");
+    public final TableField<SystemsRecord, String> JOB_LOCAL_WORKING_DIR = createField(DSL.name("job_local_working_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory from which a job is run and where inputs and application assets are staged");
 
     /**
      * The column <code>tapis_sys.systems.job_local_archive_dir</code>. Parent directory used for archiving job output files
      */
-    public final TableField<SystemsRecord, String> JOB_LOCAL_ARCHIVE_DIR = createField(DSL.name("job_local_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(1024), this, "Parent directory used for archiving job output files");
+    public final TableField<SystemsRecord, String> JOB_LOCAL_ARCHIVE_DIR = createField(DSL.name("job_local_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory used for archiving job output files");
 
     /**
      * The column <code>tapis_sys.systems.job_remote_archive_system</code>. Remote system on which job output files will be archived
      */
-    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_SYSTEM = createField(DSL.name("job_remote_archive_system"), org.jooq.impl.SQLDataType.VARCHAR(256), this, "Remote system on which job output files will be archived");
+    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_SYSTEM = createField(DSL.name("job_remote_archive_system"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Remote system on which job output files will be archived");
 
     /**
      * The column <code>tapis_sys.systems.job_remote_archive_dir</code>. Parent directory used for archiving job output files on a remote system
      */
-    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_DIR = createField(DSL.name("job_remote_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(1024), this, "Parent directory used for archiving job output files on a remote system");
+    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_DIR = createField(DSL.name("job_remote_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory used for archiving job output files on a remote system");
 
     /**
      * The column <code>tapis_sys.systems.tags</code>. Tags for user supplied key:value pairs
@@ -177,7 +177,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.import_ref_id</code>. Optional reference ID for systems created via import
      */
-    public final TableField<SystemsRecord, String> IMPORT_REF_ID = createField(DSL.name("import_ref_id"), org.jooq.impl.SQLDataType.VARCHAR(256), this, "Optional reference ID for systems created via import");
+    public final TableField<SystemsRecord, String> IMPORT_REF_ID = createField(DSL.name("import_ref_id"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Optional reference ID for systems created via import");
 
     /**
      * The column <code>tapis_sys.systems.deleted</code>. Indicates if system has been soft deleted

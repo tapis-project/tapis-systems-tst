@@ -7,7 +7,7 @@
   "type": "object",
   "required": [ "sgciResourceId" ],
   "properties": {
-    "sgciResourceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "sgciResourceId": { "type": "string", "minLength": 1, "maxLength": 80 },
     "description": { "type": "string", "maxLength": 2048 },
     "enabled": { "type": "boolean", "default": true },
     "effectiveUserId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/userName" },
@@ -17,7 +17,7 @@
     },
     "tags": {
       "type": "array",
-      "items": { "type":  "string", "minLength": 1, "maxLength": 256 }
+      "items": { "type":  "string", "minLength": 1, "maxLength": 128 }
     },
     "notes": { "type": "object" }
   }

@@ -33,6 +33,12 @@ public final class IntegrationUtils
   public static final Protocol prot2 = new Protocol(AccessMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
+  // TODO Add pagination tests
+  public static final int DEFAULT_LIMIT = -1;
+  public static final int DEFAULT_OFFSET = 0;
+  public static final String DEFAULT_SORTBY = "";
+  public static final String DEFAULT_STARTAFTER = "";
+
   public static final Capability capA = new Capability(Capability.Category.SCHEDULER, "Type", "Slurm");
   public static final Capability capB = new Capability(Capability.Category.HARDWARE, "CoresPerNode", "4");
   public static final Capability capC = new Capability(Capability.Category.SOFTWARE, "OpenMP", "4.5");

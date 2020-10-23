@@ -509,7 +509,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs) throws TapisException
+  public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs,
+                                   int limit, int offset, String sortBy, String startAfter) throws TapisException
   {
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
@@ -585,10 +586,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs) throws TapisException
+  public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs,
+                                                 int limit, int offset, String sortBy, String startAfter) throws TapisException
   {
     // If searchAST null or empty delegate to getTSystems
-    if (searchAST == null) return getTSystems(tenant, null, IDs);
+    if (searchAST == null) return getTSystems(tenant, null, IDs, limit, offset, sortBy, startAfter);
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
 

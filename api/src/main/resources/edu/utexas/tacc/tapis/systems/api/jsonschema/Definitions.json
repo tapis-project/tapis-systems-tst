@@ -4,10 +4,10 @@
   "description": "Common definitions for requests",
   "additionalProperties": false,
 
-  "systemName": { "type": "string", "minLength": 1, "maxLength": 256 },
+  "systemName": { "type": "string", "minLength": 1, "maxLength": 80 },
   "hostName": { "type": "string", "minLength": 1, "maxLength": 256 },
   "userName": { "type": "string", "minLength": 1, "maxLength": 60 },
-  "dirPath": { "type": "string", "minLength": 1, "maxLength": 1024 },
+  "dirPath": { "type": "string", "minLength": 1, "maxLength": 4096 },
   "systemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "accessMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
   "capabilityCategoryEnum": { "type": "string", "enum": ["SCHEDULER", "OS", "HARDWARE", "SOFTWARE", "JOB", "CONTAINER", "MISC", "CUSTOM"] },
@@ -16,8 +16,8 @@
     "required": [ "category", "name" ],
     "properties": {
       "category": { "$ref": "#/capabilityCategoryEnum" },
-      "name": { "type": "string", "minLength": 1, "maxLength": 256 },
-      "value": { "type": "string", "maxLength": 256 }
+      "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+      "value": { "type": "string", "maxLength": 128 }
     }
   },
   "credential": {
