@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringJoiner;
 
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
@@ -60,7 +59,6 @@ import edu.utexas.tacc.tapis.sharedapi.responses.RespResourceUrl;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultChangeCount;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
-import edu.utexas.tacc.tapis.systems.api.requests.ReqSearchSystems;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
@@ -74,7 +72,7 @@ import edu.utexas.tacc.tapis.systems.service.SystemsService;
  * JAX-RS REST resource for a Tapis System (edu.utexas.tacc.tapis.systems.model.TSystem)
  * jax-rs annotations map HTTP verb + endpoint to method invocation and map query parameters.
  * NOTE: Annotations for generating OpenAPI specification not currently used.
- *       Please see tapis-systemsapi/src/main/resources/SystemsAPI.yaml
+ *       Please see tapis-client-java repo file systems-client/SystemsAPI.yaml
  *       and note at top of SystemsResource.java
  *
  * NOTE: The "pretty" query parameter is available for all endpoints. It is processed in
@@ -103,7 +101,6 @@ public class SystemResource
   private static final String HOST_FIELD = "host";
   private static final String DEFAULT_ACCESS_METHOD_FIELD = "defaultAccessMethod";
   private static final String ACCESS_CREDENTIAL_FIELD = "accessCredential";
-  private static final String SEARCH_FIELD = "search";
 
   // ************************************************************************
   // *********************** Fields *****************************************
@@ -920,22 +917,16 @@ public class SystemResource
 
   /**
    * getSystems
-   * Retrieve all systems accessible by requester and matching any search conditions provided as a single
-   * search query parameter.
-   * NOTE: Query parameters here are actually picked up and set in the thread context by QueryParametersRequestFilter.
-   *       They are included here so they are available in the generated API client.
+   * Retrieve all systems accessible by requester and matching any search conditions provided.
+   * NOTE: The query parameters pretty, search, limit, sort_by, offset, start_after are all handled in the filter
+   *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystems(@QueryParam("search") @DefaultValue("") String searchStr,
-                             @QueryParam("limit") @DefaultValue("-1") int limit,
-                             @QueryParam("offset") @DefaultValue("0") int offset,
-                             @QueryParam("sort_by") @DefaultValue("") String sortBy,
-                             @QueryParam("start_after") @DefaultValue("") String startAfter,
-                             @Context SecurityContext securityContext)
+  public Response getSystems(@Context SecurityContext securityContext)
   {
     String opName = "getSystems";
     // Trace this request.
@@ -951,25 +942,30 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    List<String> searchList = null;
-    try
-    {
-      // Extract the search conditions and validate their form. Back end will handle translating LIKE wildcard
-      //   characters (* and !) and dealing with special characters in values.
-      searchList = SearchUtils.extractAndValidateSearchList(threadContext.getSearch());
-    }
-    catch (Exception e)
-    {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_SEARCH_ERROR", authenticatedUser, e.getMessage());
-      _log.error(msg, e);
-      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
-    }
+// TODO code moved to tapis-shared-java, remove from here when all tests pass
+//    try
+//    {
+//      // Extract the search conditions and validate their form. Back end will handle translating LIKE wildcard
+//      //   characters (* and !) and dealing with special characters in values.
+//      searchList = SearchUtils.extractAndValidateSearchList(threadContext.getSearch());
+//    }
+//    catch (Exception e)
+//    {
+//      String msg = ApiUtils.getMsgAuth("SYSAPI_SEARCH_ERROR", authenticatedUser, e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+//    }
 
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First value = " + searchList.get(0));
+    List<String> searchList = threadContext.getSearchList();
+    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystems(authenticatedUser, searchList, limit, offset, sortBy, startAfter); }
+    try {
+      systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
+                                          threadContext.getSortBy(), threadContext.getSortByDirection(),
+                                          threadContext.getOffset(), threadContext.getStartAfter());
+    }
     catch (Exception e)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -994,11 +990,7 @@ public class SystemResource
   @Path("search/systems")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response searchSystemsQueryParameters(@QueryParam("limit") @DefaultValue("-1") int limit,
-                                               @QueryParam("offset") @DefaultValue("0") int offset,
-                                               @QueryParam("sort_by") @DefaultValue("") String sortBy,
-                                               @QueryParam("start_after") @DefaultValue("") String startAfter,
-                                               @Context SecurityContext securityContext)
+  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
   {
     String opName = "searchSystemsGet";
     // Trace this request.
@@ -1033,7 +1025,11 @@ public class SystemResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystems(authenticatedUser, searchList, limit, offset, sortBy, startAfter); }
+    try {
+      systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
+                                          threadContext.getSortBy(), threadContext.getSortByDirection(),
+                                          threadContext.getOffset(), threadContext.getStartAfter());
+    }
     catch (Exception e)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -1062,10 +1058,6 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
-                                           @QueryParam("limit") @DefaultValue("-1") int limit,
-                                           @QueryParam("offset") @DefaultValue("0") int offset,
-                                           @QueryParam("sort_by") @DefaultValue("") String sortBy,
-                                           @QueryParam("start_after") @DefaultValue("") String startAfter,
                                            @Context SecurityContext securityContext)
   {
     String opName = "searchSystemsPost";
@@ -1102,10 +1094,13 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // Create array of search strings form the json object
-    ReqSearchSystems req;
-    try {
-      req = TapisGsonUtils.getGson().fromJson(rawJson, ReqSearchSystems.class);
+    // Construct final SQL-like search string using the json
+    // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
+    // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
+    String searchStr;
+    try
+    {
+      searchStr = SearchUtils.getSearchFromRequestJson(rawJson);
     }
     catch (JsonSyntaxException e)
     {
@@ -1113,17 +1108,15 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
-    // Concatenate all strings into a single SQL-like search string
-    // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
-    // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
-    StringJoiner sj = new StringJoiner(" ");
-    for (String s : req.search) { sj.add(s); }
-    String searchStr = sj.toString();
     _log.debug("Using search string: " + searchStr);
 
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
-    try { systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, limit, offset, sortBy, startAfter); }
+    try {
+      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
+                                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
+                                                           threadContext.getOffset(), threadContext.getStartAfter());
+    }
     catch (Exception e)
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());

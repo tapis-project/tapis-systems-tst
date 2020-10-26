@@ -159,8 +159,8 @@ public class SystemsDaoTest
     TSystem sys0 = systems[4];
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    List<TSystem> systems = dao.getTSystems(tenantName, null, null,
-                                            DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SORTBY, DEFAULT_STARTAFTER);
+    List<TSystem> systems = dao.getTSystems(tenantName, null, null, DEFAULT_LIMIT,
+                                            DEFAULT_SORTBY, DEFAULT_SORT_DIRECTION, DEFAULT_OFFSET, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
     }
@@ -180,8 +180,8 @@ public class SystemsDaoTest
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     idList.add(itemId);
     // Get all systems in list of IDs
-    List<TSystem> systems = dao.getTSystems(tenantName, null, idList,
-                                            DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SORTBY, DEFAULT_STARTAFTER);
+    List<TSystem> systems = dao.getTSystems(tenantName, null, idList, DEFAULT_LIMIT,
+                                            DEFAULT_SORTBY, DEFAULT_SORT_DIRECTION, DEFAULT_OFFSET, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
       Assert.assertTrue(idList.contains(system.getId()));

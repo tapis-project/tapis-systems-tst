@@ -21,6 +21,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SelectWhereStep;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -509,11 +510,21 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs,
-                                   int limit, int offset, String sortBy, String startAfter) throws TapisException
+  public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs, int limit,
+                                   String sortBy, String sortDirection, int offset, String startAfter) throws TapisException
   {
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
+
+    boolean sortAsc = true;
+    if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+
+    // If startAfter is given then sortBy is required
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(sortBy))
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
+      throw new TapisException(msg);
+    }
 
     // If no IDs in list then we are done.
     if (IDs != null && IDs.isEmpty()) return retList;
@@ -544,11 +555,55 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Add searchList to where condition
       whereCondition = addSearchListToWhere(whereCondition, searchList);
 
+      // Determine and check sort_by column
+      Field<?> colSortBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(sortBy)));
+      if (!StringUtils.isBlank(sortBy) && colSortBy == null)
+      {
+        String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(sortBy));
+        throw new TapisException(msg);
+      }
+
+      // Add startAfter
+      if (!StringUtils.isBlank(startAfter))
+      {
+        // Build search string so we can re-use code for checking and adding a condition
+        String searchStr;
+        if (sortAsc) searchStr = sortBy + ".gt." + startAfter;
+        else searchStr = sortBy + ".lt." + startAfter;
+        whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
+      }
+
       // Add IN condition for list of IDs
       if (IDs != null && !IDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(IDs));
 
-      // Execute the select
-      Result<SystemsRecord> results = db.selectFrom(SYSTEMS).where(whereCondition).fetch();
+      // Execute the select including limit, sort_by, offset and start_after
+      // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
+      //       Jooq claims to handle it well.
+      Result<SystemsRecord> results;
+      org.jooq.SelectConditionStep condStep = db.selectFrom(SYSTEMS).where(whereCondition);
+      if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
+      {
+        // We are ordering and limiting
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(offset).fetch();
+        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(offset).fetch();
+      }
+      else if (!StringUtils.isBlank(sortBy))
+      {
+        // We are ordering but not limiting
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).fetch();
+        else results = condStep.orderBy(colSortBy.desc()).fetch();
+      }
+      else if (limit >= 0)
+      {
+        // We are limiting but not ordering
+        results = condStep.limit(limit).offset(offset).fetch();
+      }
+      else
+      {
+        // We are not limiting and not ordering
+        results = condStep.fetch();
+      }
+
       if (results == null || results.isEmpty()) return retList;
 
       // Fill in job capabilities list from aux table
@@ -586,16 +641,20 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs,
-                                                 int limit, int offset, String sortBy, String startAfter) throws TapisException
+  public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs, int limit,
+                                                 String sortBy, String sortDirection, int offset, String startAfter) throws TapisException
   {
     // If searchAST null or empty delegate to getTSystems
-    if (searchAST == null) return getTSystems(tenant, null, IDs, limit, offset, sortBy, startAfter);
+    if (searchAST == null) return getTSystems(tenant, null, IDs, limit, sortBy, sortDirection, offset, startAfter);
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
 
     // If no IDs in list then we are done.
     if (IDs != null && IDs.isEmpty()) return retList;
+
+    // TODO Support limit, sortBy, sortDirection, offset, startAfter
+    boolean sortAsc = true;
+    if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;

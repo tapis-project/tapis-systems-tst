@@ -220,8 +220,8 @@ public class SearchASTDaoTest
       // Build an AST from the sql-like search string
       ASTNode searchAST = ASTParser.parse(cd.sqlSearchStr);
       System.out.println("  Created AST with leaf node count: " + searchAST.countLeaves());
-      List<TSystem> searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null,
-                                                                  DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SORTBY, DEFAULT_STARTAFTER);
+      List<TSystem> searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT,
+              DEFAULT_SORTBY, DEFAULT_SORT_DIRECTION, DEFAULT_OFFSET, DEFAULT_STARTAFTER);
       System.out.println("  Result size: " + searchResults.size());
       assertEquals(searchResults.size(), cd.count, "SearchASTDaoTest.testValidCases: Incorrect result count for case number: " + caseNum);
     }

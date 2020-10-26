@@ -712,8 +712,8 @@ public class SystemsServiceImpl implements SystemsService
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
-  public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList,
-                                  int limit, int offset, String sortBy, String startAfter)
+  public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
+                                  String sortBy, String sortDirection, int offset, String startAfter)
           throws TapisException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -751,7 +751,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, allowedSystemIDs,
-                                            limit, offset, sortBy, startAfter);
+                                            limit, sortBy, sortDirection, offset, startAfter);
 
     for (TSystem system : systems)
     {
@@ -776,12 +776,12 @@ public class SystemsServiceImpl implements SystemsService
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
-  public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr,
-                                                   int limit, int offset, String sortBy, String startAfter)
+  public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
+                                                   String sortBy, String sortDirection, int offset, String startAfter)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, offset, sortBy, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, sortBy, sortDirection, offset, startAfter);
 
     SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -817,7 +817,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystemsUsingSearchAST(authenticatedUser.getTenantId(), searchAST, allowedSystemIDs,
-                                                          limit, offset, sortBy, startAfter);
+                                                          limit, sortBy, sortDirection, offset, startAfter);
 
     for (TSystem system : systems)
     {

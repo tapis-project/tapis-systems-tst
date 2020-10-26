@@ -77,8 +77,9 @@ public class SystemsServiceTest
 
   // TODO
   int limit = -1;
-  int offset = 0;
   String sortBy = "";
+  String sortDirection = "";
+  int offset = 0;
   String startAfer= "";
 
   int numSystems = 19;
@@ -355,7 +356,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[4];//8
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    List<TSystem> systems = svc.getSystems(authenticatedOwnerUsr, null, limit, offset, sortBy, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedOwnerUsr, null, limit, sortBy, sortDirection, offset, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
     }
@@ -380,7 +381,7 @@ public class SystemsServiceTest
     itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // When retrieving systems as testUser3 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUsr3, null, limit, offset, sortBy, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUsr3, null, limit, sortBy, sortDirection, offset, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
     for (TSystem system : systems)
     {

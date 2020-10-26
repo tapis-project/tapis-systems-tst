@@ -37,6 +37,7 @@ public final class IntegrationUtils
   public static final int DEFAULT_LIMIT = -1;
   public static final int DEFAULT_OFFSET = 0;
   public static final String DEFAULT_SORTBY = "";
+  public static final String DEFAULT_SORT_DIRECTION = "";
   public static final String DEFAULT_STARTAFTER = "";
 
   public static final Capability capA = new Capability(Capability.Category.SCHEDULER, "Type", "Slurm");
@@ -60,7 +61,7 @@ public final class IntegrationUtils
     {
       // Suffix which should be unique for each system within each integration test
       String suffix = key + "_" + String.format("%03d", i+1);
-      String name = sysNamePrefix + "_" + suffix;
+      String name = getSysName(key, i+1);
       // Constructor initializes all attributes except for JobCapabilities and Credential
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser,
               "host"+suffix, true,"effUser"+suffix, prot1.getAccessMethod(), "bucket"+suffix, "/root"+suffix,
@@ -70,5 +71,10 @@ public final class IntegrationUtils
       systems[i].setJobCapabilities(capList);
     }
     return systems;
+  }
+  public static String getSysName(String key, int idx)
+  {
+    String suffix = key + "_" + String.format("%03d", idx);
+    return sysNamePrefix + "_" + suffix;
   }
 }
