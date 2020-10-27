@@ -516,6 +516,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
 
+    // Negative offset indicates no offset
+    if (offset < 0) offset = 0;
+
     boolean sortAsc = true;
     if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
 
@@ -653,6 +656,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (IDs != null && IDs.isEmpty()) return retList;
 
     // TODO Support limit, sortBy, sortDirection, offset, startAfter
+
+    // Negative offset indicates no offset
+    if (offset < 0) offset = 0;
+
     boolean sortAsc = true;
     if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
 

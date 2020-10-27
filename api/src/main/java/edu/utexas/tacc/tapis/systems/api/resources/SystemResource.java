@@ -1141,24 +1141,6 @@ public class SystemResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//    summary = "Soft delete a system given the system name",
-//    description = "Soft delete a system given the system name. ",
-//    tags = "systems",
-////    parameters = {
-////      @Parameter(name = "pretty", description = "Pretty print the response", in = ParameterIn.QUERY, schema = @Schema(type = "boolean"))
-////    },
-//    responses = {
-//      @ApiResponse(responseCode = "200", description = "System deleted.",
-//        content = @Content(schema = @Schema(implementation = RespChangeCount.class))),
-//      @ApiResponse(responseCode = "400", description = "Input error.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "401", description = "Not authorized.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "500", description = "Server error.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//    }
-//  )
 // TODO Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
   public Response deleteSystemByName(@PathParam("systemName") String systemName,
                                      @Context SecurityContext securityContext)
