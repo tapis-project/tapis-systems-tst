@@ -26,7 +26,7 @@ public final class IntegrationUtils
   public static final List<TransferMethod> txfrMethodsList = new ArrayList<>(List.of(TransferMethod.SFTP, TransferMethod.S3));
   public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
   public static final String[] tags = {"value1", "value2", "a",
-    "a long tag with spaces and numbers (1 3 2) and special characters [_ $ - & * % @ + = ! ^ ? < > , . ( ) { } / \\ | ]. Backslashes must be escaped."};
+    "Long tag (1 3 2) special chars [_ $ - & * % @ + = ! ^ ? < > , . ( ) { } / \\ | ]. Backslashes must be escaped."};
   public static final Object notes = TapisGsonUtils.getGson().fromJson("{\"project\": \"myproj1\", \"testdata\": \"abc1\"}", JsonObject.class);
   public static final JsonObject notesObj = (JsonObject) notes;
   public static final Protocol prot1 = new Protocol(AccessMethod.PKI_KEYS, txfrMethodsList, 22, false, "", 0);
@@ -65,6 +65,7 @@ public final class IntegrationUtils
     }
     return systems;
   }
+
   public static String getSysName(String key, int idx)
   {
     String suffix = key + "_" + String.format("%03d", idx);

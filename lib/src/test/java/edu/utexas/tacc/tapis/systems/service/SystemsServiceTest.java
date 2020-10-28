@@ -1,6 +1,7 @@
 package edu.utexas.tacc.tapis.systems.service;
 
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
@@ -275,6 +276,14 @@ public class SystemsServiceTest
     // Original owner should no longer have the ALL permission
     userPerms = svc.getUserPermissions(authenticatedTestUsr2, sys0.getName(), ownerUser);
     Assert.assertFalse(userPerms.contains(Permission.ALL));
+    // Original owner should not be able to modify system
+    try {
+      svc.softDeleteSystemByName(authenticatedOwnerUsr, sys0.getName());
+      Assert.fail("Original owner should not have permission to update system after change of ownership. System name: " + sys0.getName() +
+              " Old owner: " + authenticatedOwnerUsr.getName() + " New Owner: " + newOwnerName);
+    } catch (Exception e) {
+      Assert.assertEquals(e.getMessage(), "HTTP 401 Unauthorized");
+    }
   }
 
   // Check that when a system is created variable substitution is correct for:
