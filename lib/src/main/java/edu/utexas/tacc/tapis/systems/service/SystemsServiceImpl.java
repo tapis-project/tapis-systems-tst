@@ -410,17 +410,21 @@ public class SystemsServiceImpl implements SystemsService
     // Use try/catch to rollback any changes in case of failure.
     // Get SK client now. If we cannot get this rollback not needed.
     var skClient = getSKClient(authenticatedUser);
+    String systemsPermSpec = getPermSpecStr(systemTenantName, systemName, Permission.ALL);
+    String roleNameR = TSystem.ROLE_READ_PREFIX + systemId;
+    // TODO remove addition of files related permSpec
+    String filesPermSpec = "files:" + systemTenantName + ":*:" + systemName;
     try {
       // ------------------- Make Dao call to update the system owner -----------------------------------
       dao.updateSystemOwner(authenticatedUser, systemId, newOwnerName);
-      // Add permissions for new owner
-      String systemsPermSpec = getPermSpecStr(systemTenantName, systemName, Permission.ALL);
+      // Add role and permissions for new owner
+      skClient.grantUserRole(systemTenantName, newOwnerName, roleNameR);
       skClient.grantUserPermission(systemTenantName, newOwnerName, systemsPermSpec);
       // TODO remove addition of files related permSpec
       // Give owner files service related permission for root directory
-      String filesPermSpec = "files:" + systemTenantName + ":*:" + systemName;
       skClient.grantUserPermission(systemTenantName, newOwnerName, filesPermSpec);
-      // Remove permissions from old owner
+      // Remove role and permissions from old owner
+      skClient.revokeUserRole(systemTenantName, oldOwnerName, roleNameR);
       skClient.revokeUserPermission(systemTenantName, oldOwnerName, systemsPermSpec);
       // TODO: Notify files service of the change
     }
@@ -428,15 +432,17 @@ public class SystemsServiceImpl implements SystemsService
     {
       // Something went wrong. Attempt to undo all changes and then re-throw the exception
       try { dao.updateSystemOwner(authenticatedUser, systemId, oldOwnerName); } catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "updateOwner", e.getMessage()));}
-      String systemsPermSpec = getPermSpecStr(systemTenantName, systemName, Permission.ALL);
       // TODO remove filesPermSpec related code
-      String filesPermSpec = "files:" + systemName + ":*:" + systemName;
-      try { skClient.revokeUserPermission(systemTenantName, newOwnerName, systemsPermSpec); }
+      try { skClient.revokeUserRole(systemTenantName, newOwnerName, roleNameR); }
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "revokeRoleNewOwner", e.getMessage()));}
+      try { skClient.revokeUserPermission(systemTenantName, newOwnerName, filesPermSpec); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "revokePermNewOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, newOwnerName, filesPermSpec); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "revokePermF1", e.getMessage()));}
       try { skClient.grantUserPermission(systemTenantName, oldOwnerName, systemsPermSpec); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "grantPermOldOwner", e.getMessage()));}
+      try { skClient.grantUserRole(systemTenantName, oldOwnerName, roleNameR); }
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "grantRoleOldOwner", e.getMessage()));}
       try { skClient.grantUserPermission(systemTenantName, oldOwnerName, filesPermSpec); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "grantPermF1", e.getMessage()));}
       throw e0;
@@ -705,9 +711,13 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
-   * Get all systems for which user has READ permission
+   * Get all systems matching certain criteria and for which user has READ permission
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
+   * @param limit - indicates maximum number of results to be included, -1 for unlimited
+   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
+   * @param offset - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
@@ -772,6 +782,10 @@ public class SystemsServiceImpl implements SystemsService
    * Use provided string containing a valid SQL where clause for the search.
    * @param authenticatedUser - principal user containing tenant and user info
    * @param sqlSearchStr - string containing a valid SQL where clause
+   * @param limit - indicates maximum number of results to be included, -1 for unlimited
+   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
+   * @param offset - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */

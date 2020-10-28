@@ -362,6 +362,7 @@ public class SearchDaoTest
     // Should get systems named SrchGet_017 to SrchGet_014
     checkOrder(searchResults, numSystems - offset, numSystems - limit);
   }
+
   /*
    * Test sorting: limit, sort_by, start_after
    */

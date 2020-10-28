@@ -942,20 +942,6 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-// TODO code moved to tapis-shared-java, remove from here when all tests pass
-//    try
-//    {
-//      // Extract the search conditions and validate their form. Back end will handle translating LIKE wildcard
-//      //   characters (* and !) and dealing with special characters in values.
-//      searchList = SearchUtils.extractAndValidateSearchList(threadContext.getSearch());
-//    }
-//    catch (Exception e)
-//    {
-//      String msg = ApiUtils.getMsgAuth("SYSAPI_SEARCH_ERROR", authenticatedUser, e.getMessage());
-//      _log.error(msg, e);
-//      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
-//    }
-
     List<String> searchList = threadContext.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 

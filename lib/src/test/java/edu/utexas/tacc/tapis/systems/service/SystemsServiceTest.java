@@ -284,6 +284,14 @@ public class SystemsServiceTest
     } catch (Exception e) {
       Assert.assertEquals(e.getMessage(), "HTTP 401 Unauthorized");
     }
+    // Original owner should not be able to read system
+    try {
+      svc.getSystemByName(authenticatedOwnerUsr, sys0.getName(), false, null);
+      Assert.fail("Original owner should not have permission to read system after change of ownership. System name: " + sys0.getName() +
+              " Old owner: " + authenticatedOwnerUsr.getName() + " New Owner: " + newOwnerName);
+    } catch (Exception e) {
+      Assert.assertEquals(e.getMessage(), "HTTP 401 Unauthorized");
+    }
   }
 
   // Check that when a system is created variable substitution is correct for:
