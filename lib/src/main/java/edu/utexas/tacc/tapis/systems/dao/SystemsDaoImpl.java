@@ -502,32 +502,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * getTSystems
    * Retrieve all TSystems matching various search and sort criteria.
-   *     Search conditions given as a list of strings.
+   *     Search conditions given as a list of strings or an abstract syntax tree (AST) but not both.
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
+   * WARNING: If both searchList and searchAST provided searchList is used and searchAST is ignored.
    * @param tenant - tenant name
    * @param searchList - optional list of conditions used for searching
-   * @param IDs - list of system IDs to consider. null indicates no restriction.
-   * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
-   * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
-   * @return - list of TSystem objects
-   * @throws TapisException - on error
-   */
-  @Override
-  public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs, int limit,
-                                   String sortBy, String sortDirection, int skip, String startAfter) throws TapisException
-  {
-    // Build and execute SQL using helper method
-    return getTSystemsHelper(tenant, searchList, null, IDs, limit, sortBy, sortDirection, skip, startAfter);
-  }
-
-  /**
-   * getTSystemsUsingSearchAST
-   * Retrieve all TSystems matching various search and sort criteria.
-   *     Search conditions given as an abstract syntax tree (AST).
-   * @param tenant - tenant name
    * @param searchAST - AST containing search conditions
    * @param IDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
@@ -538,11 +518,134 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs, int limit,
-                                                 String sortBy, String sortDirection, int skip, String startAfter) throws TapisException
+  public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs,
+                                   int limit, String sortBy, String sortDirection, int skip, String startAfter)
+          throws TapisException
   {
-    // Build and execute SQL using helper method
-    return getTSystemsHelper(tenant, null, searchAST, IDs, limit, sortBy, sortDirection, skip, startAfter);
+    // The result list should always be non-null.
+    var retList = new ArrayList<TSystem>();
+
+    // Negative skip indicates no skip
+    if (skip < 0) skip = 0;
+
+    boolean sortAsc = true;
+    if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+
+    // If startAfter is given then sortBy is required
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(sortBy))
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
+      throw new TapisException(msg);
+    }
+
+    // If no IDs in list then we are done.
+    if (IDs != null && IDs.isEmpty()) return retList;
+
+// DEBUG Iterate over all columns and show the type
+//      Field<?>[] cols = SYSTEMS.fields();
+//      for (Field<?> col : cols) {
+//        var dataType = col.getDataType();
+//        int sqlType = dataType.getSQLType();
+//        String sqlTypeName = dataType.getTypeName();
+//        _log.debug("Column name: " + col.getName() + " type: " + sqlTypeName);
+//      }
+// DEBUG
+
+    // Determine and check sort_by column
+    Field<?> colSortBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(sortBy)));
+    if (!StringUtils.isBlank(sortBy) && colSortBy == null)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(sortBy));
+      throw new TapisException(msg);
+    }
+
+    // Begin where condition for the query
+    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+
+    // Add searchList or searchAST to where condition
+    if (searchList != null)
+    {
+      whereCondition = addSearchListToWhere(whereCondition, searchList);
+    }
+    else
+    {
+      Condition astCondition = createConditionFromAst(searchAST);
+      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
+    }
+
+    // Add startAfter
+    if (!StringUtils.isBlank(startAfter))
+    {
+      // Build search string so we can re-use code for checking and adding a condition
+      String searchStr;
+      if (sortAsc) searchStr = sortBy + ".gt." + startAfter;
+      else searchStr = sortBy + ".lt." + startAfter;
+      whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
+    }
+
+    // Add IN condition for list of IDs
+    if (IDs != null && !IDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(IDs));
+
+    // ------------------------- Build and execute SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+
+      // Execute the select including limit, sort_by, skip and start_after
+      // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
+      //       Jooq claims to handle it well.
+      Result<SystemsRecord> results;
+      org.jooq.SelectConditionStep condStep = db.selectFrom(SYSTEMS).where(whereCondition);
+      if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
+      {
+        // We are ordering and limiting
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(skip).fetch();
+        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(skip).fetch();
+      }
+      else if (!StringUtils.isBlank(sortBy))
+      {
+        // We are ordering but not limiting
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).fetch();
+        else results = condStep.orderBy(colSortBy.desc()).fetch();
+      }
+      else if (limit >= 0)
+      {
+        // We are limiting but not ordering
+        results = condStep.limit(limit).offset(skip).fetch();
+      }
+      else
+      {
+        // We are not limiting and not ordering
+        results = condStep.fetch();
+      }
+
+      if (results == null || results.isEmpty()) return retList;
+
+      // Fill in job capabilities list from aux table
+      for (SystemsRecord r : results)
+      {
+        TSystem s = r.into(TSystem.class);
+        s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
+        retList.add(s);
+      }
+
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+    return retList;
   }
 
   /**
@@ -727,144 +830,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /* ********************************************************************** */
   /*                             Private Methods                            */
   /* ********************************************************************** */
-
-  /**
-   * getTSystemsHelper
-   * General method for retrieving systems, used by getTSystems and getTSystemsUsingAST
-   * Provide searchList when calling from getTSystems
-   * Provide searchAST when calling from getTSystemsUsingAST
-   * @return - list of TSystem objects
-   * @throws TapisException - on error
-   */
-  private List<TSystem> getTSystemsHelper(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit, String sortBy,
-                                          String sortDirection, int skip, String startAfter)
-          throws TapisException
-  {
-    // The result list should always be non-null.
-    var retList = new ArrayList<TSystem>();
-
-    // Negative skip indicates no skip
-    if (skip < 0) skip = 0;
-
-    boolean sortAsc = true;
-    if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
-
-    // If startAfter is given then sortBy is required
-    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(sortBy))
-    {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
-      throw new TapisException(msg);
-    }
-
-    // If no IDs in list then we are done.
-    if (IDs != null && IDs.isEmpty()) return retList;
-
-// DEBUG Iterate over all columns and show the type
-//      Field<?>[] cols = SYSTEMS.fields();
-//      for (Field<?> col : cols) {
-//        var dataType = col.getDataType();
-//        int sqlType = dataType.getSQLType();
-//        String sqlTypeName = dataType.getTypeName();
-//        _log.debug("Column name: " + col.getName() + " type: " + sqlTypeName);
-//      }
-// DEBUG
-
-    // Determine and check sort_by column
-    Field<?> colSortBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(sortBy)));
-    if (!StringUtils.isBlank(sortBy) && colSortBy == null)
-    {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(sortBy));
-      throw new TapisException(msg);
-    }
-
-    // Begin where condition for the query
-    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
-
-    // Add searchList or searchAST to where condition
-    if (searchList != null)
-    {
-      whereCondition = addSearchListToWhere(whereCondition, searchList);
-    }
-    else
-    {
-      Condition astCondition = createConditionFromAst(searchAST);
-      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
-    }
-
-    // Add startAfter
-    if (!StringUtils.isBlank(startAfter))
-    {
-      // Build search string so we can re-use code for checking and adding a condition
-      String searchStr;
-      if (sortAsc) searchStr = sortBy + ".gt." + startAfter;
-      else searchStr = sortBy + ".lt." + startAfter;
-      whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
-    }
-
-    // Add IN condition for list of IDs
-    if (IDs != null && !IDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(IDs));
-
-    // ------------------------- Build and execute SQL ----------------------------
-    Connection conn = null;
-    try
-    {
-      // Get a database connection.
-      conn = getConnection();
-      DSLContext db = DSL.using(conn);
-
-      // Execute the select including limit, sort_by, skip and start_after
-      // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
-      //       Jooq claims to handle it well.
-      Result<SystemsRecord> results;
-      org.jooq.SelectConditionStep condStep = db.selectFrom(SYSTEMS).where(whereCondition);
-      if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
-      {
-        // We are ordering and limiting
-        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(skip).fetch();
-        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(skip).fetch();
-      }
-      else if (!StringUtils.isBlank(sortBy))
-      {
-        // We are ordering but not limiting
-        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).fetch();
-        else results = condStep.orderBy(colSortBy.desc()).fetch();
-      }
-      else if (limit >= 0)
-      {
-        // We are limiting but not ordering
-        results = condStep.limit(limit).offset(skip).fetch();
-      }
-      else
-      {
-        // We are not limiting and not ordering
-        results = condStep.fetch();
-      }
-
-      if (results == null || results.isEmpty()) return retList;
-
-      // Fill in job capabilities list from aux table
-      for (SystemsRecord r : results)
-      {
-        TSystem s = r.into(TSystem.class);
-        s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
-        retList.add(s);
-      }
-
-      // Close out and commit
-      LibUtils.closeAndCommitDB(conn, null, null);
-    }
-    catch (Exception e)
-    {
-      // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
-    }
-    finally
-    {
-      // Always return the connection back to the connection pool.
-      LibUtils.finalCloseDB(conn);
-    }
-    return retList;
-  }
 
   /**
    * Given an sql connection and basic info add an update record

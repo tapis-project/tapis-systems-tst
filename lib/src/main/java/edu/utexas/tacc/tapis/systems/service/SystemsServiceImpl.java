@@ -760,7 +760,7 @@ public class SystemsServiceImpl implements SystemsService
     List<Integer> allowedSystemIDs = getAllowedSystemIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, allowedSystemIDs,
+    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSystemIDs,
                                             limit, sortBy, sortDirection, skip, startAfter);
 
     for (TSystem system : systems)
@@ -830,7 +830,7 @@ public class SystemsServiceImpl implements SystemsService
     List<Integer> allowedSystemIDs = getAllowedSystemIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<TSystem> systems = dao.getTSystemsUsingSearchAST(authenticatedUser.getTenantId(), searchAST, allowedSystemIDs,
+    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSystemIDs,
                                                           limit, sortBy, sortDirection, skip, startAfter);
 
     for (TSystem system : systems)

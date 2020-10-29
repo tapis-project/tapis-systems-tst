@@ -34,11 +34,8 @@ public interface SystemsDao
 
   TSystem getTSystemByName(String tenant, String name) throws TapisException;
 
-  List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs, int limit,
+  List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
-
-  List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs, int limit,
-                                          String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
   List<String> getTSystemNames(String tenant) throws TapisException;
 
