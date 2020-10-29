@@ -502,10 +502,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * getTSystems
    * Retrieve all TSystems matching various search and sort criteria.
-   *     Search conditions given as a list of strings or an abstract syntax tree (AST) but not both.
+   *     Search conditions given as a list of strings or an abstract syntax tree (AST).
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
-   * WARNING: If both searchList and searchAST provided searchList is used and searchAST is ignored.
+   * WARNING: If both searchList and searchAST provided both are used.
    * @param tenant - tenant name
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
@@ -567,7 +567,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       whereCondition = addSearchListToWhere(whereCondition, searchList);
     }
-    else
+    else if (searchAST != null)
     {
       Condition astCondition = createConditionFromAst(searchAST);
       if (astCondition != null) whereCondition = whereCondition.and(astCondition);
