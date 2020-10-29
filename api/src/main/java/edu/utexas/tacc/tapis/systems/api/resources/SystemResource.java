@@ -820,7 +820,7 @@ public class SystemResource
   /**
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, sort_by, skip, start_after are all handled in the filter
+   * NOTE: The query parameters pretty, search, limit, sortBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.

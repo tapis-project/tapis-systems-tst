@@ -13,7 +13,6 @@ import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
-import org.apache.activemq.filter.UnaryExpression;
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
@@ -21,7 +20,6 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.SelectWhereStep;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -511,9 +509,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchAST - AST containing search conditions
    * @param IDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
+   * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sortBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
@@ -551,7 +549,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 //      }
 // DEBUG
 
-    // Determine and check sort_by column
+    // Determine and check sortBy column
     Field<?> colSortBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(sortBy)));
     if (!StringUtils.isBlank(sortBy) && colSortBy == null)
     {
@@ -594,7 +592,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Execute the select including limit, sort_by, skip and start_after
+      // Execute the select including limit, sortBy, skip and startAfter
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;

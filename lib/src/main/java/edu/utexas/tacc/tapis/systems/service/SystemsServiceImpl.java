@@ -715,9 +715,9 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
+   * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sortBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
@@ -783,9 +783,9 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param sqlSearchStr - string containing a valid SQL where clause
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
+   * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sortBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */

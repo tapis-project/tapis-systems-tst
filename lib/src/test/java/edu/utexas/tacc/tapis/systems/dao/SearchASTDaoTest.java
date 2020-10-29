@@ -290,7 +290,7 @@ public class SearchASTDaoTest
   }
 
   /*
-   * Test sorting: limit, sort_by, skip
+   * Test sorting: limit, sortBy, skip
    */
   @Test(groups={"integration"})
   public void testSortingSkip() throws Exception
@@ -348,7 +348,7 @@ public class SearchASTDaoTest
   }
 
   /*
-   * Test sorting: limit, sort_by, start_after
+   * Test sorting: limit, sortBy, startAfter
    */
   @Test(groups={"integration"})
   public void testSortingStartAfter() throws Exception
@@ -363,7 +363,7 @@ public class SearchASTDaoTest
     int limit;
     int startAfterIdx;
     String startAfter;
-    // Sort and check order with limit and start_after
+    // Sort and check order with limit and startAfter
     sortBy = "name";
     sortDirection = "asc";
     limit = 2;
