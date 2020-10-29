@@ -5,9 +5,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 
 public final class RespSystem extends RespAbstract
 {
-  /**
-   * Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-   */
+  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
   public RespSystem() { }
 
   public RespSystem(TSystem result) { this.result = result; }

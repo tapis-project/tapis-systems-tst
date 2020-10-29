@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystemArray;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisJSONException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
@@ -863,9 +863,11 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    int cnt = systems.size();
-    RespSystemArray resp1 = new RespSystemArray(systems);
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", cnt + " items"), resp1);
+    // TODO Get total count
+    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+    String itemCountStr = systems.size() + " systems";
+    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
 
   /**
@@ -927,9 +929,11 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    int cnt = systems.size();
-    RespSystemArray resp1 = new RespSystemArray(systems);
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", cnt + " items"), resp1);
+    // TODO Get total count
+    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+    String itemCountStr = systems.size() + " systems";
+    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
 
   /**
@@ -1014,9 +1018,11 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    int cnt = systems.size();
-    RespSystemArray resp1 = new RespSystemArray(systems);
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", cnt + " items"), resp1);
+    // TODO Get total count
+    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+    String itemCountStr = systems.size() + " systems";
+    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
 
   /**
