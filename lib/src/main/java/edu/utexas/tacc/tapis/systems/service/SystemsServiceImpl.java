@@ -716,14 +716,14 @@ public class SystemsServiceImpl implements SystemsService
    * @param searchList - optional list of conditions used for searching
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
    * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
-   * @param offset - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
+   * @param skip - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                  String sortBy, String sortDirection, int offset, String startAfter)
+                                  String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -761,7 +761,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, allowedSystemIDs,
-                                            limit, sortBy, sortDirection, offset, startAfter);
+                                            limit, sortBy, sortDirection, skip, startAfter);
 
     for (TSystem system : systems)
     {
@@ -784,18 +784,18 @@ public class SystemsServiceImpl implements SystemsService
    * @param sqlSearchStr - string containing a valid SQL where clause
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
    * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
-   * @param offset - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
+   * @param skip - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                                   String sortBy, String sortDirection, int offset, String startAfter)
+                                                   String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, sortBy, sortDirection, offset, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, sortBy, sortDirection, skip, startAfter);
 
     SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -831,7 +831,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystemsUsingSearchAST(authenticatedUser.getTenantId(), searchAST, allowedSystemIDs,
-                                                          limit, sortBy, sortDirection, offset, startAfter);
+                                                          limit, sortBy, sortDirection, skip, startAfter);
 
     for (TSystem system : systems)
     {

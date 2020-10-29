@@ -158,37 +158,6 @@ public class SystemResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//    summary = "Create a system",
-//    description =
-//        "Create a system using a request body. " +
-//        "System name must be unique within a tenant and can be composed of alphanumeric characters " +
-//        "and the following special characters: [-._~]. Name must begin with an alphabetic character " +
-//        "and can be no more than 256 characters in length. " +
-//        "Description is optional with a maximum length of 2048 characters.",
-//    tags = "systems",
-////    parameters = {
-////      @Parameter(name = "pretty", description = "Pretty print the response", in = ParameterIn.QUERY, schema = @Schema(type = "boolean"))
-////    },
-//    requestBody =
-//      @RequestBody(
-//        description = "A JSON object specifying information for the system to be created.",
-//        required = true,
-//        content = @Content(schema = @Schema(implementation = ReqCreateSystem.class))
-//      ),
-//    responses = {
-//      @ApiResponse(responseCode = "201", description = "System created.",
-//                   content = @Content(schema = @Schema(implementation = RespResourceUrl.class))),
-//      @ApiResponse(responseCode = "400", description = "Input error. Invalid JSON.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "401", description = "Not authorized.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//      @ApiResponse(responseCode = "409", description = "System already exists.",
-//                   content = @Content(schema = @Schema(implementation = RespResourceUrl.class))),
-//      @ApiResponse(responseCode = "500", description = "Server error.",
-//        content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//    }
-//  )
   public Response createSystem(InputStream payloadStream,
                                @Context SecurityContext securityContext)
   {
@@ -319,32 +288,6 @@ public class SystemResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//          summary = "Update a system",
-//          description =
-//                  "Update attributes for a system. Only certain attributes may be updated: " +
-//                  "description, host, enabled, effectiveUserId, defaultAccessMethod, transferMethods, " +
-//                  "port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.",
-//          tags = "systems",
-//          requestBody =
-//          @RequestBody(
-//                  description = "A JSON object specifying changes to be applied.",
-//                  required = true,
-//                  content = @Content(schema = @Schema(implementation = ReqUpdateSystem.class))
-//          ),
-//          responses = {
-//                  @ApiResponse(responseCode = "200", description = "System updated.",
-//                          content = @Content(schema = @Schema(implementation = RespResourceUrl.class))),
-//                  @ApiResponse(responseCode = "400", description = "Input error. Invalid JSON.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//                  @ApiResponse(responseCode = "401", description = "Not authorized.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//                  @ApiResponse(responseCode = "404", description = "System not found.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//                  @ApiResponse(responseCode = "500", description = "Server error.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//          }
-//  )
   public Response updateSystem(@PathParam("systemName") String systemName,
                                InputStream payloadStream,
                                @Context SecurityContext securityContext)
@@ -735,22 +678,6 @@ public class SystemResource
   @Path("{systemName}/changeOwner/{userName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//          summary = "Change owner of a system",
-//          description =
-//                  "Change owner of a system.",
-//          tags = "systems",
-//          responses = {
-//                  @ApiResponse(responseCode = "200", description = "System owner updated.",
-//                          content = @Content(schema = @Schema(implementation = RespChangeCount.class))),
-//                  @ApiResponse(responseCode = "401", description = "Not authorized.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//                  @ApiResponse(responseCode = "404", description = "System not found.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//                  @ApiResponse(responseCode = "500", description = "Server error.",
-//                          content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//          }
-//  )
   public Response changeSystemOwner(@PathParam("systemName") String systemName,
                                     @PathParam("userName") String userName,
                                     @Context SecurityContext securityContext)
@@ -836,31 +763,6 @@ public class SystemResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-//  @Operation(
-//      summary = "Retrieve information for a system",
-//      description =
-//          "Retrieve information for a system given the system name. " +
-//          "Use query parameter returnCredentials=true to have effectiveUserId access credentials " +
-//          "included in the response. " +
-//          "Use query parameter accessMethod=<method> to override default access method.",
-//      tags = "systems",
-//      parameters = {
-//        @Parameter(name = "select", description = "Resource attributes to include when returning results. For example select=result.name,result.host",
-//                   in = ParameterIn.QUERY, schema = @Schema(type = "string"))
-//      },
-//      responses = {
-//          @ApiResponse(responseCode = "200", description = "System found.",
-//            content = @Content(schema = @Schema(implementation = RespSystem.class))),
-//          @ApiResponse(responseCode = "400", description = "Input error.",
-//            content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//          @ApiResponse(responseCode = "404", description = "System not found.",
-//            content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//          @ApiResponse(responseCode = "401", description = "Not authorized.",
-//            content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class))),
-//          @ApiResponse(responseCode = "500", description = "Server error.",
-//            content = @Content(schema = @Schema(implementation = edu.utexas.tacc.tapis.sharedapi.responses.RespBasic.class)))
-//      }
-//  )
   public Response getSystemByName(@PathParam("systemName") String systemName,
                                   @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
                                   @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
@@ -918,7 +820,7 @@ public class SystemResource
   /**
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, sort_by, offset, start_after are all handled in the filter
+   * NOTE: The query parameters pretty, search, limit, sort_by, skip, start_after are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
@@ -950,7 +852,7 @@ public class SystemResource
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getOffset(), threadContext.getStartAfter());
+                                          threadContext.getSkip(), threadContext.getStartAfter());
     }
     catch (Exception e)
     {
@@ -1014,7 +916,7 @@ public class SystemResource
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getOffset(), threadContext.getStartAfter());
+                                          threadContext.getSkip(), threadContext.getStartAfter());
     }
     catch (Exception e)
     {
@@ -1101,7 +1003,7 @@ public class SystemResource
     try {
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
                                                            threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                                           threadContext.getOffset(), threadContext.getStartAfter());
+                                                           threadContext.getSkip(), threadContext.getStartAfter());
     }
     catch (Exception e)
     {

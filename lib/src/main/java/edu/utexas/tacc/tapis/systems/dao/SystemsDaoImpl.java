@@ -510,17 +510,17 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param IDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
    * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
-   * @param offset - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
+   * @param skip - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getTSystems(String tenant, List<String> searchList, List<Integer> IDs, int limit,
-                                   String sortBy, String sortDirection, int offset, String startAfter) throws TapisException
+                                   String sortBy, String sortDirection, int skip, String startAfter) throws TapisException
   {
     // Build and execute SQL using helper method
-    return getTSystemsHelper(tenant, searchList, null, IDs, limit, sortBy, sortDirection, offset, startAfter);
+    return getTSystemsHelper(tenant, searchList, null, IDs, limit, sortBy, sortDirection, skip, startAfter);
   }
 
   /**
@@ -532,17 +532,17 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param IDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
    * @param sortBy - attribute and optional direction for sorting, e.g. sort_by=created(desc). Default direction is (asc)
-   * @param offset - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with offset)
+   * @param skip - number of results to skip (may not be used with startAfter)
+   * @param startAfter - where to start when sorting, e.g. limit=10&sort_by=id(asc)&start_after=101 (may not be used with skip)
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getTSystemsUsingSearchAST(String tenant, ASTNode searchAST, List<Integer> IDs, int limit,
-                                                 String sortBy, String sortDirection, int offset, String startAfter) throws TapisException
+                                                 String sortBy, String sortDirection, int skip, String startAfter) throws TapisException
   {
     // Build and execute SQL using helper method
-    return getTSystemsHelper(tenant, null, searchAST, IDs, limit, sortBy, sortDirection, offset, startAfter);
+    return getTSystemsHelper(tenant, null, searchAST, IDs, limit, sortBy, sortDirection, skip, startAfter);
   }
 
   /**
@@ -737,14 +737,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   private List<TSystem> getTSystemsHelper(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit, String sortBy,
-                                          String sortDirection, int offset, String startAfter)
+                                          String sortDirection, int skip, String startAfter)
           throws TapisException
   {
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
 
-    // Negative offset indicates no offset
-    if (offset < 0) offset = 0;
+    // Negative skip indicates no skip
+    if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
     if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
@@ -812,7 +812,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Execute the select including limit, sort_by, offset and start_after
+      // Execute the select including limit, sort_by, skip and start_after
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
@@ -820,8 +820,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
       {
         // We are ordering and limiting
-        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(offset).fetch();
-        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(offset).fetch();
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(skip).fetch();
+        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(skip).fetch();
       }
       else if (!StringUtils.isBlank(sortBy))
       {
@@ -832,7 +832,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       else if (limit >= 0)
       {
         // We are limiting but not ordering
-        results = condStep.limit(limit).offset(offset).fetch();
+        results = condStep.limit(limit).offset(skip).fetch();
       }
       else
       {

@@ -224,17 +224,17 @@ public class SearchASTDaoTest
       ASTNode searchAST = ASTParser.parse(cd.sqlSearchStr);
       System.out.println("  Created AST with leaf node count: " + searchAST.countLeaves());
       List<TSystem> searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT,
-              DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+              DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
       System.out.println("  Result size: " + searchResults.size());
       assertEquals(searchResults.size(), cd.count, "SearchASTDaoTest.testValidCases: Incorrect result count for case number: " + caseNum);
     }
   }
 
   /*
-   * Test pagination options: limit, offset
+   * Test pagination options: limit, skip
    */
   @Test(groups={"integration"})
-  public void testLimitOffset() throws Exception
+  public void testLimitSkip() throws Exception
   {
     String searchStr = "name LIKE " + sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
@@ -242,58 +242,58 @@ public class SearchASTDaoTest
     List<TSystem> searchResults;
 
     int limit = -1;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     limit = 0;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     limit = 1;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     limit = 5;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     limit = 19;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     limit = 20;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     limit = 200;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
-    // Test limit + offset combination that reduces result size
+    // Test limit + skip combination that reduces result size
     int resultSize = 3;
     limit = numSystems;
-    int offset = limit - resultSize;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, offset, DEFAULT_START_AFTER);
+    int skip = limit - resultSize;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), resultSize, "Incorrect result count");
 
     // Check some corner cases
     limit = 100;
-    offset = 0;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, offset, DEFAULT_START_AFTER);
+    skip = 0;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     checkOrder(searchResults, 1, numSystems);
     limit = 0;
-    offset = 1;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, offset, DEFAULT_START_AFTER);
+    skip = 1;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), 0, "Incorrect result count");
     limit = 10;
-    offset = 15;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, offset, DEFAULT_START_AFTER);
-    assertEquals(searchResults.size(), numSystems - offset, "Incorrect result count");
+    skip = 15;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, skip, DEFAULT_START_AFTER);
+    assertEquals(searchResults.size(), numSystems - skip, "Incorrect result count");
     limit = 10;
-    offset = 100;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, offset, DEFAULT_START_AFTER);
+    skip = 100;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_BY_DIRECTION, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), 0, "Incorrect result count");
   }
 
   /*
-   * Test sorting: limit, sort_by, offset
+   * Test sorting: limit, sort_by, skip
    */
   @Test(groups={"integration"})
-  public void testSortingOffset() throws Exception
+  public void testSortingSkip() throws Exception
   {
     String searchStr = "name LIKE " + sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
@@ -303,48 +303,48 @@ public class SearchASTDaoTest
     String sortBy;
     String sortDirection;
     int limit;
-    int offset;
-    // Sort and check order with no limit or offset
+    int skip;
+    // Sort and check order with no limit or skip
     sortBy = "name";
     sortDirection = "asc";
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     checkOrder(searchResults, 1, numSystems);
     sortBy = "name";
     sortDirection = "desc";
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     checkOrder(searchResults, numSystems, 1);
-    // Sort and check order with limit and no offset
+    // Sort and check order with limit and no skip
     sortBy = "name";
     sortDirection = "asc";
     limit = 4;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     checkOrder(searchResults, 1, limit);
     sortBy = "name";
     sortDirection = "desc";
     limit = 19;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_OFFSET, DEFAULT_START_AFTER);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     checkOrder(searchResults, numSystems, numSystems - (limit-1));
-    // Sort and check order with limit and offset
+    // Sort and check order with limit and skip
     sortBy = "name";
     sortDirection = "asc";
     limit = 2;
-    offset = 5;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, offset, DEFAULT_START_AFTER);
+    skip = 5;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_006 to SrchGet_007
-    checkOrder(searchResults, offset + 1, offset + limit);
+    checkOrder(searchResults, skip + 1, skip + limit);
     sortBy = "name";
     sortDirection = "desc";
     limit = 4;
-    offset = 3;
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, offset, DEFAULT_START_AFTER);
+    skip = 3;
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, skip, DEFAULT_START_AFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_017 to SrchGet_014
-    checkOrder(searchResults, numSystems - offset, numSystems - limit);
+    checkOrder(searchResults, numSystems - skip, numSystems - limit);
   }
 
   /*
@@ -369,7 +369,7 @@ public class SearchASTDaoTest
     limit = 2;
     startAfterIdx = 5;
     startAfter = getSysName(testKey, startAfterIdx);
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_OFFSET, startAfter);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, startAfter);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_006 to SrchGet_007
     checkOrder(searchResults, startAfterIdx + 1, startAfterIdx + limit);
@@ -379,7 +379,7 @@ public class SearchASTDaoTest
     startAfterIdx = 18;
     int startWith = numSystems - startAfterIdx + 1;
     startAfter = getSysName(testKey, startAfterIdx);
-    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_OFFSET, startAfter);
+    searchResults = dao.getTSystemsUsingSearchAST(tenantName, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, startAfter);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_017 to SrchGet_014
     checkOrder(searchResults, numSystems - startWith, numSystems - limit);
