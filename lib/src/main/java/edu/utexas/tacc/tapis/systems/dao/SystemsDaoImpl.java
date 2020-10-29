@@ -529,7 +529,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (SearchUtils.SORT_BY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+    if (SearchUtils.SORTBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
 
     // If startAfter is given then sortBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(sortBy))
