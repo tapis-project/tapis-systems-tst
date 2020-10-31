@@ -18,6 +18,7 @@ public final class RespSystems extends RespSearch
   public List<TSystem> results;
 
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+  // TODO/TBD Also needed in general for jaxb processing?
   public RespSystems() { }
 
   public RespSystems(List<TSystem> tmpResults, int limit, String sortBy, int skip, String startAfter, int totalCount)

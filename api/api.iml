@@ -42,6 +42,7 @@
     <orderEntry type="library" name="Maven: jakarta.validation:jakarta.validation-api:2.0.2" level="project" />
     <orderEntry type="library" name="Maven: jakarta.ws.rs:jakarta.ws.rs-api:2.1.6" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.media:jersey-media-moxy:2.30" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.ext:jersey-entity-filtering:2.30" level="project" />
     <orderEntry type="library" name="Maven: jakarta.json:jakarta.json-api:1.1.5" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish:jakarta.json:1.1.5" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.persistence:org.eclipse.persistence.moxy:2.7.4" level="project" />
@@ -52,9 +53,6 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.10.1" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.10.1" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.1" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.jersey.ext:jersey-entity-filtering:2.30" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.jersey.media:jersey-media-json-jackson:2.30" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.9.9" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.inject:jersey-hk2:2.30" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.6.1" level="project" />
@@ -67,6 +65,7 @@
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-integration:2.0.10" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.10" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.9.10" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.9.10" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-annotations:2.0.10" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-jaxrs2-servlet-initializer:2.0.10" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.30" level="project" />

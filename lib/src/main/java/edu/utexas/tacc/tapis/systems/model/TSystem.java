@@ -108,6 +108,7 @@ public final class TSystem
 
   /**
    * Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+   // TODO/TBD Also needed in general for jaxb processing?
    * NOTE: Adding a default constructor changes jOOQ behavior such that when Record.into() uses the default mapper
    *       the column names and POJO attribute names must match (with convention an_attr -> anAttr).
    */

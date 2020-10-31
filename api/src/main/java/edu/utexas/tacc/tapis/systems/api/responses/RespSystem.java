@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 public final class RespSystem extends RespAbstract
 {
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+  // TODO/TBD Also needed in general for jaxb processing?
   public RespSystem() { }
 
   public RespSystem(TSystem result) { this.result = result; }

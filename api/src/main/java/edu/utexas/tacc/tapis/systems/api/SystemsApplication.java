@@ -22,7 +22,8 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.internal.inject.InjectionManager;
-import org.glassfish.jersey.message.filtering.SelectableEntityFilteringFeature;
+//import org.glassfish.jersey.message.filtering.SelectableEntityFilteringFeature;
+//import org.glassfish.jersey.moxy.json.MoxyJsonConfig;
 import org.glassfish.jersey.moxy.json.MoxyJsonConfig;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -67,18 +68,21 @@ public class SystemsApplication extends ResourceConfig
     register(OpenApiResource.class);
     register(AcceptHeaderOpenApiResource.class);
 
+    // TODO: Using this approach is becoming more cumbersome.
+    // Results are now in result.search and not clear how to specify the selected attributes.
+    // Plus to get see status, message and version using this approach they must be explicitly selected.
     // Setup and register Jersey's dynamic filtering
     // This allows for returning selected attributes in a return result
     //   using the query parameter select, e.g.
     //   /v3/systems?select=result.id,result.name,result.host,result.enabled
-    property(SelectableEntityFilteringFeature.QUERY_PARAM_NAME, "select");
-    register(SelectableEntityFilteringFeature.class);
+// TODO    property(SelectableEntityFilteringFeature.QUERY_PARAM_NAME, "select");
+// TODO    register(SelectableEntityFilteringFeature.class);
     // Register either Jackson or Moxy for SelectableEntityFiltering
     // NOTE: Using shaded jar and Moxy works when running from Intellij IDE but breaks things when running in docker.
     // NOTE: Using Jackson results in following TSystem attributes not being returned: notes, created, updated.
     // NOTE: Using unshaded jar and Moxy appears to resolve all issues.
-    register(new MoxyJsonConfig().resolver());
-//    register(JacksonFeature.class);
+//   register(new MoxyJsonConfig().resolver());
+//   register(JacksonFeature.class);
 
     // Register classes needed for returning a standard Tapis response for non-Tapis exceptions.
     register(TapisExceptionMapper.class);
@@ -93,7 +97,6 @@ public class SystemsApplication extends ResourceConfig
     // tapis-sharedapi will be discovered whenever that project is
     // included as a maven dependency.
     packages("edu.utexas.tacc.tapis");
-    packages("edu.utexas.tacc.tapis2");
 
     // Set the application name.
     // Note that this has no impact on base URL

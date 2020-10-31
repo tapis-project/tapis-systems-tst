@@ -820,7 +820,7 @@ public class SystemResource
   /**
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, sortBy, skip, startAfter are all handled in the filter
+   * NOTE: The query parameters pretty, select, search, limit, sortBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
@@ -844,15 +844,12 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    List<String> searchList = threadContext.getSearchList();
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
-
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
     try {
-      systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
+      systems = systemsService.getSystems(authenticatedUser, threadContext.getSearchList(), threadContext.getLimit(),
                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getSkip(), threadContext.getStartAfter());
+                                          threadContext.getSkip(), threadContext.getStartAfter(), threadContext.getSelectList());
     }
     catch (Exception e)
     {
@@ -911,14 +908,12 @@ public class SystemResource
       return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First value = " + searchList.get(0));
-
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getSkip(), threadContext.getStartAfter());
+                                          threadContext.getSkip(), threadContext.getStartAfter(), threadContext.getSelectList());
     }
     catch (Exception e)
     {
@@ -1007,7 +1002,7 @@ public class SystemResource
     try {
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
                                                            threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                                           threadContext.getSkip(), threadContext.getStartAfter());
+                                                           threadContext.getSkip(), threadContext.getStartAfter(), threadContext.getSelectList());
     }
     catch (Exception e)
     {

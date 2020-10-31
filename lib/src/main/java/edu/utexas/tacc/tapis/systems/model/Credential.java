@@ -49,6 +49,7 @@ public final class Credential
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+  // TODO/TBD Also needed in general for jaxb processing?
   public Credential() { }
 
   /**

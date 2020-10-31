@@ -51,6 +51,7 @@ public final class Capability
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+  // TODO/TBD Also needed in general for jaxb processing?
   public Capability() { }
   public Capability(int id1, int systemid1, Category category1, String name1, String value1, Instant created1, Instant updated1)
   {

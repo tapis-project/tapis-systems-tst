@@ -41,11 +41,11 @@ public interface SystemsService
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                           String sortBy, String sortDirection, int skip, String startAfter)
+                           String sortBy, String sortDirection, int skip, String startAfter, List<String> selectList)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                            String sortBy, String sortDirection, int skip, String startAfter)
+                                            String sortBy, String sortDirection, int skip, String startAfter, List<String> selectList)
           throws TapisException, TapisClientException;
 
   List<String> getSystemNames(AuthenticatedUser authenticatedUser)

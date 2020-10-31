@@ -20,6 +20,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -512,12 +513,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&sortBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param selectList - optional list of attributes to be included with returned results
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs,
-                                   int limit, String sortBy, String sortDirection, int skip, String startAfter)
+                                   int limit, String sortBy, String sortDirection, int skip, String startAfter, List<String> selectList)
           throws TapisException
   {
     // The result list should always be non-null.
@@ -584,6 +586,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Add IN condition for list of IDs
     if (IDs != null && !IDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(IDs));
 
+    // Validate and build select fields
+    List<TableField> fieldList = null;
+    if (selectList != null && !selectList.isEmpty())
+    {
+      fieldList = buildFieldList(selectList);
+    }
+
     // ------------------------- Build and execute SQL ----------------------------
     Connection conn = null;
     try
@@ -596,28 +605,39 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
-      org.jooq.SelectConditionStep condStep = db.selectFrom(SYSTEMS).where(whereCondition);
+      org.jooq.SelectConditionStep condStep;
+      // If not selecting certain fields then use selectFrom
+      if (fieldList == null || fieldList.isEmpty())
+      {
+        condStep = db.selectFrom(SYSTEMS).where(whereCondition);
+      }
+      else
+      {
+        condStep = db.select(fieldList).from(SYSTEMS).where(whereCondition);
+      }
+
+      // Execute the fetch based on the sort and limit options
       if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
       {
         // We are ordering and limiting
-        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(skip).fetch();
-        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(skip).fetch();
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
+        else results = condStep.orderBy(colSortBy.desc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
       }
       else if (!StringUtils.isBlank(sortBy))
       {
         // We are ordering but not limiting
-        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).fetch();
-        else results = condStep.orderBy(colSortBy.desc()).fetch();
+        if (sortAsc) results = condStep.orderBy(colSortBy.asc()).fetchInto(SYSTEMS);
+        else results = condStep.orderBy(colSortBy.desc()).fetchInto(SYSTEMS);
       }
       else if (limit >= 0)
       {
         // We are limiting but not ordering
-        results = condStep.limit(limit).offset(skip).fetch();
+        results = condStep.limit(limit).offset(skip).fetchInto(SYSTEMS);
       }
       else
       {
         // We are not limiting and not ordering
-        results = condStep.fetch();
+        results = condStep.fetchInto(SYSTEMS);
       }
 
       if (results == null || results.isEmpty()) return retList;
@@ -891,6 +911,22 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     List<Capability> capRecords = db.selectFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_ID.eq(systemId)).fetchInto(Capability.class);
     return capRecords;
+  }
+
+  /**
+   * Validate select field strings as column names and add them to a list of TableFields
+   * @param selectList List of strings to use for the select
+   * @return resulting list of TableFields
+   * @throws TapisException on error
+   */
+  private static List<TableField> buildFieldList(List<String> selectList) throws TapisException
+  {
+    List<TableField> fieldList = new ArrayList<>();
+    if (selectList == null || selectList.isEmpty()) return fieldList;
+    // TODO
+    fieldList.add(SYSTEMS.ID);
+    fieldList.add(SYSTEMS.NAME);
+    return fieldList;
   }
 
   /**

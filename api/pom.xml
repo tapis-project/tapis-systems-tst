@@ -39,11 +39,12 @@
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-moxy</artifactId>
     </dependency>
-    <!-- Include jersey-entity-filtering and jersey-media-json-jackson for SelectableEntityFilteringFeature -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- Include jersey-entity-filtering and jersey-media-json-jackson for SelectableEntityFilteringFeature -->
+<!--
     <dependency>
       <groupId>org.glassfish.jersey.ext</groupId>
       <artifactId>jersey-entity-filtering</artifactId>
@@ -53,6 +54,7 @@
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
     </dependency>
+-->
     <dependency>
         <groupId>org.glassfish.jersey.inject</groupId>
         <artifactId>jersey-hk2</artifactId>
@@ -129,7 +131,7 @@
 <!-- Looks like removing shaded jar and copying dependencies instead
      may solve SelectableEntityFilteringFeature problem. Needs more testing.
      Previously found needed to use JacksonFeature instead of moxy to avoid error when running under docker
-     but needed to run moxy instead of JacksonFeature to avoid problem with not returning these attributes: notes, created, upddated.
+     but needed to run moxy instead of JacksonFeature to avoid problem with not returning these attributes: notes, created, updated.
 -->
         <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
