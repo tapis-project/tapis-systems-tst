@@ -5,6 +5,7 @@ import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
+import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
@@ -46,6 +47,17 @@ public interface SystemsService
 
   List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
                                             String sortBy, String sortDirection, int skip, String startAfter)
+          throws TapisException, TapisClientException;
+
+  SystemBasic getSystemBasicByName(AuthenticatedUser authenticatedUser, String systemName)
+          throws TapisException, NotAuthorizedException, TapisClientException;
+
+  List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
+                                    String sortBy, String sortDirection, int skip, String startAfter)
+          throws TapisException, TapisClientException;
+
+  List<SystemBasic> getSystemsBasicUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
+                                                     String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<String> getSystemNames(AuthenticatedUser authenticatedUser)

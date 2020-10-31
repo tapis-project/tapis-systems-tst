@@ -4,6 +4,7 @@ import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
+import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 
@@ -36,6 +37,11 @@ public interface SystemsDao
 
   List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
+
+  SystemBasic getSystemBasicByName(String tenant, String name) throws TapisException;
+
+  List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
+                                    String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
   List<String> getTSystemNames(String tenant) throws TapisException;
 
