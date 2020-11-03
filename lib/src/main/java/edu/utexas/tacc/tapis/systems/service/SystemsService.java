@@ -41,6 +41,9 @@ public interface SystemsService
   TSystem getSystemByName(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
+  int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, String sortBy,
+                           String sortDirection, String startAfter) throws TapisException, TapisClientException;
+
   List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
                            String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
@@ -60,8 +63,7 @@ public interface SystemsService
                                                      String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
-  List<String> getSystemNames(AuthenticatedUser authenticatedUser)
-          throws TapisException;
+  List<String> getSystemNames(AuthenticatedUser authenticatedUser) throws TapisException;
 
   String getSystemOwner(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;

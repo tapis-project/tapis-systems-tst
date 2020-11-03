@@ -193,6 +193,22 @@ public class SystemBasicResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      try {
+        totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                                                         threadContext.getSortBy(), threadContext.getSortByDirection(),
+                                                         threadContext.getStartAfter());
+      }
+      catch (Exception e)
+      {
+        String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+        _log.error(msg, e);
+        return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      }
+    }
     // ------------------------- Retrieve all records -----------------------------
     List<SystemBasic> systems;
     try {
@@ -209,9 +225,8 @@ public class SystemBasicResource
 
     // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
     RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }

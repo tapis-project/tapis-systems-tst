@@ -500,12 +500,110 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * getTSystemsCount
+   * Count all TSystems matching various search and sort criteria.
+   *     Search conditions given as a list of strings or an abstract syntax tree (AST).
+   * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
+   *   prior to this call for proper validation and treatment of special characters.
+   * WARNING: If both searchList and searchAST provided only searchList is used.
+   * @param tenant - tenant name
+   * @param searchList - optional list of conditions used for searching
+   * @param searchAST - AST containing search conditions
+   * @param IDs - list of system IDs to consider. null indicates no restriction.
+   * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
+   * @param startAfter - where to start when sorting, e.g. sortBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @return - count of TSystem objects
+   * @throws TapisException - on error
+   */
+  @Override
+  public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs,
+                              String sortBy, String sortDirection, String startAfter)
+          throws TapisException
+  {
+    // NOTE: Sort matters for the count even though we will not actually need to sort.
+    boolean sortAsc = true;
+    if (SearchUtils.SORTBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+
+    // If startAfter is given then sortBy is required
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(sortBy))
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
+      throw new TapisException(msg);
+    }
+
+    // If no IDs in list then we are done.
+    if (IDs != null && IDs.isEmpty()) return 0;
+
+    // Determine and check sortBy column
+    Field<?> colSortBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(sortBy)));
+    if (!StringUtils.isBlank(sortBy) && colSortBy == null)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(sortBy));
+      throw new TapisException(msg);
+    }
+
+    // Begin where condition for the query
+    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+
+    // Add searchList or searchAST to where condition
+    if (searchList != null)
+    {
+      whereCondition = addSearchListToWhere(whereCondition, searchList);
+    }
+    else if (searchAST != null)
+    {
+      Condition astCondition = createConditionFromAst(searchAST);
+      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
+    }
+
+    // Add startAfter.
+    if (!StringUtils.isBlank(startAfter))
+    {
+      // Build search string so we can re-use code for checking and adding a condition
+      String searchStr;
+      if (sortAsc) searchStr = sortBy + ".gt." + startAfter;
+      else searchStr = sortBy + ".lt." + startAfter;
+      whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
+    }
+
+    // Add IN condition for list of IDs
+    if (IDs != null && !IDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(IDs));
+
+    // ------------------------- Build and execute SQL ----------------------------
+    int count = 0;
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+
+      // Execute the select including sortBy, startAfter
+      count = db.selectCount().from(SYSTEMS).where(whereCondition).fetchOne(0,int.class);
+
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+    return count;
+  }
+
+  /**
    * getTSystems
    * Retrieve all TSystems matching various search and sort criteria.
    *     Search conditions given as a list of strings or an abstract syntax tree (AST).
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
-   * WARNING: If both searchList and searchAST provided both are used.
+   * WARNING: If both searchList and searchAST provided only searchList is used.
    * @param tenant - tenant name
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
@@ -711,7 +809,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *     Search conditions given as a list of strings or an abstract syntax tree (AST).
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
-   * WARNING: If both searchList and searchAST provided both are used.
+   * WARNING: If both searchList and searchAST provided only searchList is used.
    * @param tenant - tenant name
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions

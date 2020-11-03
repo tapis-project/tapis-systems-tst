@@ -712,6 +712,61 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
+   * Get count of all systems matching certain criteria and for which user has READ permission
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param searchList - optional list of conditions used for searching
+   * @param sortBy - attribute and optional direction for sorting, e.g. sortBy=created(desc). Default direction is (asc)
+   * @param startAfter - where to start when sorting, e.g. sortBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @return Count of TSystem objects
+   * @throws TapisException - for Tapis related exceptions
+   */
+  @Override
+  public int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList,
+                                  String sortBy, String sortDirection, String startAfter)
+          throws TapisException, TapisClientException
+  {
+    SystemOperation op = SystemOperation.read;
+    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
+    // Determine tenant scope for user
+    String systemTenantName = authenticatedUser.getTenantId();
+    // For service request use oboTenant for tenant associated with the user
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+      systemTenantName = authenticatedUser.getOboTenantId();
+
+    // Build verified list of search conditions
+    var verifiedSearchList = new ArrayList<String>();
+    if (searchList != null && !searchList.isEmpty())
+    {
+      try
+      {
+        for (String cond : searchList)
+        {
+          // Use SearchUtils to validate condition
+          String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(cond);
+          verifiedSearchList.add(verifiedCondStr);
+        }
+      }
+      catch (Exception e)
+      {
+        String msg = LibUtils.getMsgAuth("SYSLIB_SEARCH_ERROR", authenticatedUser, e.getMessage());
+        _log.error(msg, e);
+        throw new IllegalArgumentException(msg);
+      }
+    }
+
+    // Get list of IDs of systems for which requester has READ permission.
+    // This is either all systems (null) or a list of IDs based on roles.
+    List<Integer> allowedSystemIDs = getAllowedSystemIDs(authenticatedUser, systemTenantName);
+
+    // If none are allowed we know count is 0
+    if (allowedSystemIDs != null && allowedSystemIDs.isEmpty()) return 0;
+
+    // Count all allowed systems matching the search conditions
+    return dao.getTSystemsCount(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSystemIDs,
+                                sortBy, sortDirection, startAfter);
+  }
+
+  /**
    * Get all systems matching certain criteria and for which user has READ permission
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
