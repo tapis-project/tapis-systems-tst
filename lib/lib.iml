@@ -78,7 +78,7 @@
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.26" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.1" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-models:2.0.10" level="project" />
-    <orderEntry type="library" name="Maven: javax.validation:validation-api:1.1.0.Final" level="project" />
+    <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-jaxrs2:2.0.10" level="project" />
     <orderEntry type="library" name="Maven: io.github.classgraph:classgraph:4.6.32" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-integration:2.0.10" level="project" />
