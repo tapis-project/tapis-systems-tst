@@ -55,7 +55,7 @@ public class SystemsDaoTest
       dao.hardDeleteTSystem(tenantName, systems[i].getName());
     }
 
-    TSystem tmpSystem = dao.getTSystemByName(tenantName, systems[0].getName());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getName());
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getName());
   }
 
@@ -70,11 +70,11 @@ public class SystemsDaoTest
 
   // Test retrieving a single item
   @Test
-  public void testGetByName() throws Exception {
+  public void testGet() throws Exception {
     TSystem sys0 = systems[1];
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    TSystem tmpSys = dao.getTSystemByName(sys0.getTenant(), sys0.getName());
+    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getName());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getName());
     System.out.println("Found item: " + sys0.getName());
     Assert.assertEquals(tmpSys.getName(), sys0.getName());
@@ -198,7 +198,7 @@ public class SystemsDaoTest
     System.out.println("Created item with id: " + itemId);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     dao.updateSystemOwner(authenticatedUser, itemId, "newOwner");
-    TSystem tmpSystem = dao.getTSystemByName(sys0.getTenant(), sys0.getName());
+    TSystem tmpSystem = dao.getTSystem(sys0.getTenant(), sys0.getName());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
 
@@ -213,7 +213,7 @@ public class SystemsDaoTest
     Assert.assertEquals(numDeleted, 1);
     numDeleted = dao.softDeleteTSystem(authenticatedUser, itemId);
     Assert.assertEquals(numDeleted, 0);
-    Assert.assertFalse(dao.checkForTSystemByName(sys0.getTenant(), sys0.getName(), false ),
+    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getName(), false ),
             "System not deleted. System name: " + sys0.getName());
   }
 
@@ -225,7 +225,7 @@ public class SystemsDaoTest
     System.out.println("Created item with id: " + itemId);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     dao.hardDeleteTSystem(sys0.getTenant(), sys0.getName());
-    Assert.assertFalse(dao.checkForTSystemByName(sys0.getTenant(), sys0.getName(), true),"System not deleted. System name: " + sys0.getName());
+    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getName(), true),"System not deleted. System name: " + sys0.getName());
   }
 
   // Test create and get for a single item with no transfer methods supported and unusual port settings
@@ -238,7 +238,7 @@ public class SystemsDaoTest
     sys0.setProxyPort(-1);
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    TSystem tmpSys = dao.getTSystemByName(sys0.getTenant(), sys0.getName());
+    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getName());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getName());
     System.out.println("Found item: " + sys0.getName());
     Assert.assertEquals(tmpSys.getName(), sys0.getName());
@@ -265,8 +265,8 @@ public class SystemsDaoTest
 
   // Test behavior when system is missing, especially for cases where service layer depends on the behavior.
   //  update - throws not found exception
-  //  getByName - returns null
-  //  checkByName - returns false
+  //  get - returns null
+  //  check - returns false
   //  getOwner - returns null
   @Test
   public void testMissingSystem() throws Exception {
@@ -282,8 +282,8 @@ public class SystemsDaoTest
             "jobLocalWorkDir", "jobLocalArchDir", "jobRemoteArchSystem","jobRemoteArchDir",
             tags, notes, null, false, null, null);
     // Make sure system does not exist
-    Assert.assertFalse(dao.checkForTSystemByName(tenantName, fakeSystemName, true));
-    Assert.assertFalse(dao.checkForTSystemByName(tenantName, fakeSystemName, false));
+    Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, true));
+    Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, false));
     // update should throw not found exception
     boolean pass = false;
     try { dao.updateTSystem(authenticatedUser, patchedSystem, patchSys, scrubbedJson, null); }
@@ -293,7 +293,7 @@ public class SystemsDaoTest
       pass = true;
     }
     Assert.assertTrue(pass);
-    Assert.assertNull(dao.getTSystemByName(tenantName, fakeSystemName));
+    Assert.assertNull(dao.getTSystem(tenantName, fakeSystemName));
     Assert.assertNull(dao.getTSystemOwner(tenantName, fakeSystemName));
   }
 }

@@ -1,6 +1,5 @@
 package edu.utexas.tacc.tapis.systems.dao;
 
-import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTParser;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
@@ -14,7 +13,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +118,7 @@ public class SearchASTDaoTest
       dao.hardDeleteTSystem(tenantName, sys.getName());
     }
 
-    TSystem tmpSystem = dao.getTSystemByName(tenantName, systems[0].getName());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getName());
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getName());
   }
 

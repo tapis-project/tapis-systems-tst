@@ -32,13 +32,13 @@ public interface SystemsService
   int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemName, String newOwnerName)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
 
-  int softDeleteSystemByName(AuthenticatedUser authenticatedUser, String systemName)
+  int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  boolean checkForSystemByName(AuthenticatedUser authenticatedUser, String systemName)
+  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  TSystem getSystemByName(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod)
+  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, String sortBy,
@@ -52,7 +52,7 @@ public interface SystemsService
                                             String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
-  SystemBasic getSystemBasicByName(AuthenticatedUser authenticatedUser, String systemName)
+  SystemBasic getSystemBasic(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,

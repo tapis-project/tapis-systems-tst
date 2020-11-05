@@ -115,7 +115,7 @@ public class SystemBasicResource
   // ************************************************************************
 
   /**
-   * getSystemBasicByName
+   * getSystemBasic
    * @param systemName - name of the system
    * @param securityContext - user identity
    * @return Response with a basic system object as the result
@@ -124,10 +124,10 @@ public class SystemBasicResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystemBasicByName(@PathParam("systemName") String systemName,
-                                       @Context SecurityContext securityContext)
+  public Response getSystemBasic(@PathParam("systemName") String systemName,
+                                 @Context SecurityContext securityContext)
   {
-    String opName = "getSystemBasicByName";
+    String opName = "getSystemBasic";
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // Check that we have all we need from the context, the tenant name and apiUserId
@@ -143,7 +143,7 @@ public class SystemBasicResource
     SystemBasic system;
     try
     {
-      system = systemsService.getSystemBasicByName(authenticatedUser, systemName);
+      system = systemsService.getSystemBasic(authenticatedUser, systemName);
     }
     catch (Exception e)
     {
@@ -193,23 +193,7 @@ public class SystemBasicResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    // ------------------------- Get total count if limit/skip ignored --------------------------
-    int totalCount = -1;
-    if (threadContext.getComputeTotal())
-    {
-      try {
-        totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                                                         threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                                         threadContext.getStartAfter());
-      }
-      catch (Exception e)
-      {
-        String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
-        _log.error(msg, e);
-        return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
-      }
-    }
-    // ------------------------- Retrieve all records -----------------------------
+    // ------------------------- Retrieve records -----------------------------
     List<SystemBasic> systems;
     try {
       systems = systemsService.getSystemsBasic(authenticatedUser, threadContext.getSearchList(), threadContext.getLimit(),
@@ -223,10 +207,38 @@ public class SystemBasicResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
+
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      // If there was no limit we already have the count, else we need to get the count
+      if (threadContext.getLimit() <= 0)
+      {
+        totalCount = systems.size();
+      }
+      else
+      {
+        try
+        {
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                  threadContext.getSortBy(), threadContext.getSortByDirection(),
+                  threadContext.getStartAfter());
+        } catch (Exception e)
+        {
+          String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          _log.error(msg, e);
+          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+        }
+      }
+    }
+
+    // ---------------------------- Success -------------------------------
+    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
+    //      See SystemResource
     RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+                                                  threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }
@@ -288,11 +300,36 @@ public class SystemBasicResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
+
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      // If there was no limit we already have the count, else we need to get the count
+      if (threadContext.getLimit() <= 0)
+      {
+        totalCount = systems.size();
+      }
+      else
+      {
+        try
+        {
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                  threadContext.getSortBy(), threadContext.getSortByDirection(),
+                  threadContext.getStartAfter());
+        } catch (Exception e)
+        {
+          String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          _log.error(msg, e);
+          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+        }
+      }
+    }
+
+    // ---------------------------- Success -------------------------------
     RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }
@@ -377,11 +414,36 @@ public class SystemBasicResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
+
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      // If there was no limit we already have the count, else we need to get the count
+      if (threadContext.getLimit() <= 0)
+      {
+        totalCount = systems.size();
+      }
+      else
+      {
+        try
+        {
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                  threadContext.getSortBy(), threadContext.getSortByDirection(),
+                  threadContext.getStartAfter());
+        } catch (Exception e)
+        {
+          msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          _log.error(msg, e);
+          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+        }
+      }
+    }
+
+    // ---------------------------- Success -------------------------------
     RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+                                                  threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + "systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }

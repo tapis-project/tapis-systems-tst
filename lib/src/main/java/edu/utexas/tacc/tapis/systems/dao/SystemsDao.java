@@ -31,9 +31,9 @@ public interface SystemsDao
 
   void migrateDB() throws TapisException;
 
-  boolean checkForTSystemByName(String tenant, String name, boolean includeDeleted) throws TapisException;
+  boolean checkForTSystem(String tenant, String name, boolean includeDeleted) throws TapisException;
 
-  TSystem getTSystemByName(String tenant, String name) throws TapisException;
+  TSystem getTSystem(String tenant, String name) throws TapisException;
 
   int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs,
                        String sortBy, String sortDirection, String startAfter) throws TapisException;
@@ -41,7 +41,7 @@ public interface SystemsDao
   List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
-  SystemBasic getSystemBasicByName(String tenant, String name) throws TapisException;
+  SystemBasic getSystemBasic(String tenant, String name) throws TapisException;
 
   List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
                                     String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;

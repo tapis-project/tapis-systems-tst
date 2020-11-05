@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisJSONException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
@@ -61,6 +60,8 @@ import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystemArray;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
@@ -752,7 +753,7 @@ public class SystemResource
   }
 
   /**
-   * getSystemByName
+   * getSystem
    * @param systemName - name of the system
    * @param getCreds - should credentials of effectiveUser be included
    * @param accessMethodStr - access method to use instead of default
@@ -763,12 +764,12 @@ public class SystemResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystemByName(@PathParam("systemName") String systemName,
-                                  @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
-                                  @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
-                                  @Context SecurityContext securityContext)
+  public Response getSystem(@PathParam("systemName") String systemName,
+                            @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
+                            @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
+                            @Context SecurityContext securityContext)
   {
-    String opName = "getSystemByName";
+    String opName = "getSystem";
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // Check that we have all we need from the context, the tenant name and apiUserId
@@ -794,7 +795,7 @@ public class SystemResource
     TSystem system;
     try
     {
-      system = systemsService.getSystemByName(authenticatedUser, systemName, getCreds, accessMethod);
+      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, accessMethod);
     }
     catch (Exception e)
     {
@@ -861,11 +862,14 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
-    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+
+    // ---------------------------- Success -------------------------------
+    RespSystemArray resp1 = new RespSystemArray(systems);
+//    // TODO Get total count
+//    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
+//    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+//                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
@@ -913,7 +917,7 @@ public class SystemResource
 
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First value = " + searchList.get(0));
 
-    // ------------------------- Retrieve all records -----------------------------
+    // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
@@ -927,11 +931,36 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
+
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      // If there was no limit we already have the count, else we need to get the count
+      if (threadContext.getLimit() <= 0)
+      {
+        totalCount = systems.size();
+      }
+      else
+      {
+        try
+        {
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                  threadContext.getSortBy(), threadContext.getSortByDirection(),
+                  threadContext.getStartAfter());
+        } catch (Exception e)
+        {
+          String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          _log.error(msg, e);
+          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+        }
+      }
+    }
+
+    // ---------------------------- Success -------------------------------
     RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
@@ -1002,7 +1031,7 @@ public class SystemResource
     }
     _log.debug("Using search string: " + searchStr);
 
-    // ------------------------- Retrieve all records -----------------------------
+    // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
     try {
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
@@ -1016,17 +1045,42 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    // ---------------------------- Success -------------------------------
     if (systems == null) systems = Collections.emptyList();
-    // TODO Get total count
+
+    // ------------------------- Get total count if limit/skip ignored --------------------------
+    int totalCount = -1;
+    if (threadContext.getComputeTotal())
+    {
+      // If there was no limit we already have the count, else we need to get the count
+      if (threadContext.getLimit() <= 0)
+      {
+        totalCount = systems.size();
+      }
+      else
+      {
+        try
+        {
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
+                  threadContext.getSortBy(), threadContext.getSortByDirection(),
+                  threadContext.getStartAfter());
+        } catch (Exception e)
+        {
+          msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          _log.error(msg, e);
+          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+        }
+      }
+    }
+
+    // ---------------------------- Success -------------------------------
     RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
 
   /**
-   * deleteSystemByName
+   * deleteSystem
    * @param systemName - name of the system to delete
    * @param securityContext - user identity
    * @return - response with change count as the result
@@ -1036,10 +1090,10 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
 // TODO Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
-  public Response deleteSystemByName(@PathParam("systemName") String systemName,
-                                     @Context SecurityContext securityContext)
+  public Response deleteSystem(@PathParam("systemName") String systemName,
+                               @Context SecurityContext securityContext)
   {
-    String opName = "deleteSystemByName";
+    String opName = "deleteSystem";
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
@@ -1056,7 +1110,7 @@ public class SystemResource
     int changeCount;
     try
     {
-      changeCount = systemsService.softDeleteSystemByName(authenticatedUser, systemName);
+      changeCount = systemsService.softDeleteSystem(authenticatedUser, systemName);
     }
     catch (Exception e)
     {

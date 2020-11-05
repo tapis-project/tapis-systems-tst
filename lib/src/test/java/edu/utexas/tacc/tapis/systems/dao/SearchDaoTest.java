@@ -119,7 +119,7 @@ public class SearchDaoTest
       dao.hardDeleteTSystem(tenantName, sys.getName());
     }
 
-    TSystem tmpSystem = dao.getTSystemByName(tenantName, systems[0].getName());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getName());
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getName());
   }
 

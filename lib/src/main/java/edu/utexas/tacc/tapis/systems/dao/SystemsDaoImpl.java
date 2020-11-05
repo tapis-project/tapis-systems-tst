@@ -421,13 +421,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * checkForSystemByName
+   * checkForSystem
    * @param name - system name
    * @return true if found else false
    * @throws TapisException - on error
    */
   @Override
-  public boolean checkForTSystemByName(String tenant, String name, boolean includeDeleted) throws TapisException {
+  public boolean checkForTSystem(String tenant, String name, boolean includeDeleted) throws TapisException {
     // Initialize result.
     boolean result = false;
 
@@ -457,13 +457,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * getSystemByName
+   * getSystem
    * @param name - system name
    * @return System object if found, null if not found
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getTSystemByName(String tenant, String name) throws TapisException {
+  public TSystem getTSystem(String tenant, String name) throws TapisException {
     // Initialize result.
     TSystem result = null;
 
@@ -747,13 +747,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * getSystemBasicByName
+   * getSystemBasic
    * @param name - system name
    * @return SystemBasic object if found, null if not found
    * @throws TapisException - on error
    */
   @Override
-  public SystemBasic getSystemBasicByName(String tenant, String name) throws TapisException {
+  public SystemBasic getSystemBasic(String tenant, String name) throws TapisException {
     // Initialize result.
     SystemBasic systemBasic = null;
     TSystem result = null;
