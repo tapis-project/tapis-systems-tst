@@ -38,7 +38,8 @@ public interface SystemsService
   boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod)
+  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod,
+                    boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, String sortBy,

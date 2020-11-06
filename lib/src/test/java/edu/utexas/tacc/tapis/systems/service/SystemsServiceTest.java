@@ -45,6 +45,10 @@ import static edu.utexas.tacc.tapis.systems.IntegrationUtils.*;
  *    Tenants service - typically dev
  *    Tokens service - typically dev and obtained from tenants service
  *    Security Kernel service - typically dev and obtained from tenants service
+ *
+ *    TODO: Add tests for requireExecPerm argument of getSystem()
+ *    TODO: Add tests for getSystem() retrieving various user credentials for the effectiveUserId,
+ *          including effectiveUserId = ${apiUserId}
  */
 @Test(groups={"integration"})
 public class SystemsServiceTest
@@ -145,7 +149,7 @@ public class SystemsServiceTest
       svcImpl.hardDeleteSystem(authenticatedAdminUsr, systems[i].getName());
     }
 
-    TSystem tmpSys = svc.getSystem(authenticatedAdminUsr, systems[0].getName(), false, null);
+    TSystem tmpSys = svc.getSystem(authenticatedAdminUsr, systems[0].getName(), false, null, false);
     Assert.assertNull(tmpSys, "System not deleted. System name: " + systems[0].getName());
   }
 
@@ -181,7 +185,7 @@ public class SystemsServiceTest
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // Retrieve the system including the credential using the default access method defined for the system
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    TSystem tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, null);
+    TSystem tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
     // Verify credentials. Only cred for default accessMethod is returned. In this case PKI_KEYS.
     Credential cred = tmpSys.getAccessCredential();
@@ -194,7 +198,7 @@ public class SystemsServiceTest
     Assert.assertNull(cred.getCertificate(), "AccessCredential certificate should be null");
 
     // Test retrieval using specified access method
-    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, AccessMethod.PASSWORD);
+    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, AccessMethod.PASSWORD, false);
     System.out.println("Found item: " + sys0.getName());
     // Verify credentials. Only cred for default accessMethod is returned. In this case PASSWORD.
     cred = tmpSys.getAccessCredential();
@@ -224,7 +228,7 @@ public class SystemsServiceTest
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // Update using patchSys
     svc.updateSystem(authenticatedOwnerUsr, patchSystem, patch1Text);
-    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null);
+    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
 //  TSystem sysE = new TSystem(-1, tenantName, "SsysE", "description E", SystemType.LINUX, ownerUser, "hostE", true,
 //          "effUserE", prot1.getAccessMethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
 //          prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),false,
@@ -265,7 +269,7 @@ public class SystemsServiceTest
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // Change owner using api
     svc.changeSystemOwner(authenticatedOwnerUsr, sys0.getName(), newOwnerName);
-    TSystem tmpSys = svc.getSystem(authenticatedTestUsr2, sys0.getName(), false, null);
+    TSystem tmpSys = svc.getSystem(authenticatedTestUsr2, sys0.getName(), false, null, false);
     Assert.assertEquals(tmpSys.getOwner(), newOwnerName);
     // Check expected auxillary updates have happened
     // New owner should be able to retrieve permissions and have the ALL permission
@@ -285,7 +289,7 @@ public class SystemsServiceTest
     }
     // Original owner should not be able to read system
     try {
-      svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null);
+      svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
       Assert.fail("Original owner should not have permission to read system after change of ownership. System name: " + sys0.getName() +
               " Old owner: " + authenticatedOwnerUsr.getName() + " New Owner: " + newOwnerName);
     } catch (Exception e) {
@@ -309,7 +313,7 @@ public class SystemsServiceTest
     sys0.setJobRemoteArchiveDir("jobRemoteArchDir8${owner}${tenant}${apiUserId}");
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null);
+    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getName());
     System.out.println("Found item: " + sys0.getName());
 
@@ -418,7 +422,7 @@ public class SystemsServiceTest
     // Soft delete the system
     int changeCount = svc.softDeleteSystem(authenticatedOwnerUsr, sys0.getName());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
-    TSystem tmpSys2 = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null);
+    TSystem tmpSys2 = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
     Assert.assertNull(tmpSys2, "System not deleted. System name: " + sys0.getName());
   }
 
@@ -541,7 +545,7 @@ public class SystemsServiceTest
     Assert.assertFalse(svc.checkForSystem(authenticatedOwnerUsr, fakeSystemName));
 
     // Get TSystem with no system should return null
-    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, fakeSystemName, false, null);
+    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, fakeSystemName, false, null, false);
     Assert.assertNull(tmpSys, "TSystem not null for non-existent system");
 
     // Delete system with no system should return 0 changes
@@ -643,7 +647,7 @@ public class SystemsServiceTest
 
     // READ - deny user not owner/admin and no READ or MODIFY access
     pass = false;
-    try { svc.getSystem(authenticatedTestUsr0, sys0.getName(), false, null); }
+    try { svc.getSystem(authenticatedTestUsr0, sys0.getName(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -837,7 +841,7 @@ public class SystemsServiceTest
 
     // READ - allow owner, service, with READ only, with MODIFY only
     boolean pass = true;
-    try { svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null); }
+    try { svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -845,7 +849,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = true;
-    try { svc.getSystem(authenticatedFilesSvc, sys0.getName(), false, null); }
+    try { svc.getSystem(authenticatedFilesSvc, sys0.getName(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -853,7 +857,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = true;
-    try { svc.getSystem(authenticatedTestUsr1, sys0.getName(), false, null); }
+    try { svc.getSystem(authenticatedTestUsr1, sys0.getName(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -861,7 +865,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = true;
-    try { svc.getSystem(authenticatedTestUsr2, sys0.getName(), false, null); }
+    try { svc.getSystem(authenticatedTestUsr2, sys0.getName(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));

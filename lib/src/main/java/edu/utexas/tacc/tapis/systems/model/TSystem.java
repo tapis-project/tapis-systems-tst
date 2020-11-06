@@ -61,7 +61,7 @@ public final class TSystem
   public enum Permission {ALL, READ, MODIFY, EXECUTE}
   public enum AccessMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
   public enum TransferMethod {SFTP, S3}
-  public enum SystemOperation {create, read, modify, softDelete, hardDelete, changeOwner, getPerms,
+  public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, getPerms,
                                grantPerms, revokePerms, setCred, removeCred, getCred}
 
   // ************************************************************************

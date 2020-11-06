@@ -757,6 +757,7 @@ public class SystemResource
    * @param systemName - name of the system
    * @param getCreds - should credentials of effectiveUser be included
    * @param accessMethodStr - access method to use instead of default
+   * @param requireExecPerm - check for EXECUTE permission as well as READ permission
    * @param securityContext - user identity
    * @return Response with system object as the result
    */
@@ -767,6 +768,7 @@ public class SystemResource
   public Response getSystem(@PathParam("systemName") String systemName,
                             @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
                             @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
+                            @QueryParam("requireExecPerm") @DefaultValue("false") boolean requireExecPerm,
                             @Context SecurityContext securityContext)
   {
     String opName = "getSystem";
@@ -795,7 +797,7 @@ public class SystemResource
     TSystem system;
     try
     {
-      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, accessMethod);
+      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, accessMethod, requireExecPerm);
     }
     catch (Exception e)
     {

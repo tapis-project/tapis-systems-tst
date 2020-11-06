@@ -668,12 +668,14 @@ public class SystemsServiceImpl implements SystemsService
    * @param systemName - Name of the system
    * @param getCreds - flag indicating if credentials for effectiveUserId should be included
    * @param accMethod - (optional) return credentials for specified access method instead of default access method
-   * @return TSystem - populated instance or null if not found or user not authorized.
+   * @param requireExecPerm - check for EXECUTE permission as well as READ permission
+   * @return populated instance of a TSystem or null if not found or user not authorized.
    * @throws TapisException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
    */
   @Override
-  public TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accMethod)
+  public TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds,
+                           AccessMethod accMethod, boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -682,8 +684,12 @@ public class SystemsServiceImpl implements SystemsService
     // Extract various names for convenience
     String apiUserId = authenticatedUser.getName();
     String systemTenantName = authenticatedUser.getTenantId();
-    // For service request use oboTenant for tenant associated with the system
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
+    // For service request use oboTenant for tenant associated with the system and oboUser as apiUserId
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+    {
+      systemTenantName = authenticatedUser.getOboTenantId();
+      apiUserId = authenticatedUser.getOboUser();
+    }
 
     // We need owner to check auth and if system not there cannot find owner, so
     // if system does not exist then return null
@@ -691,21 +697,20 @@ public class SystemsServiceImpl implements SystemsService
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemName, null, null, null);
+    if (requireExecPerm) checkAuth(authenticatedUser, SystemOperation.execute, systemName, null, null, null);
 
     TSystem result = dao.getTSystem(systemTenantName, systemName);
     if (result == null) return null;
-    // Save unresolved effectiveUserId for checking if getting credentials makes sense
-    String unresolvedEffectiveUserId = result.getEffectiveUserId();
-    // Resolve effectiveUserId if necessary
+    // Resolve effectiveUserId
     String resolvedEffectiveUserId = resolveEffectiveUserId(result.getEffectiveUserId(), result.getOwner(), apiUserId);
     result.setEffectiveUserId(resolvedEffectiveUserId);
-    // If requested and effectiveUserid is not ${apiUserId} (i.e. is static) then retrieve credentials from Security Kernel
-    if (getCreds && !unresolvedEffectiveUserId.equals(TSystem.APIUSERID_VAR))
+    // If requested retrieve credentials from Security Kernel
+    if (getCreds)
     {
       AccessMethod tmpAccMethod = result.getDefaultAccessMethod();
       // If accessMethod specified then use it instead of default access method defined for the system.
       if (accMethod != null) tmpAccMethod = accMethod;
-      Credential cred = getUserCredential(authenticatedUser, systemName, unresolvedEffectiveUserId, tmpAccMethod);
+      Credential cred = getUserCredential(authenticatedUser, systemName, resolvedEffectiveUserId, tmpAccMethod);
       result.setAccessCredential(cred);
     }
     return result;
@@ -1687,6 +1692,7 @@ public class SystemsServiceImpl implements SystemsService
    *  Read - must be owner or have admin role or have READ or MODIFY permission or be in list of allowed services
    *  Delete - must be owner or have admin role
    *  Modify - must be owner or have admin role or have MODIFY permission
+   *  Execute - must be owner or have admin role or have EXECUTE permission
    *  ChangeOwner - must be owner or have admin role
    *  GrantPerm -  must be owner or have admin role
    *  RevokePerm -  must be owner or have admin role or apiUserId=targetUser and meet certain criteria (allowUserRevokePerm)
@@ -1745,6 +1751,10 @@ public class SystemsServiceImpl implements SystemsService
         case modify:
           if (owner.equals(authenticatedUser.getName()) || hasAdminRole(authenticatedUser) ||
               isPermitted(authenticatedUser, systemName, Permission.MODIFY)) return;
+          break;
+        case execute:
+          if (owner.equals(authenticatedUser.getName()) || hasAdminRole(authenticatedUser) ||
+                  isPermitted(authenticatedUser, systemName, Permission.EXECUTE)) return;
           break;
         case revokePerms:
           if (owner.equals(authenticatedUser.getName()) || hasAdminRole(authenticatedUser) ||
