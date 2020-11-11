@@ -82,6 +82,8 @@ CREATE TABLE systems
 );
 ALTER TABLE systems OWNER TO tapis_sys;
 CREATE INDEX sys_tenant_name_idx ON systems (tenant, name);
+CREATE INDEX sys_host_idx ON systems (host);
+CREATE INDEX sys_owner_idx ON systems (owner);
 COMMENT ON COLUMN systems.id IS 'System id';
 COMMENT ON COLUMN systems.tenant IS 'Tenant name associated with system';
 COMMENT ON COLUMN systems.name IS 'Unique name for the system';

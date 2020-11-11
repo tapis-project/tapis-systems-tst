@@ -601,7 +601,8 @@ public class SystemsServiceImpl implements SystemsService
                               null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, svcJwt);
     // Use SK client to check for admin role and create it if necessary
     var skClient = getSKClient(svcUser);
-    // Check for admin role
+    // Check for admin role, continue if error getting role.
+    // TODO: Move msgs to properties file
     SkRole adminRole = null;
     try
     {
@@ -609,9 +610,13 @@ public class SystemsServiceImpl implements SystemsService
     }
     catch (TapisClientException e)
     {
-      if (!e.getTapisMessage().startsWith("TAPIS_NOT_FOUND")) throw e;
+      String msg = e.getTapisMessage();
+      // If we have a special message then log it
+      if (!StringUtils.isBlank(msg)) _log.error("Unable to get Admin Role. Caught TapisClientException: " + msg);
+      // If there is no message or the message is something other than "role does not exist" then log the exception.
+      // There may be a problem with SK but do not throw (i.e. fail) just because we cannot get the role at this point.
+      if (msg == null || !msg.startsWith("TAPIS_NOT_FOUND")) _log.error("Unable to get Admin Role. Caught Exception: " + e);
     }
-    // TODO: Move msgs to properties file
     if (adminRole == null)
     {
       _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
