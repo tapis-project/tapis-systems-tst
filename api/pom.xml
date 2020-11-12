@@ -21,6 +21,21 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tapis-shared-api</artifactId>
+      <version>${tapis-shared-java.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tapis-shared-searchlib</artifactId>
+      <version>${tapis-shared-java.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>lib</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
 <!-- TODO not needed? -->
 <!--    <dependency>-->
@@ -58,21 +73,12 @@
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-grizzly2-http</artifactId>
     </dependency>
+    <!-- Needed for JavaTimeModule in ObjectMapper -->
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tapis-shared-api</artifactId>
-      <version>${tapis-shared-java.version}</version>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tapis-shared-searchlib</artifactId>
-      <version>${tapis-shared-java.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>lib</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+
   </dependencies>
 
   <build>

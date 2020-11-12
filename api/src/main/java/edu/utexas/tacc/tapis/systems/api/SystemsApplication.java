@@ -10,6 +10,7 @@ import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.security.ServiceJWT;
 import edu.utexas.tacc.tapis.sharedapi.security.TenantManager;
+import edu.utexas.tacc.tapis.systems.api.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
@@ -77,7 +78,7 @@ public class SystemsApplication extends ResourceConfig
 
     // TODO Needed for returning notes? Maybe. ObjectMapperContextResolver is a custom jax-rs ContextResolver from
     //      tapis-files.
-//    register(ObjectMapperContextResolver.class);
+    register(ObjectMapperContextResolver.class);
 
     // Register classes needed for returning a standard Tapis response for non-Tapis exceptions.
     register(TapisExceptionMapper.class);
