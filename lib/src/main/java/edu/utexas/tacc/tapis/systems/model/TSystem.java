@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
@@ -24,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
  * Make defensive copies as needed on get/set to keep this class as immutable as possible.
  * Note Credential is immutable so no need for copy.
  */
+// TODO Figure out problem with notes. jackson cannot deserialize it. Something about it coming back as a gson.JsonObject.
+@JsonIgnoreProperties("notes")
 public final class TSystem
 {
   // ************************************************************************
@@ -95,6 +98,7 @@ public final class TSystem
   private String jobRemoteArchiveDir; // Parent directory used for archiving job output files on remote system
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   private String[] tags;       // List of arbitrary tags as strings
+
   private Object notes;      // Simple metadata as json
   private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;

@@ -1452,8 +1452,13 @@ public class SystemsServiceImpl implements SystemsService
     if (StringUtils.isBlank(systemName) || StringUtils.isBlank(userName))
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     String systemTenantName = authenticatedUser.getTenantId();
-    // For service request use oboTenant for tenant associated with the system
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
+    String systemUserName = authenticatedUser.getName();
+    // For service request use oboTenant and oboUser for tenant and user
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+    {
+      systemTenantName = authenticatedUser.getOboTenantId();
+      systemUserName = authenticatedUser.getOboUser();
+    }
 
     // If system does not exist or has been soft deleted then return null
     if (!dao.checkForTSystem(systemTenantName, systemName, false)) return null;
@@ -1463,16 +1468,6 @@ public class SystemsServiceImpl implements SystemsService
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemName, null, userName, null);
-
-    // Extract various names for convenience
-    String oboTenantName = authenticatedUser.getOboTenantId();
-    String apiUserId = authenticatedUser.getName();
-
-    // Check inputs. If anything null or empty throw an exception
-    if (StringUtils.isBlank(oboTenantName))
-    {
-      throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
-    }
 
     // If accessMethod not passed in fill in with default from system
     if (accessMethod == null)
@@ -1490,7 +1485,7 @@ public class SystemsServiceImpl implements SystemsService
       // Construct basic SK secret parameters
       var sParms = new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
       sParms.setTenant(systemTenantName).setSysId(systemName).setSysUser(userName);
-      sParms.setUser(apiUserId);
+      sParms.setUser(systemUserName);
       // Set key type based on access method
       if (accessMethod.equals(AccessMethod.PASSWORD))sParms.setKeyType(KeyType.password);
       else if (accessMethod.equals(AccessMethod.PKI_KEYS))sParms.setKeyType(KeyType.sshkey);

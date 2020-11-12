@@ -1318,6 +1318,7 @@ public class SystemResource
     resp.message = msg;
     resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
     resp.version = TapisUtils.getTapisVersion();
-    return Response.ok(resp).build();
+    Response r1 = Response.ok(resp).build();
+    return r1;
   }
 }

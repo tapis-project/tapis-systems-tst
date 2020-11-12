@@ -22,13 +22,12 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.internal.inject.InjectionManager;
-import org.glassfish.jersey.message.filtering.SelectableEntityFilteringFeature;
-import org.glassfish.jersey.moxy.json.MoxyJsonConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import io.swagger.v3.jaxrs2.integration.resources.AcceptHeaderOpenApiResource;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+//import io.swagger.v3.jaxrs2.integration.resources.AcceptHeaderOpenApiResource;
+//import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import org.jooq.tools.StringUtils;
 
 import java.net.URI;
@@ -62,23 +61,23 @@ public class SystemsApplication extends ResourceConfig
     // Output version information on startup
     System.out.println("**** Starting tapis-systems. Version: " + TapisUtils.getTapisFullVersion() + " ****");
 
-    // Register the swagger resources that allow the
-    // documentation endpoints to be automatically generated.
-    register(OpenApiResource.class);
-    register(AcceptHeaderOpenApiResource.class);
-
     // Setup and register Jersey's dynamic filtering
     // This allows for returning selected attributes in a return result
     //   using the query parameter select, e.g.
     //   /v3/systems?select=result.id,result.name,result.host,result.enabled
-    property(SelectableEntityFilteringFeature.QUERY_PARAM_NAME, "select");
-    register(SelectableEntityFilteringFeature.class);
+//    property(SelectableEntityFilteringFeature.QUERY_PARAM_NAME, "select");
+//    register(SelectableEntityFilteringFeature.class);
     // Register either Jackson or Moxy for SelectableEntityFiltering
     // NOTE: Using shaded jar and Moxy works when running from Intellij IDE but breaks things when running in docker.
     // NOTE: Using Jackson results in following TSystem attributes not being returned: notes, created, updated.
     // NOTE: Using unshaded jar and Moxy appears to resolve all issues.
-    register(new MoxyJsonConfig().resolver());
-//    register(JacksonFeature.class);
+//    register(new MoxyJsonConfig().resolver());
+// TODO Use jackson as is done for files? Yes, breaks getting notes but allows for Credential
+    register(JacksonFeature.class);
+
+    // TODO Needed for returning notes? Maybe. ObjectMapperContextResolver is a custom jax-rs ContextResolver from
+    //      tapis-files.
+//    register(ObjectMapperContextResolver.class);
 
     // Register classes needed for returning a standard Tapis response for non-Tapis exceptions.
     register(TapisExceptionMapper.class);
@@ -93,7 +92,6 @@ public class SystemsApplication extends ResourceConfig
     // tapis-sharedapi will be discovered whenever that project is
     // included as a maven dependency.
     packages("edu.utexas.tacc.tapis");
-    packages("edu.utexas.tacc.tapis2");
 
     // Set the application name.
     // Note that this has no impact on base URL
@@ -162,6 +160,7 @@ public class SystemsApplication extends ResourceConfig
     InjectionManager im = handler.getInjectionManager();
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
+    // Make sure we can get a service JWT. Better to fail here than later.
     ServiceJWT serviceJWT = locator.getService(ServiceJWT.class);
     svcImpl.initService(SystemsApplication.getSiteId());
     // Create and start the server
