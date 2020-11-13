@@ -7,11 +7,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
-import edu.utexas.tacc.tapis.systems.utils.JsonObjectSerializer;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 
 /*

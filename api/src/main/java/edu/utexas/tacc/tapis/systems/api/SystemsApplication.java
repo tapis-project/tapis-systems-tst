@@ -6,11 +6,11 @@ import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.jaxrs.filters.JWTValidateRequestFilter;
+import edu.utexas.tacc.tapis.sharedapi.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.security.ServiceJWT;
 import edu.utexas.tacc.tapis.sharedapi.security.TenantManager;
-import edu.utexas.tacc.tapis.systems.api.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
@@ -77,8 +77,7 @@ public class SystemsApplication extends ResourceConfig
 // With a custom objectmapper and custom jsonobject serializer this now works for both notes and accessCredential
     register(JacksonFeature.class);
 
-    // TODO Needed for returning notes? Maybe. ObjectMapperContextResolver is a custom jax-rs ContextResolver from
-    //      tapis-files.
+    // Needed for properly returning timestamps
     register(ObjectMapperContextResolver.class);
 
     // Register classes needed for returning a standard Tapis response for non-Tapis exceptions.
