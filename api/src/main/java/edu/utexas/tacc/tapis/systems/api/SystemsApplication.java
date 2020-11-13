@@ -16,8 +16,8 @@ import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceImpl;
-
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceJWTFactory;
+
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -27,8 +27,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
-//import io.swagger.v3.jaxrs2.integration.resources.AcceptHeaderOpenApiResource;
-//import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import org.jooq.tools.StringUtils;
 
 import java.net.URI;
@@ -73,7 +71,10 @@ public class SystemsApplication extends ResourceConfig
     // NOTE: Using Jackson results in following TSystem attributes not being returned: notes, created, updated.
     // NOTE: Using unshaded jar and Moxy appears to resolve all issues.
 //    register(new MoxyJsonConfig().resolver());
-// TODO Use jackson as is done for files? Yes, breaks getting notes but allows for Credential
+// NOTE on Selectable feature: gave up on this (for now) as too cumbersome and limited. Awkward to specify attributes
+//      and could not get it to work when list of systems nested in results->search.
+// Use jackson as is done for files? Yes, breaks getting notes but allows for Credential
+// With a custom objectmapper and custom jsonobject serializer this now works for both notes and accessCredential
     register(JacksonFeature.class);
 
     // TODO Needed for returning notes? Maybe. ObjectMapperContextResolver is a custom jax-rs ContextResolver from
