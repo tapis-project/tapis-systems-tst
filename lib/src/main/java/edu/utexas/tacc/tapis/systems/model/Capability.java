@@ -17,7 +17,7 @@ import java.time.Instant;
  * This class is intended to represent an immutable object.
  * Please keep it immutable.
  *
- * Tenant + system + category + name must be unique.
+ * Tenant + system + category + subcategory + name must be unique.
  *
  * NOTE: In the database a capability also includes tenant, system_id, created and updated.
  *       Currently tenant and system_id should be known in the context in which this class is used
@@ -26,10 +26,14 @@ import java.time.Instant;
 public final class Capability
 {
   public enum Category {SCHEDULER, OS, HARDWARE, SOFTWARE, JOB, CONTAINER, MISC, CUSTOM}
+  public enum Datatype{STRING, INTEGER, BOOLEAN, NUMBER, TIMESTAMP}
 
   /* ********************************************************************** */
   /*                               Constants                                */
   /* ********************************************************************** */
+
+  public static final String DEFAULT_SUBCATEGORY = "";
+  public static final int DEFAULT_PRECEDENCE = 100;
 
   /* ********************************************************************** */
   /*                                 Fields                                 */
@@ -42,7 +46,10 @@ public final class Capability
   private int systemid;
 
   private Category category; // Type or category of capability
+  private String subcategory;   // Name of the capability
   private String name;   // Name of the capability
+  private Datatype datatype; // Datatype associated with the value
+  private int precedence;  // Precedence. Higher number has higher precedence.
   private String value;  // Value or range of values
   private Instant created; // UTC time for when record was created
   private Instant updated; // UTC time for when record was last updated
@@ -51,35 +58,41 @@ public final class Capability
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public Capability() { }
-  public Capability(int id1, int systemid1, Category category1, String name1, String value1, Instant created1, Instant updated1)
+//  public Capability() { }
+  public Capability(int id1, int systemid1, Category category1, String subcategory1, String name1,
+                    Datatype datatype1, int precedence1, String value1, Instant created1, Instant updated1)
   {
     id = id1;
     systemid = systemid1;
     created = created1;
     updated = updated1;
     category = category1;
+    subcategory = subcategory1;
     name = name1;
+    datatype = datatype1;
+    precedence = precedence1;
     value = value1;
   }
 
-  public Capability(Category category1, String name1, String value1)
+  public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
   {
     category = category1;
+    subcategory = subcategory1;
     name = name1;
+    datatype = datatype1;
+    precedence = precedence1;
     value = value1;
   }
 
   /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
-  // NOTE: Setters that are not public are in place in order to use jersey's SelectableEntityFilteringFeature.
   public Category getCategory() { return category; }
-  void setCategory(Category c) { category = c; }
+  public String getSubCategory() { return subcategory; }
   public String getName() { return name; }
-  void setName(String s) { name = s; }
+  public Datatype getDatatype() { return datatype; }
+  public int getPrecedence() { return precedence; }
   public String getValue() { return value; }
-  void setValue(String s) { value = s; }
 
   @Override
   public String toString() {return TapisUtils.toString(this);}

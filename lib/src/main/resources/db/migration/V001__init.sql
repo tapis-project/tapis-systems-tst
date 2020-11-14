@@ -42,6 +42,7 @@ CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelet
                                     'grantPerms', 'revokePerms', 'setCred', 'removeCred');
 CREATE TYPE access_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
 CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');
+CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'NUMBER', 'TIMESTAMP');
 
 -- ----------------------------------------------------------------------------------------
 --                                     SYSTEMS
@@ -144,20 +145,26 @@ COMMENT ON COLUMN system_updates.created IS 'UTC time for when record was create
 -- All columns are specified NOT NULL to make queries easier. <col> = null is not the same as <col> is null
 CREATE TABLE capabilities
 (
-    id     SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     system_id SERIAL REFERENCES systems(id) ON DELETE CASCADE,
     category capability_category_type NOT NULL,
+    subcategory VARCHAR(128),
     name   VARCHAR(128) NOT NULL DEFAULT '',
+    datatype capability_datatype_type NOT NULL,
+    precedence INTEGER NOT NULL DEFAULT 100,
     value  VARCHAR(128) NOT NULL DEFAULT '',
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    UNIQUE (system_id, category, name)
+    UNIQUE (system_id, category, subcategory, name)
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;
 COMMENT ON COLUMN capabilities.id IS 'Capability id';
 COMMENT ON COLUMN capabilities.system_id IS 'Id of system supporting the capability';
 COMMENT ON COLUMN capabilities.category IS 'Category for grouping of capabilities';
+COMMENT ON COLUMN capabilities.subcategory IS 'Subcategory for grouping of capabilities';
 COMMENT ON COLUMN capabilities.name IS 'Name of capability';
+COMMENT ON COLUMN capabilities.datatype IS 'Datatype associated with the value';
+COMMENT ON COLUMN capabilities.precedence IS 'Precedence where higher number has higher precedence';
 COMMENT ON COLUMN capabilities.value IS 'Value for the capability';
 COMMENT ON COLUMN capabilities.created IS 'UTC time for when record was created';
 COMMENT ON COLUMN capabilities.updated IS 'UTC time for when record was last updated';

@@ -60,8 +60,8 @@
 <!--      <version>${jersey-container-servlet.version}</version>-->
 <!--    </dependency>-->
 <!--    <dependency>-->
-<!--        <groupId>org.glassfish.jersey.inject</groupId>-->
-<!--        <artifactId>jersey-hk2</artifactId>-->
+<!--      <groupId>org.glassfish.jersey.inject</groupId>-->
+<!--      <artifactId>jersey-hk2</artifactId>-->
 <!--    </dependency>-->
       <!-- TODO not needed? -->
 
@@ -91,7 +91,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
       </plugin>
-            
+
       <plugin>
         <!-- The version is set in the parent pom -->
         <groupId>org.apache.maven.plugins</groupId>
@@ -122,22 +122,22 @@
      Previously found needed to use JacksonFeature instead of moxy to avoid error when running under docker
      but needed to run moxy instead of JacksonFeature to avoid problem with not returning these attributes: notes, created, updated.
 -->
-        <plugin>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-                <execution>
-                    <phase>prepare-package</phase>
-                    <goals>
-                        <goal>copy-dependencies</goal>
-                    </goals>
-                    <configuration>
-                        <includeScope>runtime</includeScope>
-                        <outputDirectory>target/dependencies</outputDirectory>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeScope>runtime</includeScope>
+              <outputDirectory>target/dependencies</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- *** Create shaded fat jar for standalone execution *** -->
 <!--      <plugin>-->
 <!--        <groupId>org.apache.maven.plugins</groupId>-->

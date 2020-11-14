@@ -11,12 +11,16 @@
   "systemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "accessMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
   "capabilityCategoryEnum": { "type": "string", "enum": ["SCHEDULER", "OS", "HARDWARE", "SOFTWARE", "JOB", "CONTAINER", "MISC", "CUSTOM"] },
+  "capabilityDatatypeEnum": { "type": "string", "enum": ["STRING", "INTEGER", "BOOLEAN", "NUMBER", "TIMESTAMP"] },
   "capability": {
     "type": "object",
     "required": [ "category", "name" ],
     "properties": {
       "category": { "$ref": "#/capabilityCategoryEnum" },
+      "subcategory": { "type": "string", "maxLength": 128 },
       "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+      "datatype": { "$ref": "#/capabilityDatatypeEnum" },
+      "precedence": { "type": "integer" },
       "value": { "type": "string", "maxLength": 128 }
     }
   },

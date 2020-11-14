@@ -14,6 +14,7 @@ import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Capability.Category;
+import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -74,9 +75,12 @@ public class SystemsServiceTest
   private static final String[] tags2 = {"value3", "value4"};
   private static final Object notes2 = TapisGsonUtils.getGson().fromJson("{\"project\": \"myproj2\", \"testdata\": \"abc2\"}", JsonObject.class);
 
-  private static final Capability capA2 = new Capability(Category.SCHEDULER, "Type", "Condor");
-  private static final Capability capB2 = new Capability(Category.HARDWARE, "CoresPerNode", "128");
-  private static final Capability capC2 = new Capability(Category.SOFTWARE, "OpenMP", "3.1");
+  private static final Capability capA2 = new Capability(Category.SCHEDULER, Capability.DEFAULT_SUBCATEGORY, "Type",
+                                                         Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "Condor");
+  private static final Capability capB2 = new Capability(Category.HARDWARE, Capability.DEFAULT_SUBCATEGORY, "CoresPerNode",
+                                                         Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "128");
+  private static final Capability capC2 = new Capability(Category.SOFTWARE, Capability.DEFAULT_SUBCATEGORY, "OpenMP",
+                                                         Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
   private static final List<Capability> cap2List = new ArrayList<>(List.of(capA2, capB2, capC2));
 
   // TODO

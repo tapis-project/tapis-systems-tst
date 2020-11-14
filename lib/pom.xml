@@ -253,6 +253,12 @@
                     <includeTypes>.*</includeTypes>
                   </forcedType>
                   <forcedType>
+                    <userType>edu.utexas.tacc.tapis.systems.model.Capability.Datatype</userType>
+                    <enumConverter>true</enumConverter>
+                    <includeExpression>capabilities\.datatype</includeExpression>
+                    <includeTypes>.*</includeTypes>
+                  </forcedType>
+                  <forcedType>
                     <userType>edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation</userType>
                     <enumConverter>true</enumConverter>
                     <includeExpression>system_updates\.operation</includeExpression>

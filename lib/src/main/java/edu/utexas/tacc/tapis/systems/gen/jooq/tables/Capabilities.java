@@ -8,6 +8,7 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.model.Capability.Category;
+import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row7;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -34,7 +35,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = -296084153;
+    private static final long serialVersionUID = 34077695;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -65,9 +66,24 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class), this, "Category for grouping of capabilities", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType, edu.utexas.tacc.tapis.systems.model.Capability.Category>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class, edu.utexas.tacc.tapis.systems.model.Capability.Category.class));
 
     /**
+     * The column <code>tapis_sys.capabilities.subcategory</code>. Subcategory for grouping of capabilities
+     */
+    public final TableField<CapabilitiesRecord, String> SUBCATEGORY = createField(DSL.name("subcategory"), org.jooq.impl.SQLDataType.VARCHAR(128), this, "Subcategory for grouping of capabilities");
+
+    /**
      * The column <code>tapis_sys.capabilities.name</code>. Name of capability
      */
     public final TableField<CapabilitiesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Name of capability");
+
+    /**
+     * The column <code>tapis_sys.capabilities.datatype</code>. Datatype associated with the value
+     */
+    public final TableField<CapabilitiesRecord, Datatype> DATATYPE = createField(DSL.name("datatype"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType.class), this, "Datatype associated with the value", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType, edu.utexas.tacc.tapis.systems.model.Capability.Datatype>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType.class, edu.utexas.tacc.tapis.systems.model.Capability.Datatype.class));
+
+    /**
+     * The column <code>tapis_sys.capabilities.precedence</code>. Precedence where higher number has higher precedence
+     */
+    public final TableField<CapabilitiesRecord, Integer> PRECEDENCE = createField(DSL.name("precedence"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("100", org.jooq.impl.SQLDataType.INTEGER)), this, "Precedence where higher number has higher precedence");
 
     /**
      * The column <code>tapis_sys.capabilities.value</code>. Value for the capability
@@ -134,7 +150,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
     @Override
     public List<UniqueKey<CapabilitiesRecord>> getKeys() {
-        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_ID_CATEGORY_NAME_KEY);
+        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_ID_CATEGORY_SUBCATEGORY_NAME_KEY);
     }
 
     @Override
@@ -173,11 +189,11 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row7 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<Integer, Integer, Category, String, String, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row7) super.fieldsRow();
+    public Row10<Integer, Integer, Category, String, String, Datatype, Integer, String, LocalDateTime, LocalDateTime> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 }

@@ -40,7 +40,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = UniqueKeys0.CAPABILITIES_PKEY;
-    public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_ID_CATEGORY_NAME_KEY = UniqueKeys0.CAPABILITIES_SYSTEM_ID_CATEGORY_NAME_KEY;
+    public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_ID_CATEGORY_SUBCATEGORY_NAME_KEY = UniqueKeys0.CAPABILITIES_SYSTEM_ID_CATEGORY_SUBCATEGORY_NAME_KEY;
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = UniqueKeys0.FLYWAY_SCHEMA_HISTORY_PK;
     public static final UniqueKey<SystemUpdatesRecord> SYSTEM_UPDATES_PKEY = UniqueKeys0.SYSTEM_UPDATES_PKEY;
     public static final UniqueKey<SystemsRecord> SYSTEMS_PKEY = UniqueKeys0.SYSTEMS_PKEY;
@@ -65,7 +65,7 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_pkey", new TableField[] { Capabilities.CAPABILITIES.ID }, true);
-        public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_ID_CATEGORY_NAME_KEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_system_id_category_name_key", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_ID, Capabilities.CAPABILITIES.CATEGORY, Capabilities.CAPABILITIES.NAME }, true);
+        public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_ID_CATEGORY_SUBCATEGORY_NAME_KEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_system_id_category_subcategory_name_key", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_ID, Capabilities.CAPABILITIES.CATEGORY, Capabilities.CAPABILITIES.SUBCATEGORY, Capabilities.CAPABILITIES.NAME }, true);
         public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "flyway_schema_history_pk", new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
         public static final UniqueKey<SystemUpdatesRecord> SYSTEM_UPDATES_PKEY = Internal.createUniqueKey(SystemUpdates.SYSTEM_UPDATES, "system_updates_pkey", new TableField[] { SystemUpdates.SYSTEM_UPDATES.ID }, true);
         public static final UniqueKey<SystemsRecord> SYSTEMS_PKEY = Internal.createUniqueKey(Systems.SYSTEMS, "systems_pkey", new TableField[] { Systems.SYSTEMS.ID }, true);
