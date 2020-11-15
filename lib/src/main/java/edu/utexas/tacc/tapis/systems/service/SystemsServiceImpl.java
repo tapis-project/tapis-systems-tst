@@ -908,6 +908,47 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
+   * Get all systems for which user has READ permission and matching specified constraint conditions.
+   * Use provided string containing a valid SQL where clause for the search.
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param matchStr - string containing a valid SQL where clause
+   * @return List of TSystem objects
+   * @throws TapisException - for Tapis related exceptions
+   */
+  @Override
+  public List<TSystem> getSystemsMatchingConditions(AuthenticatedUser authenticatedUser, String matchStr)
+          throws TapisException, TapisClientException
+  {
+    SystemOperation op = SystemOperation.read;
+    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
+    // Determine tenant scope for user
+    String systemTenantName = authenticatedUser.getTenantId();
+    // For service request use oboTenant for tenant associated with the user
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+      systemTenantName = authenticatedUser.getOboTenantId();
+
+    // Get list of IDs of systems for which requester has READ permission.
+    // This is either all systems (null) or a list of IDs based on roles.
+    List<Integer> allowedSystemIDs = getAllowedSystemIDs(authenticatedUser, systemTenantName);
+
+    // Get all allowed systems matching the constraint conditions
+    // TODO: For now return all systems. Once a shared util method is available for matching
+    //       as a first pass we can simply iterate through all systems to find which match.
+    //       For performance might need to later do matching with DB queries.
+    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), null, null, allowedSystemIDs,
+                                  SearchUtils.DEFAULT_LIMIT, SearchUtils.DEFAULT_SORTBY,
+                                  SearchUtils.DEFAULT_SORTBY_DIRECTION, SearchUtils.DEFAULT_SKIP,
+                                  SearchUtils.DEFAULT_STARTAFTER);
+
+    for (TSystem system : systems)
+    {
+      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(),
+              authenticatedUser.getName()));
+    }
+    return systems;
+  }
+
+  /**
    * getSystemBasic
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemName - Name of the system

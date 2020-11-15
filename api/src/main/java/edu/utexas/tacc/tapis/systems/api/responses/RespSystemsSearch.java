@@ -10,7 +10,7 @@ import java.util.List;
 /*
   Results from a retrieval of TSystem resources.
  */
-public final class RespSystems extends RespSearch
+public final class RespSystemsSearch extends RespSearch
 {
 
   // NOTE: Having this attribute here seems necessary although not clear why since it appears to be unused.
@@ -18,9 +18,9 @@ public final class RespSystems extends RespSearch
   public List<TSystem> results;
 
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public RespSystems() { }
+  public RespSystemsSearch() { }
 
-  public RespSystems(List<TSystem> tmpResults, int limit, String sortBy, int skip, String startAfter, int totalCount)
+  public RespSystemsSearch(List<TSystem> tmpResults, int limit, String sortBy, int skip, String startAfter, int totalCount)
   {
     result = new ResultSearch();
     result.search = tmpResults;

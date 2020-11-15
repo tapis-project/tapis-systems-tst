@@ -60,8 +60,8 @@ import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystemArray;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsSearch;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsArray;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
@@ -92,6 +92,7 @@ public class SystemResource
   private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemCreateRequest.json";
   private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateRequest.json";
   private static final String FILE_SYSTEM_SEARCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemSearchRequest.json";
+  private static final String FILE_SYSTEM_MATCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/MatchConstraintsRequest.json";
   private static final String FILE_SYSTEM_IMPORTSGCI_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemImportSGCIRequest.json";
   private static final String FILE_SYSTEM_UPDATESGCI_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateSGCIRequest.json";
 
@@ -867,7 +868,7 @@ public class SystemResource
     if (systems == null) systems = Collections.emptyList();
 
     // ---------------------------- Success -------------------------------
-    RespSystemArray resp1 = new RespSystemArray(systems);
+    RespSystemsArray resp1 = new RespSystemsArray(systems);
 //    // TODO Get total count
 //    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
 //    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
@@ -961,7 +962,7 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+    RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
                                         threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
@@ -977,7 +978,6 @@ public class SystemResource
    */
   @POST
   @Path("search/systems")
-//  @Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
@@ -1075,8 +1075,93 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
+    RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
                                         threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    String itemCountStr = systems.size() + " systems";
+    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
+  }
+
+  /**
+   * matchConstraints
+   * Retrieve details for systems. Use request body to specify constraint conditions as an SQL-like WHERE clause.
+   * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
+   * @param payloadStream - request body
+   * @param securityContext - user identity
+   * @return - list of systems accessible by requester and matching constraint conditions.
+   */
+  @POST
+  @Path("match/constraints")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response matchConstraints(InputStream payloadStream,
+                                   @Context SecurityContext securityContext)
+  {
+    String opName = "matchConstraints";
+    // Trace this request.
+    if (_log.isTraceEnabled()) logRequest(opName);
+
+    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Utility method returns null if all OK and appropriate error response if there was a problem.
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    boolean prettyPrint = threadContext.getPrettyPrint();
+    Response resp = ApiUtils.checkContext(threadContext, prettyPrint);
+    if (resp != null) return resp;
+
+    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
+    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+
+    // ------------------------- Extract and validate payload -------------------------
+    // Read the payload into a string.
+    String rawJson, msg;
+    try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
+    catch (Exception e)
+    {
+      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+    }
+    // Create validator specification and validate the json against the schema
+    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_MATCH_REQUEST);
+    try { JsonValidator.validate(spec); }
+    catch (TapisJSONException e)
+    {
+      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+    }
+
+    // Construct final SQL-like search string using the json
+    // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
+    // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
+    String matchStr;
+    try
+    {
+      matchStr = SearchUtils.getSearchFromRequestJson(rawJson);
+    }
+    catch (JsonSyntaxException e)
+    {
+      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+    }
+    _log.debug("Using match string: " + matchStr);
+
+    // ------------------------- Retrieve records -----------------------------
+    List<TSystem> systems;
+    try {
+      systems = systemsService.getSystemsMatchingConditions(authenticatedUser, matchStr);
+    }
+    catch (Exception e)
+    {
+      msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+    }
+
+    if (systems == null) systems = Collections.emptyList();
+
+    // ---------------------------- Success -------------------------------
+    RespSystemsArray resp1 = new RespSystemsArray(systems);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
   }
