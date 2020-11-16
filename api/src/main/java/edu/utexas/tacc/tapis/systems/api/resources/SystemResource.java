@@ -1136,7 +1136,7 @@ public class SystemResource
     String matchStr;
     try
     {
-      matchStr = SearchUtils.getSearchFromRequestJson(rawJson);
+      matchStr = SearchUtils.getMatchFromRequestJson(rawJson);
     }
     catch (JsonSyntaxException e)
     {
