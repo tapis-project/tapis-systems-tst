@@ -14,7 +14,7 @@
   "capabilityDatatypeEnum": { "type": "string", "enum": ["STRING", "INTEGER", "BOOLEAN", "NUMBER", "TIMESTAMP"] },
   "capability": {
     "type": "object",
-    "required": [ "category", "name" ],
+    "required": [ "category", "name", "datatype" ],
     "properties": {
       "category": { "$ref": "#/capabilityCategoryEnum" },
       "subcategory": { "type": "string", "maxLength": 128 },

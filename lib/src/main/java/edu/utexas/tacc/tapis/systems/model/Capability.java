@@ -32,6 +32,7 @@ public final class Capability
   /*                               Constants                                */
   /* ********************************************************************** */
 
+  public static final String DEFAULT_VALUE = "";
   public static final String DEFAULT_SUBCATEGORY = "";
   public static final int DEFAULT_PRECEDENCE = 100;
 

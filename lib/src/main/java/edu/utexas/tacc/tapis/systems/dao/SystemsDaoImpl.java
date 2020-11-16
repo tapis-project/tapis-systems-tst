@@ -1178,16 +1178,18 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (jobCapabilities == null || jobCapabilities.isEmpty()) return;
 
     for (Capability cap : jobCapabilities) {
-      String valStr = "";
       String subcategory = Capability.DEFAULT_SUBCATEGORY;
+      int precedence = Capability.DEFAULT_PRECEDENCE;
+      String valStr = Capability.DEFAULT_VALUE;
       if (!StringUtils.isBlank(cap.getSubCategory())) subcategory = cap.getSubCategory();
+      if (cap.getPrecedence() > 0) precedence = cap.getPrecedence();
       if (cap.getValue() != null ) valStr = cap.getValue();
       db.insertInto(CAPABILITIES).set(CAPABILITIES.SYSTEM_ID, systemId)
               .set(CAPABILITIES.CATEGORY, cap.getCategory())
               .set(CAPABILITIES.SUBCATEGORY, subcategory)
               .set(CAPABILITIES.NAME, cap.getName())
               .set(CAPABILITIES.DATATYPE, cap.getDatatype())
-              .set(CAPABILITIES.PRECEDENCE, cap.getPrecedence())
+              .set(CAPABILITIES.PRECEDENCE, precedence)
               .set(CAPABILITIES.VALUE, valStr)
               .execute();
     }
