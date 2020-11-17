@@ -68,11 +68,14 @@ CREATE TABLE systems
   use_proxy  BOOLEAN NOT NULL DEFAULT false,
   proxy_host VARCHAR(256) NOT NULL DEFAULT '',
   proxy_port INTEGER NOT NULL DEFAULT -1,
-  job_can_exec   BOOLEAN NOT NULL DEFAULT false,
-  job_local_working_dir VARCHAR(4096),
-  job_local_archive_dir VARCHAR(4096),
-  job_remote_archive_system VARCHAR(80),
-  job_remote_archive_dir VARCHAR(4096),
+  can_exec   BOOLEAN NOT NULL DEFAULT false,
+  job_working_dir VARCHAR(4096),
+  job_env_variables TEXT[],
+  job_max_jobs INTEGER NOT NULL DEFAULT -1,
+  job_max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
+  job_is_batch BOOLEAN NOT NULL DEFAULT false,
+  batch_scheduler VARCHAR(64),
+  batch_default_logical_queue VARCHAR(128),
   tags       TEXT[] NOT NULL,
   notes      JSONB NOT NULL,
   import_ref_id VARCHAR(80),
@@ -96,17 +99,20 @@ COMMENT ON COLUMN systems.enabled IS 'Indicates if system is currently active an
 COMMENT ON COLUMN systems.effective_user_id IS 'User name to use when accessing the system';
 COMMENT ON COLUMN systems.default_access_method IS 'Enum for how authorization is handled by default';
 COMMENT ON COLUMN systems.bucket_name IS 'Name of the bucket for an S3 system';
-COMMENT ON COLUMN systems.root_dir IS 'Name of root directory for a Unix system';
+COMMENT ON COLUMN systems.root_dir IS 'Effective root directory path for a Unix system';
 COMMENT ON COLUMN systems.transfer_methods IS 'List of supported transfer methods';
 COMMENT ON COLUMN systems.port IS 'Port number used to access a system';
 COMMENT ON COLUMN systems.use_proxy IS 'Indicates if system should accessed through a proxy';
 COMMENT ON COLUMN systems.proxy_host IS 'Proxy host name or ip address';
 COMMENT ON COLUMN systems.proxy_port IS 'Proxy port number';
-COMMENT ON COLUMN systems.job_can_exec IS 'Indicates if system will be used to execute jobs';
-COMMENT ON COLUMN systems.job_local_working_dir IS 'Parent directory from which a job is run and where inputs and application assets are staged';
-COMMENT ON COLUMN systems.job_local_archive_dir IS 'Parent directory used for archiving job output files';
-COMMENT ON COLUMN systems.job_remote_archive_system IS 'Remote system on which job output files will be archived';
-COMMENT ON COLUMN systems.job_remote_archive_dir IS 'Parent directory used for archiving job output files on a remote system';
+COMMENT ON COLUMN systems.can_exec IS 'Indicates if system can be used to execute jobs';
+COMMENT ON COLUMN systems.job_working_dir IS 'Parent directory from which a job is run. Relative to effective root directory.';
+COMMENT ON COLUMN systems.job_env_variables IS 'Environment variables added to shell environment';
+COMMENT ON COLUMN systems.job_max_jobs IS 'Maximum total number of jobs that can be queued or running on the system at a given time.';
+COMMENT ON COLUMN systems.job_max_jobs_per_user IS 'Maximum total number of jobs associated with a specific user that can be queued or running on the system at a given time.';
+COMMENT ON COLUMN systems.job_is_batch IS 'Flag indicating if system uses a batch scheduler to run jobs.';
+COMMENT ON COLUMN systems.batch_scheduler IS 'Type of scheduler used when running batch jobs';
+COMMENT ON COLUMN systems.batch_default_logical_queue IS 'Default logical batch queue for the system';
 COMMENT ON COLUMN systems.tags IS 'Tags for user supplied key:value pairs';
 COMMENT ON COLUMN systems.notes IS 'Notes for general information stored as JSON';
 COMMENT ON COLUMN systems.import_ref_id IS 'Optional reference ID for systems created via import';
@@ -136,6 +142,39 @@ COMMENT ON COLUMN system_updates.operation IS 'Type of update operation';
 COMMENT ON COLUMN system_updates.upd_json IS 'JSON representing the update - with secrets scrubbed';
 COMMENT ON COLUMN system_updates.upd_text IS 'Text data supplied by client - secrets should be scrubbed';
 COMMENT ON COLUMN system_updates.created IS 'UTC time for when record was created';
+
+-- ----------------------------------------------------------------------------------------
+--                               LOGICAL QUEUES
+-- ----------------------------------------------------------------------------------------
+-- Logical queues table
+-- Logical queues associated with a system
+CREATE TABLE logical_queues
+(
+    id SERIAL PRIMARY KEY,
+    system_id SERIAL REFERENCES systems(id) ON DELETE CASCADE,
+    name   VARCHAR(128) NOT NULL DEFAULT '',
+    max_jobs INTEGER NOT NULL DEFAULT -1,
+    max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
+    max_node_count INTEGER NOT NULL DEFAULT -1,
+    max_cores_per_node INTEGER NOT NULL DEFAULT -1,
+    max_memory_mb INTEGER NOT NULL DEFAULT -1,
+    max_minutes INTEGER NOT NULL DEFAULT -1,
+    created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    UNIQUE (system_id, name)
+);
+ALTER TABLE logical_queues OWNER TO tapis_sys;
+COMMENT ON COLUMN logical_queues.id IS 'Logical queue id';
+COMMENT ON COLUMN logical_queues.system_id IS 'Id of system associated with the logical queue';
+COMMENT ON COLUMN logical_queues.name IS 'Name of logical queue';
+COMMENT ON COLUMN logical_queues.max_jobs IS 'Maximum total number of jobs that can be queued or running in this queue at a given time.';
+COMMENT ON COLUMN logical_queues.max_jobs_per_user IS 'Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.';
+COMMENT ON COLUMN logical_queues.max_node_count IS 'Maximum number of nodes that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.max_cores_per_node IS 'Maximum number of cores per node that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.max_memory_mb IS 'Maximum memory in megabytes that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.max_minutes IS 'Maximum run time in minutes that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.created IS 'UTC time for when record was created';
+COMMENT ON COLUMN logical_queues.updated IS 'UTC time for when record was last updated';
 
 -- ----------------------------------------------------------------------------------------
 --                               CAPABILITIES
@@ -184,6 +223,9 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER system_updated
   BEFORE UPDATE ON systems
   EXECUTE PROCEDURE trigger_set_updated();
+CREATE TRIGGER logical_queues_updated
+    BEFORE UPDATE ON logical_queues
+    EXECUTE PROCEDURE trigger_set_updated();
 CREATE TRIGGER capability_updated
     BEFORE UPDATE ON capabilities
-EXECUTE PROCEDURE trigger_set_updated();
+    EXECUTE PROCEDURE trigger_set_updated();

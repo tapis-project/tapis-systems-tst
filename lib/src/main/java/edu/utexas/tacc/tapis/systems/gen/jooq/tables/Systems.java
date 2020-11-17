@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -1439784000;
+    private static final long serialVersionUID = -690065654;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -110,9 +110,9 @@ public class Systems extends TableImpl<SystemsRecord> {
     public final TableField<SystemsRecord, String> BUCKET_NAME = createField(DSL.name("bucket_name"), org.jooq.impl.SQLDataType.VARCHAR(63), this, "Name of the bucket for an S3 system");
 
     /**
-     * The column <code>tapis_sys.systems.root_dir</code>. Name of root directory for a Unix system
+     * The column <code>tapis_sys.systems.root_dir</code>. Effective root directory path for a Unix system
      */
-    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Name of root directory for a Unix system");
+    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Effective root directory path for a Unix system");
 
     /**
      * The column <code>tapis_sys.systems.transfer_methods</code>. List of supported transfer methods
@@ -140,29 +140,44 @@ public class Systems extends TableImpl<SystemsRecord> {
     public final TableField<SystemsRecord, Integer> PROXY_PORT = createField(DSL.name("proxy_port"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Proxy port number");
 
     /**
-     * The column <code>tapis_sys.systems.job_can_exec</code>. Indicates if system will be used to execute jobs
+     * The column <code>tapis_sys.systems.can_exec</code>. Indicates if system can be used to execute jobs
      */
-    public final TableField<SystemsRecord, Boolean> JOB_CAN_EXEC = createField(DSL.name("job_can_exec"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "Indicates if system will be used to execute jobs");
+    public final TableField<SystemsRecord, Boolean> CAN_EXEC = createField(DSL.name("can_exec"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "Indicates if system can be used to execute jobs");
 
     /**
-     * The column <code>tapis_sys.systems.job_local_working_dir</code>. Parent directory from which a job is run and where inputs and application assets are staged
+     * The column <code>tapis_sys.systems.job_working_dir</code>. Parent directory from which a job is run. Relative to effective root directory.
      */
-    public final TableField<SystemsRecord, String> JOB_LOCAL_WORKING_DIR = createField(DSL.name("job_local_working_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory from which a job is run and where inputs and application assets are staged");
+    public final TableField<SystemsRecord, String> JOB_WORKING_DIR = createField(DSL.name("job_working_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory from which a job is run. Relative to effective root directory.");
 
     /**
-     * The column <code>tapis_sys.systems.job_local_archive_dir</code>. Parent directory used for archiving job output files
+     * The column <code>tapis_sys.systems.job_env_variables</code>. Environment variables added to shell environment
      */
-    public final TableField<SystemsRecord, String> JOB_LOCAL_ARCHIVE_DIR = createField(DSL.name("job_local_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory used for archiving job output files");
+    public final TableField<SystemsRecord, String[]> JOB_ENV_VARIABLES = createField(DSL.name("job_env_variables"), org.jooq.impl.SQLDataType.CLOB.getArrayDataType(), this, "Environment variables added to shell environment");
 
     /**
-     * The column <code>tapis_sys.systems.job_remote_archive_system</code>. Remote system on which job output files will be archived
+     * The column <code>tapis_sys.systems.job_max_jobs</code>. Maximum total number of jobs that can be queued or running on the system at a given time.
      */
-    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_SYSTEM = createField(DSL.name("job_remote_archive_system"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Remote system on which job output files will be archived");
+    public final TableField<SystemsRecord, Integer> JOB_MAX_JOBS = createField(DSL.name("job_max_jobs"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum total number of jobs that can be queued or running on the system at a given time.");
 
     /**
-     * The column <code>tapis_sys.systems.job_remote_archive_dir</code>. Parent directory used for archiving job output files on a remote system
+     * The column <code>tapis_sys.systems.job_max_jobs_per_user</code>. Maximum total number of jobs associated with a specific user that can be queued or running on the system at a given time.
      */
-    public final TableField<SystemsRecord, String> JOB_REMOTE_ARCHIVE_DIR = createField(DSL.name("job_remote_archive_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory used for archiving job output files on a remote system");
+    public final TableField<SystemsRecord, Integer> JOB_MAX_JOBS_PER_USER = createField(DSL.name("job_max_jobs_per_user"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum total number of jobs associated with a specific user that can be queued or running on the system at a given time.");
+
+    /**
+     * The column <code>tapis_sys.systems.job_is_batch</code>. Flag indicating if system uses a batch scheduler to run jobs.
+     */
+    public final TableField<SystemsRecord, Boolean> JOB_IS_BATCH = createField(DSL.name("job_is_batch"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "Flag indicating if system uses a batch scheduler to run jobs.");
+
+    /**
+     * The column <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
+     */
+    public final TableField<SystemsRecord, String> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.VARCHAR(64), this, "Type of scheduler used when running batch jobs");
+
+    /**
+     * The column <code>tapis_sys.systems.batch_default_logical_queue</code>. Default logical batch queue for the system
+     */
+    public final TableField<SystemsRecord, String> BATCH_DEFAULT_LOGICAL_QUEUE = createField(DSL.name("batch_default_logical_queue"), org.jooq.impl.SQLDataType.VARCHAR(128), this, "Default logical batch queue for the system");
 
     /**
      * The column <code>tapis_sys.systems.tags</code>. Tags for user supplied key:value pairs

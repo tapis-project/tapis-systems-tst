@@ -65,7 +65,7 @@ public class SearchDaoTest
   private static final String farFuture15 = "2200";
 
   // String for search involving an escaped comma in a list of values
-  private static final String escapedCommanInListValue = "abc\\,def";
+  private static final String escapedCommaInListValue = "abc\\,def";
 
   // Strings for char relational testings
   private static final String hostName1 = "host" + testKey + "_001";
@@ -94,9 +94,9 @@ public class SearchDaoTest
     for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(ownerUser2); }
 
     // For one system update description to have some special characters. 7 special chars in value: ,()~*!\
-    //   and update archiveLocalDir for testing an escaped comma in a list value
+    //   and update jobWorkingDir for testing an escaped comma in a list value
     systems[numSystems-1].setDescription(specialChar7Str);
-    systems[numSystems-1].setJobLocalArchiveDir(escapedCommanInListValue);
+    systems[numSystems-1].setJobWorkingDir(escapedCommaInListValue);
 
     // Create all the systems in the dB using the in-memory objects, recording start and end times
     createBegin = TapisUtils.getUTCTimeNow();
@@ -153,10 +153,9 @@ public class SearchDaoTest
     validCaseInputs.put(3, new CaseData(1, Arrays.asList("host.eq." + sys0.getHost())));
     validCaseInputs.put(4, new CaseData(1, Arrays.asList("bucket_name.eq." + sys0.getBucketName())));
     validCaseInputs.put(5, new CaseData(1, Arrays.asList("root_dir.eq." + sys0.getRootDir())));
-    validCaseInputs.put(6, new CaseData(1, Arrays.asList("job_local_working_dir.eq." + sys0.getJobLocalWorkingDir())));
-    validCaseInputs.put(7, new CaseData(1, Arrays.asList("job_local_archive_dir.eq." + sys0.getJobLocalArchiveDir())));
-    validCaseInputs.put(8, new CaseData(1, Arrays.asList("job_remote_archive_system.eq." + sys0.getJobRemoteArchiveSystem())));
-    validCaseInputs.put(9, new CaseData(1, Arrays.asList("job_remote_archive_dir.eq." + sys0.getJobRemoteArchiveDir())));
+    validCaseInputs.put(6, new CaseData(1, Arrays.asList("job_working_dir.eq." + sys0.getJobWorkingDir())));
+    validCaseInputs.put(7, new CaseData(1, Arrays.asList("batch_scheduler.eq." + sys0.getBatchScheduler())));
+    validCaseInputs.put(8, new CaseData(1, Arrays.asList("batch_default_logical_queue.eq." + sys0.getBatchDefaultLogicalQueue())));
     validCaseInputs.put(10, new CaseData(numSystems / 2, Arrays.asList("name.like." + sysNameLikeAll, "owner.eq." + ownerUser)));  // Half owned by one user
     validCaseInputs.put(11, new CaseData(numSystems / 2, Arrays.asList("name.like." + sysNameLikeAll, "owner.eq." + ownerUser2))); // and half owned by another
     validCaseInputs.put(12, new CaseData(numSystems, Arrays.asList("name.like." + sysNameLikeAll, "enabled.eq.true")));  // All are enabled
@@ -220,7 +219,7 @@ public class SearchDaoTest
     validCaseInputs.put(103, new CaseData(1, Arrays.asList("name.like." + sysNameLikeAll, "description.eq." + specialChar7EqSearchStr)));
     validCaseInputs.put(104, new CaseData(numSystems - 1, Arrays.asList("name.like." + sysNameLikeAll, "description.neq." + specialChar7EqSearchStr)));
     // Escaped comma in a list of values
-    validCaseInputs.put(110, new CaseData(1, Arrays.asList("name.like." + sysNameLikeAll, "job_local_archive_dir.in." + "noSuchDir," + escapedCommanInListValue)));
+    validCaseInputs.put(110, new CaseData(1, Arrays.asList("name.like." + sysNameLikeAll, "job_working_dir.in." + "noSuchDir," + escapedCommaInListValue)));
 
     // Iterate over valid cases
     for (Map.Entry<Integer, CaseData> item : validCaseInputs.entrySet())

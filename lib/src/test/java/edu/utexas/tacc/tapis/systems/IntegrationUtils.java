@@ -8,6 +8,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,12 @@ public final class IntegrationUtils
   public static final Gson gson =  TapisGsonUtils.getGson();
   public static final List<TransferMethod> txfrMethodsList = new ArrayList<>(List.of(TransferMethod.SFTP, TransferMethod.S3));
   public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
+  public static final boolean isEnabled = true;
+  public static final boolean canExec = true;
+  public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
+  public static final boolean jobIsBatch = true;
+  public static final int jobMaxJobs = -1;
+  public static final int jobMaxJobsPerUser = -1;
   public static final String[] tags = {"value1", "value2", "a",
     "Long tag (1 3 2) special chars [_ $ - & * % @ + = ! ^ ? < > , . ( ) { } / \\ | ]. Backslashes must be escaped."};
   public static final Object notes = TapisGsonUtils.getGson().fromJson("{\"project\": \"myproj1\", \"testdata\": \"abc1\"}", JsonObject.class);
@@ -42,6 +49,16 @@ public final class IntegrationUtils
   public static final Capability capD = new Capability(Capability.Category.CONTAINER, Capability.DEFAULT_SUBCATEGORY, "Singularity",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList = new ArrayList<>(List.of(capA, capB, capC, capD));
+  public static final boolean isDeleted = false;
+  public static final String importRefId = null;
+  public static final Instant created = null;
+  public static final Instant updated = null;
+  public static final int qMaxJobs = -1;
+  public static final int qMaxJobsPerUser = -1;
+  public static final int qMaxNodeCount = -1;
+  public static final int qMaxCoresPerNode = -1;
+  public static final int qMaxMemoryMB = -1;
+  public static final int qMaxMinutes = -1;
 
   /**
    * Create an array of TSystem objects in memory
@@ -61,10 +78,11 @@ public final class IntegrationUtils
       String name = getSysName(key, i+1);
       // Constructor initializes all attributes except for JobCapabilities and Credential
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser,
-              "host"+suffix, true,"effUser"+suffix, prot1.getAccessMethod(), "bucket"+suffix, "/root"+suffix,
+              "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAccessMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
-              false, "jobLocalWorkDir"+suffix, "jobLocalArchDir"+suffix, "jobRemoteArchSystem"+suffix,"jobRemoteArchDir1"+suffix,
-              tags, notes, null, false, null, null);
+              canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
+              "batchScheduler"+suffix, "batchDefaultLogicalQueue"+suffix,
+              tags, notes, importRefId , isDeleted, created, updated);
       systems[i].setJobCapabilities(capList);
     }
     return systems;

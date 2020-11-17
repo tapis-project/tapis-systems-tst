@@ -85,10 +85,7 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobLocalWorkingDir(), sys0.getJobLocalWorkingDir());
-    Assert.assertEquals(tmpSys.getJobLocalArchiveDir(), sys0.getJobLocalArchiveDir());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveSystem(), sys0.getJobRemoteArchiveSystem());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveDir(), sys0.getJobRemoteArchiveDir());
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
     Assert.assertEquals(tmpSys.getDefaultAccessMethod(), sys0.getDefaultAccessMethod());
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
@@ -249,10 +246,7 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobLocalWorkingDir(), sys0.getJobLocalWorkingDir());
-    Assert.assertEquals(tmpSys.getJobLocalArchiveDir(), sys0.getJobLocalArchiveDir());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveSystem(), sys0.getJobRemoteArchiveSystem());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveDir(), sys0.getJobRemoteArchiveDir());
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
     Assert.assertEquals(tmpSys.getDefaultAccessMethod(), sys0.getDefaultAccessMethod());
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
@@ -276,11 +270,11 @@ public class SystemsDaoTest
             prot2.getProxyPort(), capList, tags, notes);
     patchSys.setTenant(tenantName);
     patchSys.setName(fakeSystemName);
-    TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", true,
+    TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,
             "effUser", prot2.getAccessMethod(), "bucket", "/root", prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(), false,
-            "jobLocalWorkDir", "jobLocalArchDir", "jobRemoteArchSystem","jobRemoteArchDir",
-            tags, notes, null, false, null, null);
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(), canExec, "jobWorkDir",
+            jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch, "batchScheduler", "batchDefaultLogicalQueue",
+            tags, notes, null, isDeleted, created, updated);
     // Make sure system does not exist
     Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, true));
     Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, false));

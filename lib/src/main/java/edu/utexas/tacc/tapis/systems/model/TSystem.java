@@ -45,6 +45,7 @@ public final class TSystem
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
+  public static final String[] DEFAULT_JOBENV_VARIABLES = new String[0];
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
   public static final String DEFAULT_TAGS_STR = "{}";
   public static final String[] DEFAULT_TAGS = new String[0];
@@ -91,17 +92,20 @@ public final class TSystem
   private boolean useProxy;  // Indicates if a system should be accessed through a proxy
   private String proxyHost;  // Name or IP address of proxy host
   private int proxyPort;     // Port number for proxy host
-  private boolean jobCanExec; // Indicates if system will be used to execute jobs
-  private String jobLocalWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
-  private String jobLocalArchiveDir; // Parent directory used for archiving job output files
-  private String jobRemoteArchiveSystem; // Remote system on which job output files will be archived
-  private String jobRemoteArchiveDir; // Parent directory used for archiving job output files on remote system
+  private boolean canExec; // Indicates if system will be used to execute jobs
+  private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
+  private String[] jobEnvVariables;
+  private int jobMaxJobs;
+  private int jobMaxJobsPerUser;
+  private boolean jobIsBatch;
+  private String batchScheduler;
+  private List<LogicalQueue> batchLogicalQueues;
+  private String batchDefaultLogicalQueue;
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   private String[] tags;       // List of arbitrary tags as strings
 
   @JsonSerialize(using = JsonObjectSerializer.class)
   private Object notes;   // Simple metadata as json
-
 
   private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;
@@ -123,13 +127,13 @@ public final class TSystem
   /**
    * Constructor using only required attributes.
    */
-  public TSystem(String name1, SystemType systemType1, String host1, AccessMethod defaultAccessMethod1, boolean jobCanExec1)
+  public TSystem(String name1, SystemType systemType1, String host1, AccessMethod defaultAccessMethod1, boolean canExec1)
   {
     name = name1;
     systemType = systemType1;
     host = host1;
     defaultAccessMethod = defaultAccessMethod1;
-    jobCanExec = jobCanExec1;
+    canExec = canExec1;
   }
 
   /**
@@ -140,8 +144,8 @@ public final class TSystem
                  String owner1, String host1, boolean enabled1, String effectiveUserId1, AccessMethod defaultAccessMethod1,
                  String bucketName1, String rootDir1,
                  List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
-                 boolean jobCanExec1, String jobLocalWorkingDir1, String jobLocalArchiveDir1,
-                 String jobRemoteArchiveSystem1, String jobRemoteArchiveDir1,
+                 boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
+                 int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
                  String[] tags1, Object notes1, String importRefId1, boolean deleted1, Instant created1, Instant updated1)
   {
     id = id1;
@@ -179,11 +183,14 @@ public final class TSystem
     useProxy = useProxy1;
     proxyHost = proxyHost1;
     proxyPort = proxyPort1;
-    jobCanExec = jobCanExec1;
-    jobLocalWorkingDir = jobLocalWorkingDir1;
-    jobLocalArchiveDir = jobLocalArchiveDir1;
-    jobRemoteArchiveSystem = jobRemoteArchiveSystem1;
-    jobRemoteArchiveDir = jobRemoteArchiveDir1;
+    canExec = canExec1;
+    jobWorkingDir = jobWorkingDir1;
+    jobEnvVariables = (jobEnvVariables1 == null) ? null : jobEnvVariables1.clone();
+    jobMaxJobs = jobMaxJobs1;
+    jobMaxJobsPerUser = jobMaxJobsPerUser1;
+    jobIsBatch = jobIsBatch1;
+    batchScheduler = batchScheduler1;
+    batchDefaultLogicalQueue = batchDefaultLogicalQueue1;
     tags = (tags1 == null) ? null : tags1.clone();
     notes = notes1;
     importRefId = importRefId1;
@@ -219,11 +226,15 @@ public final class TSystem
     useProxy = t.isUseProxy();
     proxyHost = t.getProxyHost();
     proxyPort = t.getProxyPort();
-    jobCanExec = t.getJobCanExec();
-    jobLocalWorkingDir = t.getJobLocalWorkingDir();
-    jobLocalArchiveDir = t.getJobLocalArchiveDir();
-    jobRemoteArchiveSystem = t.getJobRemoteArchiveSystem();
-    jobRemoteArchiveDir = t.getJobRemoteArchiveDir();
+    canExec = t.getCanExec();
+    jobWorkingDir = t.getJobWorkingDir();
+    jobEnvVariables = (t.getJobEnvVariables() == null) ? null : t.getJobEnvVariables().clone();
+    jobMaxJobs = t.getJobMaxJobs();
+    jobMaxJobsPerUser = t.getJobMaxJobsPerUser();
+    jobIsBatch = t.getJobIsBatch();
+    batchScheduler = t.getBatchScheduler();
+    batchLogicalQueues = (t.getBatchLogicalQueues() == null) ? null :  new ArrayList<>(t.getBatchLogicalQueues());
+    batchDefaultLogicalQueue = t.getBatchDefaultLogicalQueue();
     jobCapabilities = (t.getJobCapabilities() == null) ? null :  new ArrayList<>(t.getJobCapabilities());
     tags = (t.getTags() == null) ? null : t.getTags().clone();
     notes = t.getNotes();
@@ -239,6 +250,7 @@ public final class TSystem
     if (system==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     if (StringUtils.isBlank(system.getOwner())) system.setOwner(DEFAULT_OWNER);
     if (StringUtils.isBlank(system.getEffectiveUserId())) system.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
+    if (system.getJobEnvVariables() == null) system.setJobEnvVariables(DEFAULT_JOBENV_VARIABLES);
     if (system.getTags() == null) system.setTags(DEFAULT_TAGS);
     if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
     if (system.getTransferMethods() == null) system.setTransferMethods(DEFAULT_TRANSFER_METHODS);
@@ -318,20 +330,42 @@ public final class TSystem
   public int getProxyPort() { return proxyPort; }
   public TSystem setProxyPort(int i) { proxyPort = i; return this; }
 
-  public boolean getJobCanExec() { return jobCanExec; }
-  void setJobCanExec(boolean b) { jobCanExec = b; }
+  public boolean getCanExec() { return canExec; }
+  void setCanExec(boolean b) { canExec = b; }
 
-  public String getJobLocalWorkingDir() { return jobLocalWorkingDir; }
-  public TSystem setJobLocalWorkingDir(String s) { jobLocalWorkingDir = s; return this; }
+  public String getJobWorkingDir() { return jobWorkingDir; }
+  public TSystem setJobWorkingDir(String s) { jobWorkingDir = s; return this; }
 
-  public String getJobLocalArchiveDir() { return jobLocalArchiveDir; }
-  public TSystem setJobLocalArchiveDir(String s) { jobLocalArchiveDir = s; return this; }
+  public String[] getJobEnvVariables() {
+    return (jobEnvVariables == null) ? null : jobEnvVariables.clone();
+  }
+  public TSystem setJobEnvVariables(String[] t) {
+    jobEnvVariables = (t == null) ? null : t.clone();
+    return this;
+  }
 
-  public String getJobRemoteArchiveSystem() { return jobRemoteArchiveSystem; }
-  void setJobRemoteArchiveSystem(String s) { jobRemoteArchiveSystem = s; }
+  public int getJobMaxJobs() { return jobMaxJobs; }
+  public TSystem setJobMaxJobs(int i) { jobMaxJobs = i; return this; }
 
-  public String getJobRemoteArchiveDir() { return jobRemoteArchiveDir; }
-  public TSystem setJobRemoteArchiveDir(String s) { jobRemoteArchiveDir = s; return this; }
+  public int getJobMaxJobsPerUser() { return jobMaxJobsPerUser; }
+  public TSystem setJobMaxJobsPerUser(int i) { jobMaxJobsPerUser = i; return this; }
+
+  public boolean getJobIsBatch() { return jobIsBatch; }
+  void setJobIsBatch(boolean b) { jobIsBatch = b; }
+
+  public String getBatchScheduler() { return batchScheduler; }
+  public TSystem setBatchScheduler(String s) { batchScheduler = s; return this; }
+
+  public List<LogicalQueue> getBatchLogicalQueues() {
+    return (batchLogicalQueues == null) ? null : new ArrayList<>(batchLogicalQueues);
+  }
+  public TSystem setBatchLogicalQueues(List<LogicalQueue> q) {
+    batchLogicalQueues = (q == null) ? null : new ArrayList<>(q);
+    return this;
+  }
+
+  public String getBatchDefaultLogicalQueue() { return batchDefaultLogicalQueue; }
+  public TSystem setBatchDefaultLogicalQueue(String s) { batchDefaultLogicalQueue = s; return this; }
 
   public List<Capability> getJobCapabilities() {
     return (jobCapabilities == null) ? null : new ArrayList<>(jobCapabilities);

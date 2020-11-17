@@ -105,6 +105,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (StringUtils.isNotBlank(system.getEffectiveUserId())) effectiveUserId = system.getEffectiveUserId();
       String[] tagsStrArray = TSystem.DEFAULT_TAGS;
       if (system.getTags() != null) tagsStrArray = system.getTags();
+      String[] jobEnvVariablesStrArray = TSystem.DEFAULT_JOBENV_VARIABLES;
+      if (system.getJobEnvVariables() != null) jobEnvVariablesStrArray = system.getJobEnvVariables();
       JsonObject notesObj = TSystem.DEFAULT_NOTES;
       if (system.getNotes() != null) notesObj = (JsonObject) system.getNotes();
 
@@ -125,11 +127,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.USE_PROXY, system.isUseProxy())
               .set(SYSTEMS.PROXY_HOST, proxyHost)
               .set(SYSTEMS.PROXY_PORT, system.getProxyPort())
-              .set(SYSTEMS.JOB_CAN_EXEC, system.getJobCanExec())
-              .set(SYSTEMS.JOB_LOCAL_WORKING_DIR, system.getJobLocalWorkingDir())
-              .set(SYSTEMS.JOB_LOCAL_ARCHIVE_DIR, system.getJobLocalArchiveDir())
-              .set(SYSTEMS.JOB_REMOTE_ARCHIVE_SYSTEM, system.getJobRemoteArchiveSystem())
-              .set(SYSTEMS.JOB_REMOTE_ARCHIVE_DIR, system.getJobRemoteArchiveDir())
+              .set(SYSTEMS.CAN_EXEC, system.getCanExec())
+              .set(SYSTEMS.JOB_WORKING_DIR, system.getJobWorkingDir())
+              .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariablesStrArray)
+              .set(SYSTEMS.JOB_MAX_JOBS, system.getJobMaxJobs())
+              .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, system.getJobMaxJobsPerUser())
+              .set(SYSTEMS.JOB_IS_BATCH, system.getJobIsBatch())
+              .set(SYSTEMS.BATCH_SCHEDULER, system.getBatchScheduler())
+              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, system.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
               .returningResult(SYSTEMS.ID)
@@ -768,7 +773,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     fieldList.add(SYSTEMS.OWNER);
     fieldList.add(SYSTEMS.HOST);
     fieldList.add(SYSTEMS.DEFAULT_ACCESS_METHOD);
-    fieldList.add(SYSTEMS.JOB_CAN_EXEC);
+    fieldList.add(SYSTEMS.CAN_EXEC);
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -890,7 +895,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     fieldList.add(SYSTEMS.OWNER);
     fieldList.add(SYSTEMS.HOST);
     fieldList.add(SYSTEMS.DEFAULT_ACCESS_METHOD);
-    fieldList.add(SYSTEMS.JOB_CAN_EXEC);
+    fieldList.add(SYSTEMS.CAN_EXEC);
 
     // ------------------------- Build and execute SQL ----------------------------
     Connection conn = null;

@@ -14,7 +14,7 @@
   "$comment": "TODO: remove comments",
 
   "type": "object",
-  "required": [ "sgciResourceId", "systemType", "host", "defaultAccessMethod", "jobCanExec" ],
+  "required": [ "sgciResourceId", "systemType", "host", "defaultAccessMethod", "canExec" ],
   "properties": {
     "sgciResourceId": { "type": "string", "minLength": 1, "maxLength": 80 },
     "name": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemName" },
@@ -23,8 +23,6 @@
     "enabled": { "type": "boolean", "default": true },
     "effectiveUserId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/userName" },
     "accessCredential": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/credential" },
-    "jobRemoteArchiveSystem": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemName" },
-    "jobRemoteArchiveDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/dirPath" },
     "jobCapabilities": {
       "type": "array",
       "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/capability" }

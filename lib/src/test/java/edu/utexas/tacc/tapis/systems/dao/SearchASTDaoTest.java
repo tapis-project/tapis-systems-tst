@@ -93,9 +93,9 @@ public class SearchASTDaoTest
     for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(ownerUser2); }
 
     // For one system update description to have some special characters. 7 special chars in value: ,()~*!\
-    //   and update archiveLocalDir for testing an escaped comma in a list value
+    //   and update workingDir for testing an escaped comma in a list value
     systems[numSystems-1].setDescription(specialChar7Str);
-    systems[numSystems-1].setJobLocalArchiveDir(escapedCommanInListValue);
+    systems[numSystems-1].setJobWorkingDir(escapedCommanInListValue);
 
     // Create all the systems in the dB using the in-memory objects, recording start and end times
     createBegin = TapisUtils.getUTCTimeNow();
@@ -142,10 +142,9 @@ public class SearchASTDaoTest
     validCaseInputs.put( 3,new CaseData(1, "host = " + sys0.getHost()));
     validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sys0.getBucketName()));
 //    validCaseInputs.put( 5,new CaseData(1, "root_dir = " + sys0.getRootDir())); // TODO underscore
-    validCaseInputs.put( 6,new CaseData(1, "job_local_working_dir = " + sys0.getJobLocalWorkingDir()));
-    validCaseInputs.put( 7,new CaseData(1, "job_local_archive_dir = " + sys0.getJobLocalArchiveDir()));
-    validCaseInputs.put( 8,new CaseData(1, "job_remote_archive_system = " + sys0.getJobRemoteArchiveSystem()));
-    validCaseInputs.put( 9,new CaseData(1, "job_remote_archive_dir = " + sys0.getJobRemoteArchiveDir()));
+    validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sys0.getJobWorkingDir()));
+    validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sys0.getBatchScheduler()));
+    validCaseInputs.put( 8,new CaseData(1, "batch_default_logical_queue = " + sys0.getBatchDefaultLogicalQueue()));
     validCaseInputs.put(10,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser)));  // Half owned by one user
     validCaseInputs.put(11,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser2))); // and half owned by another
     validCaseInputs.put(12,new CaseData(numSystems, "name LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled
@@ -210,7 +209,7 @@ public class SearchASTDaoTest
 //    validCaseInputs.put(173,new CaseData(1, "name LIKE " + sysNameLikeAll, "description = " + specialChar7EqSearchStr));
 //    validCaseInputs.put(174,new CaseData(numSystems-1, "name LIKE " + sysNameLikeAll, "description <> " + specialChar7EqSearchStr));
 //    // Escaped comma in a list of values
-//    validCaseInputs.put(200,new CaseData(1, "name LIKE " + sysNameLikeAll, "job_local_archive_dir IN " + "noSuchDir," + escapedCommanInListValue));
+//    validCaseInputs.put(200,new CaseData(1, "name LIKE " + sysNameLikeAll, "job_working_dir IN " + "noSuchDir," + escapedCommanInListValue));
 
     // Iterate over valid cases
     for (Map.Entry<Integer,CaseData> item : validCaseInputs.entrySet())

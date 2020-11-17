@@ -302,7 +302,7 @@ public class SystemsServiceImpl implements SystemsService
    *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
    * Attributes that cannot be updated:
    *   tenant, name, systemType, owner, accessCredential, bucketName, rootDir,
-   *   jobCanExec, jobLocalWorkingDir, jobLocalArchiveDir, jobRemoteArchiveSystem, jobRemoteArchiveDir
+   *   canExec, jobWorkingDir
    * @param authenticatedUser - principal user containing tenant and user info
    * @param patchSystem - Pre-populated PatchSystem object
    * @param scrubbedText - Text used to create the PatchSystem object - secrets should be scrubbed. Saved in update record.
@@ -1611,15 +1611,13 @@ public class SystemsServiceImpl implements SystemsService
     if (StringUtils.isBlank(owner) || owner.equalsIgnoreCase(APIUSERID_VAR)) owner = oboUser;
     system.setOwner(owner);
 
-    // Perform variable substitutions that happen at create time: bucketName, rootDir, jobLocalWorkingDir, jobLocalArchiveDir
+    // Perform variable substitutions that happen at create time: bucketName, rootDir, jobWorkingDir
     // NOTE: effectiveUserId is not processed. Var reference is retained and substitution done as needed when system is retrieved.
     //    ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
     String[] allVarSubstitutions = {oboUser, owner, system.getTenant()};
     system.setBucketName(StringUtils.replaceEach(system.getBucketName(), ALL_VARS, allVarSubstitutions));
     system.setRootDir(StringUtils.replaceEach(system.getRootDir(), ALL_VARS, allVarSubstitutions));
-    system.setJobLocalWorkingDir(StringUtils.replaceEach(system.getJobLocalWorkingDir(), ALL_VARS, allVarSubstitutions));
-    system.setJobLocalArchiveDir(StringUtils.replaceEach(system.getJobLocalArchiveDir(), ALL_VARS, allVarSubstitutions));
-    system.setJobRemoteArchiveDir(StringUtils.replaceEach(system.getJobRemoteArchiveDir(), ALL_VARS, allVarSubstitutions));
+    system.setJobWorkingDir(StringUtils.replaceEach(system.getJobWorkingDir(), ALL_VARS, allVarSubstitutions));
     return system;
   }
 

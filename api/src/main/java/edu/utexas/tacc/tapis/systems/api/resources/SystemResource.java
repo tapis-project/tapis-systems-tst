@@ -1228,9 +1228,9 @@ public class SystemResource
     var system = new TSystem(-1, null, req.name, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAccessMethod,
                        req.bucketName, req.rootDir, req.transferMethods, req.port, req.useProxy,
-                       req.proxyHost, req.proxyPort, req.jobCanExec, req.jobLocalWorkingDir,
-                       req.jobLocalArchiveDir, req.jobRemoteArchiveSystem, req.jobRemoteArchiveDir,
-                       req.tags, req.notes, req.refImportId, false, null, null);
+                       req.proxyHost, req.proxyPort, req.canExec, req.jobWorkingDir,
+                       req.jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
+                       req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
     system.setAccessCredential(req.accessCredential);
     system.setJobCapabilities(req.jobCapabilities);
     return system;

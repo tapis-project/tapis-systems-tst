@@ -166,7 +166,7 @@ public class SystemsServiceTest
   }
 
   // Create a system using minimal attributes:
-  //   name, systemType, host, defaultAccessMethod, jobCanExec
+  //   name, systemType, host, defaultAccessMethod, canExec
   @Test
   public void testCreateSystemMinimal() throws Exception
   {
@@ -236,12 +236,12 @@ public class SystemsServiceTest
 //  TSystem sysE = new TSystem(-1, tenantName, "SsysE", "description E", SystemType.LINUX, ownerUser, "hostE", true,
 //          "effUserE", prot1.getAccessMethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
 //          prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),false,
-//          "jobLocalWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
+//          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 //          tags1, notes1, false, null, null);
 //  TSystem sysE2 = new TSystem(-1, tenantName, "SsysE", "description PATCHED", SystemType.LINUX, ownerUser, "hostPATCHED", false,
 //          "effUserPATCHED", prot2.getAccessMethod(), "bucketE", "/rootE", prot2.getTransferMethods(),
 //          prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),false,
-//          "jobLocalWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
+//          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 //          tags2, notes2, false, null, null);
     // Update original system definition with patched values
     sys0.setJobCapabilities(cap2List);
@@ -312,9 +312,7 @@ public class SystemsServiceTest
     sys0.setEffectiveUserId("${owner}");
     sys0.setBucketName("bucket8-${tenant}-${apiUserId}");
     sys0.setRootDir("/root8/${tenant}");
-    sys0.setJobLocalWorkingDir("jobLocalWorkDir8/${owner}/${tenant}/${apiUserId}");
-    sys0.setJobLocalArchiveDir("jobLocalArchDir8/${apiUserId}");
-    sys0.setJobRemoteArchiveDir("jobRemoteArchDir8${owner}${tenant}${apiUserId}");
+    sys0.setJobWorkingDir("jobWorkDir8/${owner}/${tenant}/${apiUserId}");
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
@@ -323,14 +321,12 @@ public class SystemsServiceTest
 
 // sys8 = {tenantName, "Ssys8", "description 8", SystemType.LINUX.name(), "${apiUserId}", "host8",
 //         "${owner}", prot1AccessMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}", prot1TxfrMethods,
-//         "jobLocalWorkDir8/${owner}/${tenant}/${apiUserId}", "jobLocalArchDir8/${apiUserId}", "jobRemoteArchSystem8",
+//         "jobWorkDir8/${owner}/${tenant}/${apiUserId}", "jobLocalArchDir8/${apiUserId}", "jobRemoteArchSystem8",
 //         "jobRemoteArchDir8${owner}${tenant}${apiUserId}", tags, notes, "{}"};
     String effectiveUserId = ownerUser;
     String bucketName = "bucket8-" + tenantName + "-" + effectiveUserId;
     String rootDir = "/root8/" + tenantName;
-    String jobLocalWorkingDir = "jobLocalWorkDir8/" + ownerUser + "/" + tenantName + "/" + effectiveUserId;
-    String jobLocalArchiveDir = "jobLocalArchDir8/" + effectiveUserId;
-    String jobRemoteArchiveDir = "jobRemoteArchDir8" + ownerUser + tenantName + effectiveUserId;
+    String jobWorkingDir = "jobWorkDir8/" + ownerUser + "/" + tenantName + "/" + effectiveUserId;
     Assert.assertEquals(tmpSys.getName(), sys0.getName());
     Assert.assertEquals(tmpSys.getDescription(), sys0.getDescription());
     Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
@@ -341,9 +337,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getBucketName(), bucketName);
     Assert.assertEquals(tmpSys.getRootDir(), rootDir);
-    Assert.assertEquals(tmpSys.getJobLocalWorkingDir(), jobLocalWorkingDir);
-    Assert.assertEquals(tmpSys.getJobLocalArchiveDir(), jobLocalArchiveDir);
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveDir(), jobRemoteArchiveDir);
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), jobWorkingDir);
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
     Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
@@ -897,10 +891,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobLocalWorkingDir(), sys0.getJobLocalWorkingDir());
-    Assert.assertEquals(tmpSys.getJobLocalArchiveDir(), sys0.getJobLocalArchiveDir());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveSystem(), sys0.getJobRemoteArchiveSystem());
-    Assert.assertEquals(tmpSys.getJobRemoteArchiveDir(), sys0.getJobRemoteArchiveDir());
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
     Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());

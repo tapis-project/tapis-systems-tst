@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.api.requests;
 
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
@@ -40,11 +41,15 @@ public final class ReqCreateSystem
   public boolean useProxy = DEFAULT_USEPROXY;  // Indicates if a system should be accessed through a proxy
   public String proxyHost = DEFAULT_PROXYHOST;  // Name or IP address of proxy host
   public int proxyPort = DEFAULT_PROXYPORT;     // Port number for proxy host
-  public boolean jobCanExec; // Indicates if system will be used to execute jobs
-  public String jobLocalWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
-  public String jobLocalArchiveDir; // Parent directory used for archiving job output files
-  public String jobRemoteArchiveSystem; // Remote system on which job output files will be archived
-  public String jobRemoteArchiveDir; // Parent directory used for archiving job output files on remote system
+  public boolean canExec; // Indicates if system will be used to execute jobs
+  public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
+  public String[] jobEnvVariables;
+  public int jobMaxJobs;
+  public int jobMaxJobsPerUser;
+  public boolean jobIsBatch;
+  public String batchScheduler;
+  public List<LogicalQueue> batchLogicalQueues;
+  public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   public String[] tags = DEFAULT_TAGS;       // List of arbitrary tags as strings
   public Object notes = DEFAULT_NOTES;      // Simple metadata as json
