@@ -22,7 +22,6 @@ public final class SystemBasic
   // *********************** Fields *****************************************
   // ************************************************************************
 
-  // NOTE: In order to use jersey's SelectableEntityFilteringFeature fields cannot be final.
   private int id;           // Unique database sequence number
   private String tenant;     // Name of the tenant for which the system is defined
   private String name;       // Name of the system
@@ -103,18 +102,13 @@ public final class SystemBasic
   // *********************** Accessors **************************************
   // ************************************************************************
 
-  // NOTE: Setters that are not public are in place in order to use jersey's SelectableEntityFilteringFeature.
-
   public int getId() { return id; }
-  void setId(int i) { id = i; };
 
   @Schema(type = "string")
   public Instant getCreated() { return created; }
-  void setCreated(Instant i) { created = i; };
 
   @Schema(type = "string")
   public Instant getUpdated() { return updated; }
-  void setUpdated(Instant i) { updated = i; };
 
   public String getTenant() { return tenant; }
   public SystemBasic setTenant(String s) { tenant = s; return this; }
@@ -123,7 +117,6 @@ public final class SystemBasic
   public SystemBasic setName(String s) { name = s; return this; }
 
   public SystemType getSystemType() { return systemType; }
-  void setSystemType(SystemType s) { systemType = s; };
 
   public String getOwner() { return owner; }
   public SystemBasic setOwner(String s) { owner = s;  return this;}
@@ -135,5 +128,4 @@ public final class SystemBasic
   public SystemBasic setDefaultAccessMethod(AccessMethod a) { defaultAccessMethod = a; return this; }
 
   public boolean getCanExec() { return canExec; }
-  void setCanExec(boolean b) { canExec = b; }
 }

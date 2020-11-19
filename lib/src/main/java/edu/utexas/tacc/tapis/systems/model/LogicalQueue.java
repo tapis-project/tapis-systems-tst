@@ -37,19 +37,18 @@ public final class LogicalQueue
   // Logging
   private static final Logger _log = LoggerFactory.getLogger(LogicalQueue.class);
 
-  // NOTE: In order to use jersey's SelectableEntityFilteringFeature fields cannot be final.
-  private int id;           // Unique database sequence number
-  private int systemid;
+  private final int id;           // Unique database sequence number
+  private final int systemid;
 
-  private String name;   // Name for the logical queue
-  private int maxJobs;
-  private int maxJobsPerUser;
-  private int maxNodeCount;
-  private int maxCoresPerNode;
-  private int maxMemoryMB;
-  private int maxMinutes;
-  private Instant created; // UTC time for when record was created
-  private Instant updated; // UTC time for when record was last updated
+  private final String name;   // Name for the logical queue
+  private final int maxJobs;
+  private final int maxJobsPerUser;
+  private final int maxNodeCount;
+  private final int maxCoresPerNode;
+  private final int maxMemoryMB;
+  private final int maxMinutes;
+  private final Instant created; // UTC time for when record was created
+  private final Instant updated; // UTC time for when record was last updated
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
@@ -73,6 +72,10 @@ public final class LogicalQueue
   public LogicalQueue(String name1, int maxJobs1, int maxJobsPerUser1, int maxNodeCount1, int maxCoresPerNode1,
                       int maxMemoryMB1, int maxMinutes1)
   {
+    id = -1;
+    systemid = -1;
+    created = null;
+    updated = null;
     name = name1;
     maxJobs = maxJobs1;
     maxJobsPerUser = maxJobsPerUser1;

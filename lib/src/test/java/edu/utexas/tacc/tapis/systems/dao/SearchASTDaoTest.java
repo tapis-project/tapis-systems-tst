@@ -271,7 +271,6 @@ public class SearchASTDaoTest
     skip = 0;
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, limit, DEFAULT_SORTBY, DEFAULT_SORTBY_DIRECTION, skip, DEFAULT_STARTAFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
-    checkOrder(searchResults, 1, numSystems);
     limit = 0;
     skip = 1;
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, limit, DEFAULT_SORTBY, DEFAULT_SORTBY_DIRECTION, skip, DEFAULT_STARTAFTER);

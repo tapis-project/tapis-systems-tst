@@ -13,6 +13,7 @@ import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
@@ -140,6 +141,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .returningResult(SYSTEMS.ID)
               .fetchOne();
       systemId = record.getValue(SYSTEMS.ID);
+
+      // Persist batch logical queues
+      persistLogicalQueues(db, system, systemId);
 
       // Persist job capabilities
       persistJobCapabilities(db, system, systemId);
@@ -486,6 +490,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (r == null) return null;
       else result = r.into(TSystem.class);
 
+      // Retrieve and set batch logical queues
+      result.setBatchLogicalQueues(retrieveLogicalQueues(db, result.getId()));
+
       // Retrieve and set job capabilities
       result.setJobCapabilities(retrieveJobCaps(db, result.getId()));
 
@@ -728,10 +735,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       if (results == null || results.isEmpty()) return retList;
 
-      // Fill in job capabilities list from aux table
+      // Fill in batch logical queues and job capabilities list from aux tables
       for (SystemsRecord r : results)
       {
         TSystem s = r.into(TSystem.class);
+        s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getId()));
         s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
         retList.add(s);
       }
@@ -1175,6 +1183,26 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * Persist batch logical queues given an sql connection and a system
+   */
+  private static void persistLogicalQueues(DSLContext db, TSystem tSystem, int systemId)
+  {
+    var logicalQueues = tSystem.getBatchLogicalQueues();
+    if (logicalQueues == null || logicalQueues.isEmpty()) return;
+    for (LogicalQueue queue : logicalQueues) {
+      db.insertInto(LOGICAL_QUEUES).set(LOGICAL_QUEUES.SYSTEM_ID, systemId)
+              .set(LOGICAL_QUEUES.NAME, queue.getName())
+              .set(LOGICAL_QUEUES.MAX_JOBS, queue.getMaxJobs())
+              .set(LOGICAL_QUEUES.MAX_JOBS_PER_USER, queue.getMaxJobsPerUser())
+              .set(LOGICAL_QUEUES.MAX_NODE_COUNT, queue.getMaxNodeCount())
+              .set(LOGICAL_QUEUES.MAX_CORES_PER_NODE, queue.getMaxCoresPerNode())
+              .set(LOGICAL_QUEUES.MAX_MEMORY_MB, queue.getMaxMemoryMB())
+              .set(LOGICAL_QUEUES.MAX_MINUTES, queue.getMaxMinutes())
+              .execute();
+    }
+  }
+
+  /**
    * Persist job capabilities given an sql connection and a system
    */
   private static void persistJobCapabilities(DSLContext db, TSystem tSystem, int systemId)
@@ -1198,6 +1226,18 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(CAPABILITIES.VALUE, valStr)
               .execute();
     }
+  }
+
+  /**
+   * Get batch logical queues for a system from an auxiliary table
+   * @param db - DB connection
+   * @param systemId - system
+   * @return list of logical queues
+   */
+  private static List<LogicalQueue> retrieveLogicalQueues(DSLContext db, int systemId)
+  {
+    List<LogicalQueue> qRecords = db.selectFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_ID.eq(systemId)).fetchInto(LogicalQueue.class);
+    return qRecords;
   }
 
   /**

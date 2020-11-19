@@ -57,6 +57,8 @@ public final class TSystem
   public static final boolean DEFAULT_USEPROXY = false;
   public static final String DEFAULT_PROXYHOST = "";
   public static final int DEFAULT_PROXYPORT = -1;
+  public static final int DEFAULT_JOBMAXJOBS = -1;
+  public static final int DEFAULT_JOBMAXJOBSPERUSER = -1;
 
   // ************************************************************************
   // *********************** Enums ******************************************
@@ -104,8 +106,9 @@ public final class TSystem
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   private String[] tags;       // List of arbitrary tags as strings
 
+  // Json objects require special serializer for Jackson to handle properly in outgoing response.
   @JsonSerialize(using = JsonObjectSerializer.class)
-  private Object notes;   // Simple metadata as json
+  private Object notes;   // Simple metadata as json.
 
   private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;
@@ -261,18 +264,13 @@ public final class TSystem
   // *********************** Accessors **************************************
   // ************************************************************************
 
-  // NOTE: Setters that are not public are in place in order to use jersey's SelectableEntityFilteringFeature.
-
   public int getId() { return id; }
-  void setId(int i) { id = i; };
 
   @Schema(type = "string")
   public Instant getCreated() { return created; }
-  void setCreated(Instant i) { created = i; };
 
   @Schema(type = "string")
   public Instant getUpdated() { return updated; }
-  void setUpdated(Instant i) { updated = i; };
 
   public String getTenant() { return tenant; }
   public TSystem setTenant(String s) { tenant = s; return this; }
@@ -284,7 +282,6 @@ public final class TSystem
   public TSystem setDescription(String d) { description = d; return this; }
 
   public SystemType getSystemType() { return systemType; }
-  void setSystemType(SystemType s) { systemType = s; };
 
   public String getOwner() { return owner; }
   public TSystem setOwner(String s) { owner = s;  return this;}
@@ -331,7 +328,6 @@ public final class TSystem
   public TSystem setProxyPort(int i) { proxyPort = i; return this; }
 
   public boolean getCanExec() { return canExec; }
-  void setCanExec(boolean b) { canExec = b; }
 
   public String getJobWorkingDir() { return jobWorkingDir; }
   public TSystem setJobWorkingDir(String s) { jobWorkingDir = s; return this; }
@@ -351,7 +347,6 @@ public final class TSystem
   public TSystem setJobMaxJobsPerUser(int i) { jobMaxJobsPerUser = i; return this; }
 
   public boolean getJobIsBatch() { return jobIsBatch; }
-  void setJobIsBatch(boolean b) { jobIsBatch = b; }
 
   public String getBatchScheduler() { return batchScheduler; }
   public TSystem setBatchScheduler(String s) { batchScheduler = s; return this; }
@@ -389,7 +384,5 @@ public final class TSystem
   public String getImportRefId() { return importRefId; }
   public TSystem setImportRefId(String s) { importRefId = s; return this; }
 
-
   public boolean isDeleted() { return deleted; }
-  void setDeleted(boolean b) { deleted = b; }
 }

@@ -42,18 +42,17 @@ public final class Capability
   // Logging
   private static final Logger _log = LoggerFactory.getLogger(Capability.class);
 
-  // NOTE: In order to use jersey's SelectableEntityFilteringFeature fields cannot be final.
-  private int id;           // Unique database sequence number
-  private int systemid;
+  private final int id;           // Unique database sequence number
+  private final int systemid;
 
-  private Category category; // Type or category of capability
-  private String subcategory;   // Name of the capability
-  private String name;   // Name of the capability
-  private Datatype datatype; // Datatype associated with the value
-  private int precedence;  // Precedence. Higher number has higher precedence.
-  private String value;  // Value or range of values
-  private Instant created; // UTC time for when record was created
-  private Instant updated; // UTC time for when record was last updated
+  private final Category category; // Type or category of capability
+  private final String subcategory;   // Name of the capability
+  private final String name;   // Name of the capability
+  private final Datatype datatype; // Datatype associated with the value
+  private final int precedence;  // Precedence. Higher number has higher precedence.
+  private final String value;  // Value or range of values
+  private final Instant created; // UTC time for when record was created
+  private final Instant updated; // UTC time for when record was last updated
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
@@ -75,6 +74,10 @@ public final class Capability
 
   public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
   {
+    id = -1;
+    systemid = -1;
+    created = null;
+    updated = null;
     category = category1;
     subcategory = subcategory1;
     name = name1;

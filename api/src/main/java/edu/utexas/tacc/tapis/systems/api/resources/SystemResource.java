@@ -1232,6 +1232,7 @@ public class SystemResource
                        req.jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
     system.setAccessCredential(req.accessCredential);
+    system.setBatchLogicalQueues(req.batchLogicalQueues);
     system.setJobCapabilities(req.jobCapabilities);
     return system;
   }

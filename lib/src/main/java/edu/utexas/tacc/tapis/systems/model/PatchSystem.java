@@ -2,9 +2,6 @@ package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
-
-import com.google.gson.JsonObject;
-
 import java.util.ArrayList;
 import java.util.List;
 

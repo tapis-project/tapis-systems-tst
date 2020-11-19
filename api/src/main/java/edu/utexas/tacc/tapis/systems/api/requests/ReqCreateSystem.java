@@ -11,6 +11,8 @@ import java.util.List;
 
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_EFFECTIVEUSERID;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_ENABLED;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_JOBMAXJOBS;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_JOBMAXJOBSPERUSER;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_NOTES;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_OWNER;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PORT;
@@ -44,8 +46,8 @@ public final class ReqCreateSystem
   public boolean canExec; // Indicates if system will be used to execute jobs
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
   public String[] jobEnvVariables;
-  public int jobMaxJobs;
-  public int jobMaxJobsPerUser;
+  public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
+  public int jobMaxJobsPerUser = DEFAULT_JOBMAXJOBSPERUSER;
   public boolean jobIsBatch;
   public String batchScheduler;
   public List<LogicalQueue> batchLogicalQueues;
