@@ -267,7 +267,7 @@ public class SystemsDaoTest
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAccessMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), capList, tags, notes);
+            prot2.getProxyPort(), capList1, tags, notes);
     patchSys.setTenant(tenantName);
     patchSys.setName(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,

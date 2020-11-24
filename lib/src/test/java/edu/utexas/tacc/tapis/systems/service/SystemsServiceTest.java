@@ -3,6 +3,7 @@ package edu.utexas.tacc.tapis.systems.service;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.ServiceJWT;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
@@ -105,7 +106,7 @@ public class SystemsServiceTest
         bind(SystemsServiceImpl.class).to(SystemsService.class);
         bind(SystemsServiceImpl.class).to(SystemsServiceImpl.class);
         bind(SystemsDaoImpl.class).to(SystemsDao.class);
-        bindFactory(SystemsServiceJWTFactory.class).to(ServiceJWT.class);
+        bindFactory(SystemsServiceContextFactory.class).to(ServiceContext.class);
         bind(SKClient.class).to(SKClient.class);
       }
     });
@@ -181,7 +182,7 @@ public class SystemsServiceTest
   public void testGetSystem() throws Exception
   {
     TSystem sys0 = systems[1];//2
-    sys0.setJobCapabilities(capList);
+    sys0.setJobCapabilities(capList1);
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
     sys0.setAccessCredential(cred0);
@@ -220,7 +221,7 @@ public class SystemsServiceTest
   public void testUpdateSystem() throws Exception
   {
     TSystem sys0 = systems[13];//3
-    sys0.setJobCapabilities(capList);
+    sys0.setJobCapabilities(capList1);
     String createText = "{\"testUpdate\": \"0-create\"}";
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
     PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
@@ -266,7 +267,7 @@ public class SystemsServiceTest
   public void testChangeSystemOwner() throws Exception
   {
     TSystem sys0 = systems[15];//4
-    sys0.setJobCapabilities(capList);
+    sys0.setJobCapabilities(capList1);
     String createText = "{\"testChangeOwner\": \"0-create\"}";
     String newOwnerName = testUser2;
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, createText);

@@ -13,6 +13,8 @@ import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Capabilities;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import org.apache.commons.lang3.StringUtils;
@@ -761,6 +763,94 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * getTSystemsSatisfyingConstraints
+   * Retrieve all TSystems satisfying capability constraint criteria.
+   *     Constraint criteria conditions provided as an abstract syntax tree (AST).
+   * @param tenant - tenant name
+   * @param matchAST - AST containing match conditions. If null then nothing matches.
+   * @param IDs - list of system IDs to consider. If null all allowed. If empty none allowed.
+   * @return - list of TSystem objects
+   * @throws TapisException - on error
+   */
+  @Override
+  public List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, List<Integer> IDs)
+          throws TapisException
+  {
+    // TODO: might be possible to optimize this method with a join between systems and capabilities tables.
+    // The result list should always be non-null.
+    var retList = new ArrayList<TSystem>();
+
+    // If no match criteria or IDs list is empty then we are done.
+    if (matchAST == null || (IDs != null && IDs.isEmpty())) return retList;
+
+    // TODO: For now return all allowed systems. Once a shared util method is available for matching
+    //       as a first pass we can simply iterate through all systems to find matches.
+    //       For performance might need to later do matching with DB queries.
+
+    // List of system IDs for matching systems
+    List<Integer> matchingIDs = new ArrayList<>();
+
+
+    // ------------------------- Build and execute SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+
+      List<Integer> allowedIDs = IDs;
+      // If IDs is null then all allowed. Use tenant to get all system IDs
+      // TODO: might be able to optimize with a join somewhere
+      if (IDs == null) allowedIDs = getAllSystemIDsInTenant(db, tenant);
+
+      // TODO First get all Systems that have the desired capability
+      // TODO Second select only those systems satisfying the constraints
+
+      // Begin where condition for the query with the IN clause
+      Condition whereCondition = CAPABILITIES.SYSTEM_ID.in(allowedIDs);
+
+      // TODO Build the remainder of the where condition from the AST.
+//    Condition astCondition = createConditionFromAst(matchAST);
+//      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
+
+      // Execute the select
+      Result<CapabilitiesRecord> capResults = db.selectFrom(CAPABILITIES).where(whereCondition).fetch();
+
+      if (capResults == null || capResults.isEmpty()) return retList;
+
+      // Put together list of system IDs from matches
+      for (CapabilitiesRecord r : capResults) { matchingIDs.add(r.getSystemId()); }
+
+      // Get systems based on matching IDs
+      Result<SystemsRecord> systemResults = db.selectFrom(SYSTEMS).where(SYSTEMS.ID.in(matchingIDs)).fetch();
+
+      // Fill in batch logical queues and job capabilities list from aux tables
+      for (SystemsRecord r : systemResults)
+      {
+        TSystem s = r.into(TSystem.class);
+        s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getId()));
+        s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
+        retList.add(s);
+      }
+
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+    return retList;
+  }
+
+  /**
    * getSystemBasic
    * @param name - system name
    * @return SystemBasic object if found, null if not found
@@ -1250,6 +1340,20 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     List<Capability> capRecords = db.selectFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_ID.eq(systemId)).fetchInto(Capability.class);
     return capRecords;
+  }
+
+  /**
+   * Get all system IDs for specified tenant
+   * @param db - DB connection
+   * @param tenant - tenant name
+   * @return list of IDs
+   */
+  private static List<Integer> getAllSystemIDsInTenant(DSLContext db, String tenant)
+  {
+    List<Integer> retList = new ArrayList<>();
+    if (db == null || StringUtils.isBlank(tenant)) return retList;
+    retList = db.select(SYSTEMS.ID).from(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant)).fetchInto(Integer.class);
+    return retList;
   }
 
   /**

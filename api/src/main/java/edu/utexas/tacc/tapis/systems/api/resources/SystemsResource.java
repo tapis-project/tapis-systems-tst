@@ -20,7 +20,7 @@ import javax.ws.rs.core.UriInfo;
 
 import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
-import edu.utexas.tacc.tapis.shared.security.ServiceJWT;
+import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.utils.CallSiteToggle;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
@@ -107,7 +107,7 @@ public class SystemsResource
   @Inject
   private SystemsServiceImpl svcImpl;
   @Inject
-  private ServiceJWT serviceJWT;
+  private ServiceContext serviceContext;
 
   /* **************************************************************************** */
   /*                                Public Methods                                */
@@ -258,7 +258,7 @@ public class SystemsResource
   {
     Exception result = null;
     try {
-      String jwt = serviceJWT.getAccessJWT(SystemsApplication.getSiteId());
+      String jwt = serviceContext.getServiceJWT().getAccessJWT(SystemsApplication.getSiteId());
       if (StringUtils.isBlank(jwt)) result = new TapisClientException(LibUtils.getMsg("SYSLIB_CHECKJWT_EMPTY"));
     }
     catch (Exception e) { result = e; }
@@ -271,7 +271,7 @@ public class SystemsResource
    */
   private Exception checkDB()
   {
-    Exception result = null;
+    Exception result;
     try { result = svcImpl.checkDB(); }
     catch (Exception e) { result = e; }
     return result;

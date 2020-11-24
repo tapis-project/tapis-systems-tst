@@ -48,7 +48,17 @@ public final class IntegrationUtils
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "4.5");
   public static final Capability capD = new Capability(Capability.Category.CONTAINER, Capability.DEFAULT_SUBCATEGORY, "Singularity",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
-  public static final List<Capability> capList = new ArrayList<>(List.of(capA, capB, capC, capD));
+  public static final List<Capability> capList1 = new ArrayList<>(List.of(capA, capB, capC, capD));
+  public static final Capability capA1 = new Capability(Capability.Category.SCHEDULER, Capability.DEFAULT_SUBCATEGORY, "Type",
+          Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "PBS");
+  public static final Capability capB1 = new Capability(Capability.Category.HARDWARE, Capability.DEFAULT_SUBCATEGORY, "CoresPerNode",
+          Capability.Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "8");
+  public static final Capability capC1 = new Capability(Capability.Category.SOFTWARE, Capability.DEFAULT_SUBCATEGORY, "OpenMP",
+          Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
+  public static final Capability capD1 = new Capability(Capability.Category.CONTAINER, Capability.DEFAULT_SUBCATEGORY, "Docker",
+          Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
+  public static final List<Capability> capList2 = new ArrayList<>(List.of(capA1, capB1, capC1, capD1));
+
   public static final boolean isDeleted = false;
   public static final String importRefId = null;
   public static final Instant created = null;
@@ -83,7 +93,7 @@ public final class IntegrationUtils
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
               "batchScheduler"+suffix, "batchDefaultLogicalQueue"+suffix,
               tags, notes, importRefId , isDeleted, created, updated);
-      systems[i].setJobCapabilities(capList);
+      systems[i].setJobCapabilities(capList1);
     }
     return systems;
   }

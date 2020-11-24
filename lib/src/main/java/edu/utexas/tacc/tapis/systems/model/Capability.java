@@ -31,7 +31,6 @@ public final class Capability
   /* ********************************************************************** */
   /*                               Constants                                */
   /* ********************************************************************** */
-
   public static final String DEFAULT_VALUE = "";
   public static final String DEFAULT_SUBCATEGORY = "";
   public static final int DEFAULT_PRECEDENCE = 100;
@@ -39,9 +38,6 @@ public final class Capability
   /* ********************************************************************** */
   /*                                 Fields                                 */
   /* ********************************************************************** */
-  // Logging
-  private static final Logger _log = LoggerFactory.getLogger(Capability.class);
-
   private final int id;           // Unique database sequence number
   private final int systemid;
 
@@ -51,12 +47,14 @@ public final class Capability
   private final Datatype datatype; // Datatype associated with the value
   private final int precedence;  // Precedence. Higher number has higher precedence.
   private final String value;  // Value or range of values
+
   private final Instant created; // UTC time for when record was created
   private final Instant updated; // UTC time for when record was last updated
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
   /* ********************************************************************** */
+  // Constructor initializing all fields.
   public Capability(int id1, int systemid1, Category category1, String subcategory1, String name1,
                     Datatype datatype1, int precedence1, String value1, Instant created1, Instant updated1)
   {
@@ -72,6 +70,7 @@ public final class Capability
     value = value1;
   }
 
+  // Constructor initializing minimal number of fields, useful for testing. Should not be persisted.
   public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
   {
     id = -1;
@@ -89,6 +88,10 @@ public final class Capability
   /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
+  public int getId() { return id; }
+  public int getSystemid() { return systemid; }
+  public Instant getCreated() { return created; }
+  public Instant getUpdated() { return updated; }
   public Category getCategory() { return category; }
   public String getSubCategory() { return subcategory; }
   public String getName() { return name; }

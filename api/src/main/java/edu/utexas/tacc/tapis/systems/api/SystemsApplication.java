@@ -3,20 +3,20 @@ package edu.utexas.tacc.tapis.systems.api;
 import javax.ws.rs.ApplicationPath;
 
 import edu.utexas.tacc.tapis.security.client.SKClient;
+import edu.utexas.tacc.tapis.shared.security.ServiceContext;
+import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.jaxrs.filters.JWTValidateRequestFilter;
 import edu.utexas.tacc.tapis.sharedapi.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
-import edu.utexas.tacc.tapis.shared.security.ServiceJWT;
-import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceImpl;
-import edu.utexas.tacc.tapis.systems.service.SystemsServiceJWTFactory;
+import edu.utexas.tacc.tapis.systems.service.SystemsServiceContextFactory;
 
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -113,7 +113,7 @@ public class SystemsApplication extends ResourceConfig
 
       // Initialize tenant manager singleton. This can be used by all subsequent application code, including filters.
       // The base url of the tenants service is a required input parameter.
-      // Retrieve the tenant list from the tenant service now to fail fast if we can't access the list.
+      // Retrieve the tenant list from the tenant service now to fail fast if we cannot access the list.
       String url = runParms.getTenantsSvcURL();
       TenantManager.getInstance(url).getTenants();
 
@@ -124,7 +124,7 @@ public class SystemsApplication extends ResourceConfig
           bind(SystemsServiceImpl.class).to(SystemsService.class); // Used in Resource classes for most service calls
           bind(SystemsServiceImpl.class).to(SystemsServiceImpl.class); // Used in SystemsResource for checkDB
           bind(SystemsDaoImpl.class).to(SystemsDao.class); // Used in service impl
-          bindFactory(SystemsServiceJWTFactory.class).to(ServiceJWT.class); // Used in service impl and SystemsResource
+          bindFactory(SystemsServiceContextFactory.class).to(ServiceContext.class); // Used in service impl and SystemsResource
           bind(SKClient.class).to(SKClient.class); // Used in service impl
         }
       });
@@ -161,8 +161,6 @@ public class SystemsApplication extends ResourceConfig
     InjectionManager im = handler.getInjectionManager();
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
-    // Make sure we can get a service JWT. Better to fail here than later.
-    ServiceJWT serviceJWT = locator.getService(ServiceJWT.class);
     svcImpl.initService(SystemsApplication.getSiteId());
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config, false);

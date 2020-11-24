@@ -1149,7 +1149,7 @@ public class SystemResource
     // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
     try {
-      systems = systemsService.getSystemsMatchingConditions(authenticatedUser, matchStr);
+      systems = systemsService.getSystemsSatisfyingConstraints(authenticatedUser, matchStr);
     }
     catch (Exception e)
     {

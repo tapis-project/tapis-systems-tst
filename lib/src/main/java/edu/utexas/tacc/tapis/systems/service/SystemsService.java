@@ -53,7 +53,7 @@ public interface SystemsService
                                             String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
-  List<TSystem> getSystemsMatchingConditions(AuthenticatedUser authenticatedUser, String matchStr)
+  List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)
           throws TapisException, TapisClientException;
 
   SystemBasic getSystemBasic(AuthenticatedUser authenticatedUser, String systemName)

@@ -41,6 +41,8 @@ public interface SystemsDao
   List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
+  List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, List<Integer> IDs) throws TapisException;
+
   SystemBasic getSystemBasic(String tenant, String name) throws TapisException;
 
   List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> IDs, int limit,
