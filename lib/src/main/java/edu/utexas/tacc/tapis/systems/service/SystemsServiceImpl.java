@@ -56,7 +56,7 @@ import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
@@ -152,10 +152,10 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // ---------------------------- Check inputs ------------------------------------
-    // Required system attributes: name, type, host, defaultAccessMethod
+    // Required system attributes: name, type, host, defaultAuthnMethod
     if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId) || StringUtils.isBlank(systemName) ||
         system.getSystemType() == null || StringUtils.isBlank(system.getHost()) ||
-        system.getDefaultAccessMethod() == null || StringUtils.isBlank(apiUserId) || StringUtils.isBlank(scrubbedText))
+        system.getDefaultAuthnMethod() == null || StringUtils.isBlank(apiUserId) || StringUtils.isBlank(scrubbedText))
     {
       throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemName));
     }
@@ -183,7 +183,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Construct Json string representing the TSystem (without credentials) about to be created
     TSystem scrubbedSystem = new TSystem(system);
-    scrubbedSystem.setAccessCredential(null);
+    scrubbedSystem.setAuthnCredential(null);
     String createJsonStr = TapisGsonUtils.getGson().toJson(scrubbedSystem);
 
     // ----------------- Create all artifacts --------------------
@@ -243,13 +243,13 @@ public class SystemsServiceImpl implements SystemsService
 
       // ------------------- Store credentials -----------------------------------
       // Store credentials in Security Kernel if cred provided and effectiveUser is static
-      if (system.getAccessCredential() != null && !effectiveUserId.equals(APIUSERID_VAR)) {
+      if (system.getAuthnCredential() != null && !effectiveUserId.equals(APIUSERID_VAR)) {
         String accessUser = effectiveUserId;
         // If effectiveUser is owner resolve to static string.
         if (effectiveUserId.equals(OWNER_VAR)) accessUser = system.getOwner();
         // Use private internal method instead of public API to skip auth and other checks not needed here.
         // Create credential
-        createCredential(skClient, system.getAccessCredential(), tenantName, apiUserId, systemName, systemTenantName, accessUser);
+        createCredential(skClient, system.getAuthnCredential(), tenantName, apiUserId, systemName, systemTenantName, accessUser);
       }
     }
     catch (Exception e0)
@@ -283,7 +283,7 @@ public class SystemsServiceImpl implements SystemsService
         catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemName, "deleteRole", e.getMessage()));}
       }
       // Remove creds
-      if (system.getAccessCredential() != null && !effectiveUserId.equals(APIUSERID_VAR)) {
+      if (system.getAuthnCredential() != null && !effectiveUserId.equals(APIUSERID_VAR)) {
         String accessUser = effectiveUserId;
         if (effectiveUserId.equals(OWNER_VAR)) accessUser = system.getOwner();
         // Use private internal method instead of public API to skip auth and other checks not needed here.
@@ -299,10 +299,10 @@ public class SystemsServiceImpl implements SystemsService
    * Update a system object given a PatchSystem and the text used to create the PatchSystem.
    * Secrets in the text should be masked.
    * Attributes that can be updated:
-   *   description, host, enabled, effectiveUserId, defaultAccessMethod, transferMethods,
+   *   description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
    *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
    * Attributes that cannot be updated:
-   *   tenant, name, systemType, owner, accessCredential, bucketName, rootDir,
+   *   tenant, name, systemType, owner, authnCredential, bucketName, rootDir,
    *   canExec, jobWorkingDir
    * @param authenticatedUser - principal user containing tenant and user info
    * @param patchSystem - Pre-populated PatchSystem object
@@ -685,7 +685,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemName - Name of the system
    * @param getCreds - flag indicating if credentials for effectiveUserId should be included
-   * @param accMethod - (optional) return credentials for specified access method instead of default access method
+   * @param accMethod - (optional) return credentials for specified authn method instead of default authn method
    * @param requireExecPerm - check for EXECUTE permission as well as READ permission
    * @return populated instance of a TSystem or null if not found or user not authorized.
    * @throws TapisException - for Tapis related exceptions
@@ -693,7 +693,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds,
-                           AccessMethod accMethod, boolean requireExecPerm)
+                           AuthnMethod accMethod, boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -730,11 +730,11 @@ public class SystemsServiceImpl implements SystemsService
     // If requested retrieve credentials from Security Kernel
     if (getCreds)
     {
-      AccessMethod tmpAccMethod = result.getDefaultAccessMethod();
-      // If accessMethod specified then use it instead of default access method defined for the system.
+      AuthnMethod tmpAccMethod = result.getDefaultAuthnMethod();
+      // If authnMethod specified then use it instead of default authn method defined for the system.
       if (accMethod != null) tmpAccMethod = accMethod;
       Credential cred = getUserCredential(authenticatedUser, systemName, resolvedEffectiveUserId, tmpAccMethod);
-      result.setAccessCredential(cred);
+      result.setAuthnCredential(cred);
     }
     return result;
   }
@@ -1498,17 +1498,17 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
-   * Get credential for given system, user and access method
+   * Get credential for given system, user and authn method
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemName - name of system
    * @param userName - Target user for operation
-   * @param accessMethod - (optional) return credentials for specified access method instead of default access method
+   * @param authnMethod - (optional) return credentials for specified authn method instead of default authn method
    * @return Credential - populated instance or null if not found.
    * @throws TapisException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
    */
   @Override
-  public Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, AccessMethod accessMethod)
+  public Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, AuthnMethod authnMethod)
           throws TapisException, TapisClientException, NotAuthorizedException
   {
     SystemOperation op = SystemOperation.getCred;
@@ -1533,12 +1533,12 @@ public class SystemsServiceImpl implements SystemsService
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemName, null, userName, null);
 
-    // If accessMethod not passed in fill in with default from system
-    if (accessMethod == null)
+    // If authnMethod not passed in fill in with default from system
+    if (authnMethod == null)
     {
       TSystem sys = dao.getTSystem(systemTenantName, systemName);
       if (sys == null)  throw new TapisException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemName));
-      accessMethod = sys.getDefaultAccessMethod();
+      authnMethod = sys.getDefaultAuthnMethod();
     }
 
     Credential credential = null;
@@ -1550,11 +1550,11 @@ public class SystemsServiceImpl implements SystemsService
       var sParms = new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
       sParms.setTenant(systemTenantName).setSysId(systemName).setSysUser(userName);
       sParms.setUser(systemUserName);
-      // Set key type based on access method
-      if (accessMethod.equals(AccessMethod.PASSWORD))sParms.setKeyType(KeyType.password);
-      else if (accessMethod.equals(AccessMethod.PKI_KEYS))sParms.setKeyType(KeyType.sshkey);
-      else if (accessMethod.equals(AccessMethod.ACCESS_KEY))sParms.setKeyType(KeyType.accesskey);
-      else if (accessMethod.equals(AccessMethod.CERT))sParms.setKeyType(KeyType.cert);
+      // Set key type based on authn method
+      if (authnMethod.equals(AuthnMethod.PASSWORD))sParms.setKeyType(KeyType.password);
+      else if (authnMethod.equals(AuthnMethod.PKI_KEYS))sParms.setKeyType(KeyType.sshkey);
+      else if (authnMethod.equals(AuthnMethod.ACCESS_KEY))sParms.setKeyType(KeyType.accesskey);
+      else if (authnMethod.equals(AuthnMethod.CERT))sParms.setKeyType(KeyType.cert);
 
       // Retrieve the secrets
       // TODO/TBD: why not pass in tenant and apiUser here?
@@ -1658,15 +1658,15 @@ public class SystemsServiceImpl implements SystemsService
     String msg;
     var errMessages = new ArrayList<String>();
     // Check for valid effectiveUserId
-    // For CERT access the effectiveUserId cannot be static string other than owner
+    // For CERT authn the effectiveUserId cannot be static string other than owner
     String effectiveUserId = system.getEffectiveUserId();
-    if (system.getDefaultAccessMethod().equals(AccessMethod.CERT) &&
+    if (system.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
         !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
         !effectiveUserId.equals(TSystem.OWNER_VAR) &&
         !StringUtils.isBlank(system.getOwner()) &&
         !effectiveUserId.equals(system.getOwner()))
     {
-      // For CERT access the effectiveUserId cannot be static string other than owner
+      // For CERT authn the effectiveUserId cannot be static string other than owner
       msg = LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT");
       errMessages.add(msg);
     }
@@ -1677,7 +1677,7 @@ public class SystemsServiceImpl implements SystemsService
       msg = LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT");
       errMessages.add(msg);
     }
-    if (system.getAccessCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
+    if (system.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
     {
       // If effectiveUserId is dynamic then providing credentials is disallowed
       msg = LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT");
@@ -2108,7 +2108,7 @@ public class SystemsServiceImpl implements SystemsService
   /**
    * Merge a patch into an existing TSystem
    * Attributes that can be updated:
-   *   description, host, enabled, effectiveUserId, defaultAccessMethod, transferMethods,
+   *   description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
    *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
    * The only attribute that can be reset to default is effectiveUserId. It is reset when
    *   a blank string is passed in.
@@ -2126,7 +2126,7 @@ public class SystemsServiceImpl implements SystemsService
         p1.setEffectiveUserId(p.getEffectiveUserId());
       }
     }
-    if (p.getDefaultAccessMethod() != null) p1.setDefaultAccessMethod(p.getDefaultAccessMethod());
+    if (p.getDefaultAuthnMethod() != null) p1.setDefaultAuthnMethod(p.getDefaultAuthnMethod());
     if (p.getTransferMethods() != null) p1.setTransferMethods(p.getTransferMethods());
     if (p.getPort() != null) p1.setPort(p.getPort());
     if (p.isUseProxy() != null) p1.setUseProxy(p.isUseProxy());

@@ -7,7 +7,7 @@ package edu.utexas.tacc.tapis.systems.gen.jooq.tables.records;
 import com.google.gson.JsonElement;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Systems;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 1274137567;
+    private static final long serialVersionUID = -1604482475;
 
     /**
      * Setter for <code>tapis_sys.systems.id</code>. System id
@@ -151,17 +151,17 @@ public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
     }
 
     /**
-     * Setter for <code>tapis_sys.systems.default_access_method</code>. Enum for how authorization is handled by default
+     * Setter for <code>tapis_sys.systems.default_authn_method</code>. Enum for how authorization is handled by default
      */
-    public void setDefaultAccessMethod(AccessMethod value) {
+    public void setDefaultAuthnMethod(AuthnMethod value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>tapis_sys.systems.default_access_method</code>. Enum for how authorization is handled by default
+     * Getter for <code>tapis_sys.systems.default_authn_method</code>. Enum for how authorization is handled by default
      */
-    public AccessMethod getDefaultAccessMethod() {
-        return (AccessMethod) get(9);
+    public AuthnMethod getDefaultAuthnMethod() {
+        return (AuthnMethod) get(9);
     }
 
     /**
@@ -481,7 +481,7 @@ public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
     /**
      * Create a detached, initialised SystemsRecord
      */
-    public SystemsRecord(Integer id, String tenant, String name, String description, SystemType systemType, String owner, String host, Boolean enabled, String effectiveUserId, AccessMethod defaultAccessMethod, String bucketName, String rootDir, String[] transferMethods, Integer port, Boolean useProxy, String proxyHost, Integer proxyPort, Boolean canExec, String jobWorkingDir, String[] jobEnvVariables, Integer jobMaxJobs, Integer jobMaxJobsPerUser, Boolean jobIsBatch, String batchScheduler, String batchDefaultLogicalQueue, String[] tags, JsonElement notes, String importRefId, Boolean deleted, LocalDateTime created, LocalDateTime updated) {
+    public SystemsRecord(Integer id, String tenant, String name, String description, SystemType systemType, String owner, String host, Boolean enabled, String effectiveUserId, AuthnMethod defaultAuthnMethod, String bucketName, String rootDir, String[] transferMethods, Integer port, Boolean useProxy, String proxyHost, Integer proxyPort, Boolean canExec, String jobWorkingDir, String[] jobEnvVariables, Integer jobMaxJobs, Integer jobMaxJobsPerUser, Boolean jobIsBatch, String batchScheduler, String batchDefaultLogicalQueue, String[] tags, JsonElement notes, String importRefId, Boolean deleted, LocalDateTime created, LocalDateTime updated) {
         super(Systems.SYSTEMS);
 
         set(0, id);
@@ -493,7 +493,7 @@ public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
         set(6, host);
         set(7, enabled);
         set(8, effectiveUserId);
-        set(9, defaultAccessMethod);
+        set(9, defaultAuthnMethod);
         set(10, bucketName);
         set(11, rootDir);
         set(12, transferMethods);

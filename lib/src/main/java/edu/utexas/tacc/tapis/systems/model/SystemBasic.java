@@ -1,6 +1,6 @@
 package edu.utexas.tacc.tapis.systems.model;
 
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -28,7 +28,7 @@ public final class SystemBasic
   private TSystem.SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
   private String owner;      // User who owns the system and has full privileges
   private String host;       // Host name or IP address
-  private TSystem.AccessMethod defaultAccessMethod; // How access authorization is handled by default
+  private TSystem.AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
   private boolean canExec; // Indicates if system will be used to execute jobs
   private Instant created; // UTC time for when record was created
   private Instant updated; // UTC time for when record was last updated
@@ -47,12 +47,12 @@ public final class SystemBasic
   /**
    * Constructor using only required attributes.
    */
-  public SystemBasic(String name1, SystemType systemType1, String host1, AccessMethod defaultAccessMethod1, boolean canExec1)
+  public SystemBasic(String name1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
   {
     name = name1;
     systemType = systemType1;
     host = host1;
-    defaultAccessMethod = defaultAccessMethod1;
+    defaultAuthnMethod = defaultAuthnMethod1;
     canExec = canExec1;
   }
 
@@ -68,7 +68,7 @@ public final class SystemBasic
       name = tSystem.getName();
       systemType = tSystem.getSystemType();
       host = tSystem.getHost();
-      defaultAccessMethod = tSystem.getDefaultAccessMethod();
+      defaultAuthnMethod = tSystem.getDefaultAuthnMethod();
       canExec = tSystem.getCanExec();
       created = tSystem.getCreated();
       updated = tSystem.getUpdated();
@@ -90,7 +90,7 @@ public final class SystemBasic
 //    systemType = t.getSystemType();
 //    owner = t.getOwner();
 //    host = t.getHost();
-//    defaultAccessMethod = t.getDefaultAccessMethod();
+//    defaultAuthnMethod = t.getDefaultAuthnMethod();
 //    canExec = t.getCanExec();
 //  }
 
@@ -124,8 +124,8 @@ public final class SystemBasic
   public String getHost() { return host; }
   public SystemBasic setHost(String s) { host = s; return this; }
 
-  public AccessMethod getDefaultAccessMethod() { return defaultAccessMethod; }
-  public SystemBasic setDefaultAccessMethod(AccessMethod a) { defaultAccessMethod = a; return this; }
+  public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
+  public SystemBasic setDefaultAuthnMethod(AuthnMethod a) { defaultAuthnMethod = a; return this; }
 
   public boolean getCanExec() { return canExec; }
 }

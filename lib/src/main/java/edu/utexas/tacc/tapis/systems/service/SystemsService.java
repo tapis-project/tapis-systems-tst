@@ -7,7 +7,7 @@ import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 import org.jvnet.hk2.annotations.Contract;
 
@@ -38,7 +38,7 @@ public interface SystemsService
   boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AccessMethod accessMethod,
+  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AuthnMethod authnMethod,
                     boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
@@ -87,6 +87,6 @@ public interface SystemsService
   int deleteUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName)
           throws TapisException, NotAuthorizedException, IllegalStateException, TapisClientException;
 
-  Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, AccessMethod accessMethod)
+  Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, AuthnMethod authnMethod)
           throws TapisException, TapisClientException, NotAuthorizedException;
 }

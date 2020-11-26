@@ -8,16 +8,6 @@ import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.search.parser.ASTBinaryExpression;
-import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
-import edu.utexas.tacc.tapis.search.parser.ASTNode;
-import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
-import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
-import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Capabilities;
-import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
-import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
-import edu.utexas.tacc.tapis.systems.model.SystemBasic;
-import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -26,8 +16,16 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import edu.utexas.tacc.tapis.search.parser.ASTBinaryExpression;
+import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
+import edu.utexas.tacc.tapis.search.parser.ASTNode;
+import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
+import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
+import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
 import static edu.utexas.tacc.tapis.systems.gen.jooq.Tables.*;
@@ -52,14 +50,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /* ********************************************************************** */
   /*                               Constants                                */
   /* ********************************************************************** */
-  // Tracing.
-  private static final Logger _log = LoggerFactory.getLogger(SystemsDaoImpl.class);
 
   private static final String EMPTY_JSON = "{}";
 
   /* ********************************************************************** */
   /*                             Public Methods                             */
   /* ********************************************************************** */
+
   /**
    * Create a new system.
    *
@@ -80,7 +77,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (StringUtils.isBlank(system.getTenant())) LibUtils.logAndThrowNullParmException(opName, "tenant");
     if (StringUtils.isBlank(system.getName())) LibUtils.logAndThrowNullParmException(opName, "systemName");
     if (system.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
-    if (system.getDefaultAccessMethod() == null) LibUtils.logAndThrowNullParmException(opName, "defaultAccessMethod");
+    if (system.getDefaultAuthnMethod() == null) LibUtils.logAndThrowNullParmException(opName, "defaultAuthnMethod");
 
     // Convert transferMethods into array of strings
     String[] transferMethodsStrArray = LibUtils.getTransferMethodsAsStringArray(system.getTransferMethods());
@@ -122,7 +119,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.HOST, system.getHost())
               .set(SYSTEMS.ENABLED, system.isEnabled())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
-              .set(SYSTEMS.DEFAULT_ACCESS_METHOD, system.getDefaultAccessMethod())
+              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, system.getDefaultAuthnMethod())
               .set(SYSTEMS.BUCKET_NAME, system.getBucketName())
               .set(SYSTEMS.ROOT_DIR, system.getRootDir())
               .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
@@ -172,7 +169,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Update an existing system.
    * Following columns will be updated:
-   *  description, host, enabled, effectiveUserId, defaultAccessMethod, transferMethods,
+   *  description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
    *  port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes
    * @return Sequence id of object created
    * @throws TapisException - on error
@@ -229,7 +226,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.HOST, patchedSystem.getHost())
               .set(SYSTEMS.ENABLED, patchedSystem.isEnabled())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
-              .set(SYSTEMS.DEFAULT_ACCESS_METHOD, patchedSystem.getDefaultAccessMethod())
+              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
               .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
               .set(SYSTEMS.PORT, patchedSystem.getPort())
               .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
@@ -711,7 +708,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
-      org.jooq.SelectConditionStep condStep = db.selectFrom(SYSTEMS).where(whereCondition);
+      org.jooq.SelectConditionStep<SystemsRecord> condStep = db.selectFrom(SYSTEMS).where(whereCondition);
       if (!StringUtils.isBlank(sortBy) &&  limit >= 0)
       {
         // We are ordering and limiting
@@ -766,6 +763,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * getTSystemsSatisfyingConstraints
    * Retrieve all TSystems satisfying capability constraint criteria.
    *     Constraint criteria conditions provided as an abstract syntax tree (AST).
+   *     TODO: Support subcategory
    * @param tenant - tenant name
    * @param matchAST - AST containing match conditions. If null then nothing matches.
    * @param IDs - list of system IDs to consider. If null all allowed. If empty none allowed.
@@ -783,13 +781,15 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If no match criteria or IDs list is empty then we are done.
     if (matchAST == null || (IDs != null && IDs.isEmpty())) return retList;
 
-    // TODO: For now return all allowed systems. Once a shared util method is available for matching
+    // TODO/TBD: For now return all allowed systems. Once a shared util method is available for matching
     //       as a first pass we can simply iterate through all systems to find matches.
     //       For performance might need to later do matching with DB queries.
 
     // List of system IDs for matching systems
     List<Integer> matchingIDs = new ArrayList<>();
 
+    // TODO Get all desired capabilities from AST
+    List<Capability> desiredCapabilities = getAllCapabilitiesFromAST(matchAST);
 
     // ------------------------- Build and execute SQL ----------------------------
     Connection conn = null;
@@ -804,8 +804,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // TODO: might be able to optimize with a join somewhere
       if (IDs == null) allowedIDs = getAllSystemIDsInTenant(db, tenant);
 
-      // TODO First get all Systems that have the desired capability
-      // TODO Second select only those systems satisfying the constraints
+      // TODO Get all Systems that specify they support the desired capabilities
+      List<TSystem> systemsList = null; //getAllSystemsHavingCapabilities(db, tenant, desiredCapabilities);
+
+      // TODO Select only those systems satisfying the constraints
+      for (TSystem sys : systemsList)
+      {
+//TODO        if (systemMatchesConstraints(matchAST)) retList.add(sys);
+      }
 
       // Begin where condition for the query with the IN clause
       Condition whereCondition = CAPABILITIES.SYSTEM_ID.in(allowedIDs);
@@ -870,7 +876,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     fieldList.add(SYSTEMS.SYSTEM_TYPE);
     fieldList.add(SYSTEMS.OWNER);
     fieldList.add(SYSTEMS.HOST);
-    fieldList.add(SYSTEMS.DEFAULT_ACCESS_METHOD);
+    fieldList.add(SYSTEMS.DEFAULT_AUTHN_METHOD);
     fieldList.add(SYSTEMS.CAN_EXEC);
 
     // ------------------------- Call SQL ----------------------------
@@ -992,7 +998,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     fieldList.add(SYSTEMS.SYSTEM_TYPE);
     fieldList.add(SYSTEMS.OWNER);
     fieldList.add(SYSTEMS.HOST);
-    fieldList.add(SYSTEMS.DEFAULT_ACCESS_METHOD);
+    fieldList.add(SYSTEMS.DEFAULT_AUTHN_METHOD);
     fieldList.add(SYSTEMS.CAN_EXEC);
 
     // ------------------------- Build and execute SQL ----------------------------
@@ -1636,6 +1642,45 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       case NBETWEEN:
         return col.notBetween(valList.get(0), valList.get(1));
     }
+    return null;
+  }
+
+  /**
+   * Get all Capabilities contained in an abstract syntax tree nodes by recursively walking the tree
+   * @param astNode Abstract syntax tree node containing constraint matching conditions
+   * @return list of capabilities
+   * @throws TapisException on error
+   */
+  private static List<Capability> getAllCapabilitiesFromAST(ASTNode astNode) throws TapisException
+  {
+//    if (astNode == null || astNode instanceof ASTLeaf)
+//    { // TODO
+//      // A leaf node is a column name or value. Nothing to process since we only process a complete condition
+//      //   having the form column_name.op.value. We should never make it to here
+//      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST1", (astNode == null ? "null" : astNode.toString()));
+//      throw new TapisException(msg);
+//    }
+//    else if (astNode instanceof ASTUnaryExpression)
+//    {
+//      // A unary node should have no operator and contain a binary node with two leaf nodes.
+//      // NOTE: Currently unary operators not supported. If support is provided for unary operators (such as NOT) then
+//      //   changes will be needed here.
+//      ASTUnaryExpression unaryNode = (ASTUnaryExpression) astNode;
+//      if (!StringUtils.isBlank(unaryNode.getOp()))
+//      {
+//        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_UNARY_OP", unaryNode.getOp(), unaryNode.toString());
+//        throw new TapisException(msg);
+//      }
+//      // Recursive call
+//      return createConditionFromAst(unaryNode.getNode());
+//    }
+//    else if (astNode instanceof ASTBinaryExpression)
+//    {
+//      // It is a binary node
+//      ASTBinaryExpression binaryNode = (ASTBinaryExpression) astNode;
+//      // Recursive call
+//      return createConditionFromBinaryExpression(binaryNode);
+//    }
     return null;
   }
 }

@@ -65,7 +65,7 @@ import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsArray;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 
@@ -101,35 +101,12 @@ public class SystemResource
   private static final String NOTES_FIELD = "notes";
   private static final String SYSTEM_TYPE_FIELD = "systemType";
   private static final String HOST_FIELD = "host";
-  private static final String DEFAULT_ACCESS_METHOD_FIELD = "defaultAccessMethod";
-  private static final String ACCESS_CREDENTIAL_FIELD = "accessCredential";
+  private static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
+  private static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
   // ************************************************************************
   // *********************** Fields *****************************************
   // ************************************************************************
-  /* Jax-RS context dependency injection allows implementations of these abstract
-   * types to be injected (ch 9, jax-rs 2.0):
-   *
-   *      javax.ws.rs.container.ResourceContext
-   *      javax.ws.rs.core.Application
-   *      javax.ws.rs.core.HttpHeaders
-   *      javax.ws.rs.core.Request
-   *      javax.ws.rs.core.SecurityContext
-   *      javax.ws.rs.core.UriInfo
-   *      javax.ws.rs.core.Configuration
-   *      javax.ws.rs.ext.Providers
-   *
-   * In a servlet environment, Jersey context dependency injection can also
-   * initialize these concrete types (ch 3.6, jersey spec):
-   *
-   *      javax.servlet.HttpServletRequest
-   *      javax.servlet.HttpServletResponse
-   *      javax.servlet.ServletConfig
-   *      javax.servlet.ServletContext
-   *
-   * Inject takes place after constructor invocation, so fields initialized in this
-   * way can not be accessed in constructors.
-   */
   @Context
   private HttpHeaders _httpHeaders;
   @Context
@@ -222,7 +199,7 @@ public class SystemResource
 
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
-    if (system.getAccessCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
+    if (system.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
 
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience
@@ -487,7 +464,7 @@ public class SystemResource
 
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
-    if (system.getAccessCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
+    if (system.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
 
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience
@@ -757,7 +734,7 @@ public class SystemResource
    * getSystem
    * @param systemName - name of the system
    * @param getCreds - should credentials of effectiveUser be included
-   * @param accessMethodStr - access method to use instead of default
+   * @param authnMethodStr - authn method to use instead of default
    * @param requireExecPerm - check for EXECUTE permission as well as READ permission
    * @param securityContext - user identity
    * @return Response with system object as the result
@@ -768,7 +745,7 @@ public class SystemResource
   @Produces(MediaType.APPLICATION_JSON)
   public Response getSystem(@PathParam("systemName") String systemName,
                             @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
-                            @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
+                            @QueryParam("authnMethod") @DefaultValue("") String authnMethodStr,
                             @QueryParam("requireExecPerm") @DefaultValue("false") boolean requireExecPerm,
                             @Context SecurityContext securityContext)
   {
@@ -785,12 +762,12 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    // Check that accessMethodStr is valid if is passed in
-    AccessMethod accessMethod = null;
-    try { if (!StringUtils.isBlank(accessMethodStr)) accessMethod =  AccessMethod.valueOf(accessMethodStr); }
+    // Check that authnMethodStr is valid if is passed in
+    AuthnMethod authnMethod = null;
+    try { if (!StringUtils.isBlank(authnMethodStr)) authnMethod =  AuthnMethod.valueOf(authnMethodStr); }
     catch (IllegalArgumentException e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, accessMethodStr, e.getMessage());
+      String msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, authnMethodStr, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -798,7 +775,7 @@ public class SystemResource
     TSystem system;
     try
     {
-      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, accessMethod, requireExecPerm);
+      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, authnMethod, requireExecPerm);
     }
     catch (Exception e)
     {
@@ -1176,7 +1153,7 @@ public class SystemResource
   @Path("{systemName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-// TODO Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
+// TODO/TBD Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
   public Response deleteSystem(@PathParam("systemName") String systemName,
                                @Context SecurityContext securityContext)
   {
@@ -1226,12 +1203,12 @@ public class SystemResource
   private static TSystem createTSystemFromRequest(ReqCreateSystem req)
   {
     var system = new TSystem(-1, null, req.name, req.description, req.systemType, req.owner, req.host,
-                       req.enabled, req.effectiveUserId, req.defaultAccessMethod,
+                       req.enabled, req.effectiveUserId, req.defaultAuthnMethod,
                        req.bucketName, req.rootDir, req.transferMethods, req.port, req.useProxy,
                        req.proxyHost, req.proxyPort, req.canExec, req.jobWorkingDir,
                        req.jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
-    system.setAccessCredential(req.accessCredential);
+    system.setAuthnCredential(req.authnCredential);
     system.setBatchLogicalQueues(req.batchLogicalQueues);
     system.setJobCapabilities(req.jobCapabilities);
     return system;
@@ -1243,7 +1220,7 @@ public class SystemResource
   private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemName)
   {
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
-                           req.defaultAccessMethod, req.transferMethods, req.port, req.useProxy,
+                           req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.jobCapabilities, req.tags, req.notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);
@@ -1253,7 +1230,7 @@ public class SystemResource
 
   /**
    * Fill in defaults and check constraints on TSystem attributes
-   * Check values. name, host, accessMethod must be set. effectiveUserId is restricted.
+   * Check values. name, host, authnMethod must be set. effectiveUserId is restricted.
    * If transfer mechanism S3 is supported then bucketName must be set.
    * Collect and report as many errors as possible so they can all be fixed before next attempt
    * NOTE: JsonSchema validation should handle some of these checks but we check here again just in case
@@ -1285,18 +1262,18 @@ public class SystemResource
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", HOST_FIELD);
       errMessages.add(msg);
     }
-    if (system1.getDefaultAccessMethod() == null)
+    if (system1.getDefaultAuthnMethod() == null)
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", DEFAULT_ACCESS_METHOD_FIELD);
+      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", DEFAULT_AUTHN_METHOD_FIELD);
       errMessages.add(msg);
     }
-    if (system1.getDefaultAccessMethod().equals(AccessMethod.CERT) &&
+    if (system1.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
             !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
             !effectiveUserId.equals(TSystem.OWNER_VAR) &&
             !StringUtils.isBlank(owner) &&
             !effectiveUserId.equals(owner))
     {
-      // For CERT access the effectiveUserId cannot be static string other than owner
+      // For CERT authn the effectiveUserId cannot be static string other than owner
       msg = ApiUtils.getMsg("SYSAPI_INVALID_EFFECTIVEUSERID_INPUT");
       errMessages.add(msg);
     }
@@ -1307,7 +1284,7 @@ public class SystemResource
       msg = ApiUtils.getMsg("SYSAPI_S3_NOBUCKET_INPUT");
       errMessages.add(msg);
     }
-    if (system1.getAccessCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
+    if (system1.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
     {
       // If effectiveUserId is dynamic then providing credentials is disallowed
       msg = ApiUtils.getMsg("SYSAPI_CRED_DISALLOWED_INPUT");
@@ -1341,7 +1318,7 @@ public class SystemResource
   }
 
   /**
-   * AccessCredential details can contain secrets. Mask any secrets given
+   * AuthnCredential details can contain secrets. Mask any secrets given
    * and return a string containing the final redacted Json.
    * @param rawJson Json from request
    * @return A string with any secrets masked out
@@ -1351,16 +1328,16 @@ public class SystemResource
     if (StringUtils.isBlank(rawJson)) return rawJson;
     // Get the Json object and prepare to extract info from it
     JsonObject sysObj = TapisGsonUtils.getGson().fromJson(rawJson, JsonObject.class);
-    if (!sysObj.has(ACCESS_CREDENTIAL_FIELD)) return rawJson;
-    var credObj = sysObj.getAsJsonObject(ACCESS_CREDENTIAL_FIELD);
+    if (!sysObj.has(AUTHN_CREDENTIAL_FIELD)) return rawJson;
+    var credObj = sysObj.getAsJsonObject(AUTHN_CREDENTIAL_FIELD);
     maskSecret(credObj, CredentialResource.PASSWORD_FIELD);
     maskSecret(credObj, CredentialResource.PRIVATE_KEY_FIELD);
     maskSecret(credObj, CredentialResource.PUBLIC_KEY_FIELD);
     maskSecret(credObj, CredentialResource.ACCESS_KEY_FIELD);
     maskSecret(credObj, CredentialResource.ACCESS_SECRET_FIELD);
     maskSecret(credObj, CredentialResource.CERTIFICATE_FIELD);
-    sysObj.remove(ACCESS_CREDENTIAL_FIELD);
-    sysObj.add(ACCESS_CREDENTIAL_FIELD, credObj);
+    sysObj.remove(AUTHN_CREDENTIAL_FIELD);
+    sysObj.add(AUTHN_CREDENTIAL_FIELD, credObj);
     return sysObj.toString();
   }
 

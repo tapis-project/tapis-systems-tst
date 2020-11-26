@@ -1,6 +1,6 @@
 package edu.utexas.tacc.tapis.systems.model;
 
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public final class PatchSystem
   private final String host;       // Host name or IP address
   private final Boolean enabled; // Indicates if systems is currently enabled
   private final String effectiveUserId; // User to use when accessing system, may be static or dynamic
-  private final AccessMethod defaultAccessMethod; // How access authorization is handled by default
+  private final AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
   private final List<TransferMethod> transferMethods; // Supported transfer methods, allowed values determined by system type
   private final Integer port;          // Port number used to access the system
   private final Boolean useProxy;  // Indicates if a system should be accessed through a proxy
@@ -40,7 +40,7 @@ public final class PatchSystem
    * Constructor setting all final attributes.
    */
   public PatchSystem(String description1, String host1, Boolean enabled1, String effectiveUserId1,
-                     AccessMethod defaultAccessMethod1, List<TransferMethod> transferMethods1,
+                     AuthnMethod defaultAuthnMethod1, List<TransferMethod> transferMethods1,
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1, List<Capability> jobCapabilities1,
                      String[] tags1, Object notes1)
   {
@@ -48,7 +48,7 @@ public final class PatchSystem
     host = host1;
     enabled = enabled1;
     effectiveUserId = effectiveUserId1;
-    defaultAccessMethod = defaultAccessMethod1;
+    defaultAuthnMethod = defaultAuthnMethod1;
     transferMethods = (transferMethods1 == null) ? null : new ArrayList<>(transferMethods1);
     port = port1;
     useProxy = useProxy1;
@@ -76,7 +76,7 @@ public final class PatchSystem
 
   public String getEffectiveUserId() { return effectiveUserId; }
 
-  public AccessMethod getDefaultAccessMethod() { return defaultAccessMethod; }
+  public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
 
   public List<TransferMethod> getTransferMethods() {
     return (transferMethods == null) ? null : new ArrayList<>(transferMethods);

@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
-import edu.utexas.tacc.tapis.shared.security.ServiceJWT;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
@@ -27,7 +26,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 
@@ -167,7 +166,7 @@ public class SystemsServiceTest
   }
 
   // Create a system using minimal attributes:
-  //   name, systemType, host, defaultAccessMethod, canExec
+  //   name, systemType, host, defaultAuthnMethod, canExec
   @Test
   public void testCreateSystemMinimal() throws Exception
   {
@@ -176,8 +175,8 @@ public class SystemsServiceTest
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
   }
 
-  // Test retrieving a system including default access method
-  //   and test retrieving for specified access method.
+  // Test retrieving a system including default authn method
+  //   and test retrieving for specified authn method.
   @Test
   public void testGetSystem() throws Exception
   {
@@ -185,35 +184,35 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList1);
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
-    sys0.setAccessCredential(cred0);
+    sys0.setAuthnCredential(cred0);
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    // Retrieve the system including the credential using the default access method defined for the system
+    // Retrieve the system including the credential using the default authn method defined for the system
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
     TSystem tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
-    // Verify credentials. Only cred for default accessMethod is returned. In this case PKI_KEYS.
-    Credential cred = tmpSys.getAccessCredential();
-    Assert.assertNotNull(cred, "AccessCredential should not be null");
+    // Verify credentials. Only cred for default authnMethod is returned. In this case PKI_KEYS.
+    Credential cred = tmpSys.getAuthnCredential();
+    Assert.assertNotNull(cred, "AuthnCredential should not be null");
     Assert.assertEquals(cred.getPrivateKey(), cred0.getPrivateKey());
     Assert.assertEquals(cred.getPublicKey(), cred0.getPublicKey());
-    Assert.assertNull(cred.getPassword(), "AccessCredential password should be null");
-    Assert.assertNull(cred.getAccessKey(), "AccessCredential access key should be null");
-    Assert.assertNull(cred.getAccessSecret(), "AccessCredential access secret should be null");
-    Assert.assertNull(cred.getCertificate(), "AccessCredential certificate should be null");
+    Assert.assertNull(cred.getPassword(), "AuthnCredential password should be null");
+    Assert.assertNull(cred.getAccessKey(), "AuthnCredential access key should be null");
+    Assert.assertNull(cred.getAccessSecret(), "AuthnCredential access secret should be null");
+    Assert.assertNull(cred.getCertificate(), "AuthnCredential certificate should be null");
 
-    // Test retrieval using specified access method
-    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, AccessMethod.PASSWORD, false);
+    // Test retrieval using specified authn method
+    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getName(), true, AuthnMethod.PASSWORD, false);
     System.out.println("Found item: " + sys0.getName());
-    // Verify credentials. Only cred for default accessMethod is returned. In this case PASSWORD.
-    cred = tmpSys.getAccessCredential();
-    Assert.assertNotNull(cred, "AccessCredential should not be null");
+    // Verify credentials. Only cred for default authnMethod is returned. In this case PASSWORD.
+    cred = tmpSys.getAuthnCredential();
+    Assert.assertNotNull(cred, "AuthnCredential should not be null");
     Assert.assertEquals(cred.getPassword(), cred0.getPassword());
-    Assert.assertNull(cred.getPrivateKey(), "AccessCredential private key should be null");
-    Assert.assertNull(cred.getPublicKey(), "AccessCredential public key should be null");
-    Assert.assertNull(cred.getAccessKey(), "AccessCredential access key should be null");
-    Assert.assertNull(cred.getAccessSecret(), "AccessCredential access secret should be null");
-    Assert.assertNull(cred.getCertificate(), "AccessCredential certificate should be null");
+    Assert.assertNull(cred.getPrivateKey(), "AuthnCredential private key should be null");
+    Assert.assertNull(cred.getPublicKey(), "AuthnCredential public key should be null");
+    Assert.assertNull(cred.getAccessKey(), "AuthnCredential access key should be null");
+    Assert.assertNull(cred.getAccessSecret(), "AuthnCredential access secret should be null");
+    Assert.assertNull(cred.getCertificate(), "AuthnCredential certificate should be null");
   }
 
   // Test updating a system
@@ -225,7 +224,7 @@ public class SystemsServiceTest
     String createText = "{\"testUpdate\": \"0-create\"}";
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
     PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
-            prot2.getAccessMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
+            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), cap2List, tags2, notes2);
     patchSystem.setName(sys0.getName());
     patchSystem.setTenant(tenantName);
@@ -235,12 +234,12 @@ public class SystemsServiceTest
     svc.updateSystem(authenticatedOwnerUsr, patchSystem, patch1Text);
     TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
 //  TSystem sysE = new TSystem(-1, tenantName, "SsysE", "description E", SystemType.LINUX, ownerUser, "hostE", true,
-//          "effUserE", prot1.getAccessMethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
+//          "effUserE", prot1.getAuthnMethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
 //          prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),false,
 //          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 //          tags1, notes1, false, null, null);
 //  TSystem sysE2 = new TSystem(-1, tenantName, "SsysE", "description PATCHED", SystemType.LINUX, ownerUser, "hostPATCHED", false,
-//          "effUserPATCHED", prot2.getAccessMethod(), "bucketE", "/rootE", prot2.getTransferMethods(),
+//          "effUserPATCHED", prot2.getAuthnMethod(), "bucketE", "/rootE", prot2.getTransferMethods(),
 //          prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),false,
 //          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 //          tags2, notes2, false, null, null);
@@ -250,7 +249,7 @@ public class SystemsServiceTest
     sys0.setHost("hostPATCHED");
     sys0.setEnabled(false);
     sys0.setEffectiveUserId("effUserPATCHED");
-    sys0.setDefaultAccessMethod(prot2.getAccessMethod());
+    sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
     sys0.setTransferMethods(prot2.getTransferMethods());
     sys0.setPort(prot2.getPort());
     sys0.setUseProxy(prot2.isUseProxy());
@@ -321,7 +320,7 @@ public class SystemsServiceTest
     System.out.println("Found item: " + sys0.getName());
 
 // sys8 = {tenantName, "Ssys8", "description 8", SystemType.LINUX.name(), "${apiUserId}", "host8",
-//         "${owner}", prot1AccessMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}", prot1TxfrMethods,
+//         "${owner}", prot1AuthnMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}", prot1TxfrMethods,
 //         "jobWorkDir8/${owner}/${tenant}/${apiUserId}", "jobLocalArchDir8/${apiUserId}", "jobRemoteArchSystem8",
 //         "jobRemoteArchDir8${owner}${tenant}${apiUserId}", tags, notes, "{}"};
     String effectiveUserId = ownerUser;
@@ -334,7 +333,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getOwner(), ownerUser);
     Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
     Assert.assertEquals(tmpSys.getEffectiveUserId(), effectiveUserId);
-    Assert.assertEquals(tmpSys.getDefaultAccessMethod().name(), sys0.getDefaultAccessMethod().name());
+    Assert.assertEquals(tmpSys.getDefaultAuthnMethod().name(), sys0.getDefaultAuthnMethod().name());
     Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getBucketName(), bucketName);
     Assert.assertEquals(tmpSys.getRootDir(), rootDir);
@@ -486,19 +485,19 @@ public class SystemsServiceTest
     // Store and retrieve multiple secret types: password, ssh keys, access key and secret
     svc.createUserCredential(authenticatedOwnerUsr, sys0.getName(), testUser1, cred0, scrubbedJson);
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    Credential cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.PASSWORD);
+    Credential cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.PASSWORD);
     // Verify credentials
     Assert.assertEquals(cred1.getPassword(), cred0.getPassword());
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.PKI_KEYS);
+    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.PKI_KEYS);
     Assert.assertEquals(cred1.getPublicKey(), cred0.getPublicKey());
     Assert.assertEquals(cred1.getPrivateKey(), cred0.getPrivateKey());
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.ACCESS_KEY);
+    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.ACCESS_KEY);
     Assert.assertEquals(cred1.getAccessKey(), cred0.getAccessKey());
     Assert.assertEquals(cred1.getAccessSecret(), cred0.getAccessSecret());
     // Delete credentials and verify they were destroyed
     int changeCount = svc.deleteUserCredential(authenticatedOwnerUsr, sys0.getName(), testUser1);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when removing a credential.");
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.PASSWORD);
+    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.PASSWORD);
     Assert.assertNull(cred1, "Credential not deleted. System name: " + sys0.getName() + " User name: " + testUser1);
 
     // Attempt to delete again, should return 0 for change count
@@ -509,17 +508,17 @@ public class SystemsServiceTest
     // Set just ACCESS_KEY only and test
     cred0 = new Credential(null, null, null, "fakeAccessKey2", "fakeAccessSecret2", null);
     svc.createUserCredential(authenticatedOwnerUsr, sys0.getName(), testUser1, cred0, scrubbedJson);
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.ACCESS_KEY);
+    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.ACCESS_KEY);
     Assert.assertEquals(cred1.getAccessKey(), cred0.getAccessKey());
     Assert.assertEquals(cred1.getAccessSecret(), cred0.getAccessSecret());
     // Attempt to retrieve secret that has not been set
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.PKI_KEYS);
+    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.PKI_KEYS);
     Assert.assertNull(cred1, "Credential was non-null for missing secret. System name: " + sys0.getName() + " User name: " + testUser1);
     // Delete credentials and verify they were destroyed
     changeCount = svc.deleteUserCredential(authenticatedOwnerUsr, sys0.getName(), testUser1);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when removing a credential.");
     try {
-      cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AccessMethod.ACCESS_KEY);
+      cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getName(), testUser1, AuthnMethod.ACCESS_KEY);
     } catch (TapisException te) {
       Assert.assertTrue(te.getMessage().startsWith("SYSLIB_NOT_FOUND"));
       cred1 = null;
@@ -574,12 +573,12 @@ public class SystemsServiceTest
     Assert.assertTrue(pass);
 
     //Get credential with no system should return null
-    Credential cred = svc.getUserCredential(authenticatedOwnerUsr, fakeSystemName, fakeUserName, AccessMethod.PKI_KEYS);
+    Credential cred = svc.getUserCredential(authenticatedOwnerUsr, fakeSystemName, fakeUserName, AuthnMethod.PKI_KEYS);
     Assert.assertNull(cred, "Credential was not null for non-existent system");
 //    // Get credential with no system should throw an exception
 //    // TODO/TBD: this is inconsistent other GETs return null. Make them consistent once decided?
 //    pass = false;
-//    try { svc.getUserCredential(authenticatedUser, fakeSystemName, fakeUserName, AccessMethod.PKI_KEYS); }
+//    try { svc.getUserCredential(authenticatedUser, fakeSystemName, fakeUserName, AuthnMethod.PKI_KEYS); }
 //    catch (TapisException te)
 //    {
 //      Assert.assertTrue(te.getMessage().startsWith("SYSLIB_NOT_FOUND"));
@@ -612,7 +611,7 @@ public class SystemsServiceTest
   {
     TSystem sys0 = systems[12];//17
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
-            prot2.getAccessMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
+            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), cap2List, tags2, notes2);
     patchSys.setName(sys0.getName());
     patchSys.setTenant(tenantName);
@@ -637,7 +636,7 @@ public class SystemsServiceTest
     // Create system for remaining auth access tests
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
-    sys0.setAccessCredential(cred0);
+    sys0.setAuthnCredential(cred0);
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // Grant Usr1 - READ and Usr2 - MODIFY
@@ -831,7 +830,7 @@ public class SystemsServiceTest
     // Create system for remaining auth access tests
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
-    sys0.setAccessCredential(cred0);
+    sys0.setAuthnCredential(cred0);
     int itemId = svc.createSystem(authenticatedOwnerUsr, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // Grant Usr1 - READ and Usr2 - MODIFY
@@ -888,7 +887,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
     Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
-    Assert.assertEquals(tmpSys.getDefaultAccessMethod().name(), sys0.getDefaultAccessMethod().name());
+    Assert.assertEquals(tmpSys.getDefaultAuthnMethod().name(), sys0.getDefaultAuthnMethod().name());
     Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());

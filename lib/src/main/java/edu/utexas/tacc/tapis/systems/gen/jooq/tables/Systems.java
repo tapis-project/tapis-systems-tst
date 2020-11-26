@@ -11,7 +11,7 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Indexes;
 import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import java.time.LocalDateTime;
@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -690065654;
+    private static final long serialVersionUID = 904357112;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -100,9 +100,9 @@ public class Systems extends TableImpl<SystemsRecord> {
     public final TableField<SystemsRecord, String> EFFECTIVE_USER_ID = createField(DSL.name("effective_user_id"), org.jooq.impl.SQLDataType.VARCHAR(60).nullable(false), this, "User name to use when accessing the system");
 
     /**
-     * The column <code>tapis_sys.systems.default_access_method</code>. Enum for how authorization is handled by default
+     * The column <code>tapis_sys.systems.default_authn_method</code>. Enum for how authorization is handled by default
      */
-    public final TableField<SystemsRecord, AccessMethod> DEFAULT_ACCESS_METHOD = createField(DSL.name("default_access_method"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AccessMethType.class), this, "Enum for how authorization is handled by default", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.AccessMethType, edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AccessMethType.class, edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod.class));
+    public final TableField<SystemsRecord, AuthnMethod> DEFAULT_AUTHN_METHOD = createField(DSL.name("default_authn_method"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType.class), this, "Enum for how authorization is handled by default", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType, edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType.class, edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod.class));
 
     /**
      * The column <code>tapis_sys.systems.bucket_name</code>. Name of the bucket for an S3 system

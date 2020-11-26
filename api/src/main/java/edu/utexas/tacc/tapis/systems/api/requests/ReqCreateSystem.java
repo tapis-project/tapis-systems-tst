@@ -3,7 +3,7 @@ package edu.utexas.tacc.tapis.systems.api.requests;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 
@@ -34,8 +34,8 @@ public final class ReqCreateSystem
   public String host;       // Host name or IP address
   public boolean enabled = DEFAULT_ENABLED; // Indicates if systems is currently enabled
   public String effectiveUserId = DEFAULT_EFFECTIVEUSERID; // User to use when accessing system, may be static or dynamic
-  public AccessMethod defaultAccessMethod; // How access authorization is handled by default
-  public Credential accessCredential; // Credential to be stored in or retrieved from the Security Kernel
+  public AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
+  public Credential authnCredential; // Credential to be stored in or retrieved from the Security Kernel
   public String bucketName; // Name of bucket for system of type OBJECT_STORE
   public String rootDir;    // Effective root directory for system of type LINUX, can also be used for system of type OBJECT_STORE
   public List<TransferMethod> transferMethods = DEFAULT_TRANSFER_METHODS; // Supported transfer methods, allowed values determined by system type

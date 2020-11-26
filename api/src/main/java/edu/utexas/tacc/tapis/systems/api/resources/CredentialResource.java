@@ -43,7 +43,7 @@ import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateCredential;
 import edu.utexas.tacc.tapis.systems.api.responses.RespCredential;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.model.Credential;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 
 /*
@@ -78,29 +78,6 @@ public class CredentialResource
   // ************************************************************************
   // *********************** Fields *****************************************
   // ************************************************************************
-  /* Jax-RS context dependency injection allows implementations of these abstract
-   * types to be injected (ch 9, jax-rs 2.0):
-   *
-   *      javax.ws.rs.container.ResourceContext
-   *      javax.ws.rs.core.Application
-   *      javax.ws.rs.core.HttpHeaders
-   *      javax.ws.rs.core.Request
-   *      javax.ws.rs.core.SecurityContext
-   *      javax.ws.rs.core.UriInfo
-   *      javax.ws.rs.core.Configuration
-   *      javax.ws.rs.ext.Providers
-   *
-   * In a servlet environment, Jersey context dependency injection can also
-   * initialize these concrete types (ch 3.6, jersey spec):
-   *
-   *      javax.servlet.HttpServletRequest
-   *      javax.servlet.HttpServletResponse
-   *      javax.servlet.ServletConfig
-   *      javax.servlet.ServletContext
-   *
-   * Inject takes place after constructor invocation, so fields initialized in this
-   * way can not be accessed in constructors.
-   */
   @Context
   private HttpHeaders _httpHeaders;
   @Context
@@ -186,11 +163,11 @@ public class CredentialResource
     Credential credential = new Credential(req.password, req.privateKey, req.publicKey, req.accessKey, req.accessSecret, req.certificate);
 
     // If one of PKI keys is missing then reject
-    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AccessMethod.PKI_KEYS.name(), PRIVATE_KEY_FIELD, PUBLIC_KEY_FIELD,
+    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AuthnMethod.PKI_KEYS.name(), PRIVATE_KEY_FIELD, PUBLIC_KEY_FIELD,
                                  credential.getPrivateKey(), credential.getPublicKey());
     if (resp != null) return resp;
     // If one of Access key or Access secret is missing then reject
-    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AccessMethod.ACCESS_KEY.name(), ACCESS_KEY_FIELD, ACCESS_SECRET_FIELD,
+    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AuthnMethod.ACCESS_KEY.name(), ACCESS_KEY_FIELD, ACCESS_SECRET_FIELD,
                                  credential.getAccessKey(), credential.getAccessSecret());
     if (resp != null) return resp;
 
@@ -221,7 +198,7 @@ public class CredentialResource
 
   /**
    * getUserCredential
-   * @param accessMethodStr - access method to use instead of default
+   * @param authnMethodStr - authn method to use instead of default
    * @return Response
    */
   @GET
@@ -230,7 +207,7 @@ public class CredentialResource
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUserCredential(@PathParam("systemName") String systemName,
                                     @PathParam("userName") String userName,
-                                    @QueryParam("accessMethod") @DefaultValue("") String accessMethodStr,
+                                    @QueryParam("authnMethod") @DefaultValue("") String authnMethodStr,
                                     @Context SecurityContext securityContext)
   {
     String msg;
@@ -258,12 +235,12 @@ public class CredentialResource
     resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, prettyPrint, "getUserCredential");
     if (resp != null) return resp;
 
-    // Check that accessMethodStr is valid if it is passed in
-    AccessMethod accessMethod = null;
-    try { if (!StringUtils.isBlank(accessMethodStr)) accessMethod =  AccessMethod.valueOf(accessMethodStr); }
+    // Check that authnMethodStr is valid if it is passed in
+    AuthnMethod authnMethod = null;
+    try { if (!StringUtils.isBlank(authnMethodStr)) authnMethod =  AuthnMethod.valueOf(authnMethodStr); }
     catch (IllegalArgumentException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, accessMethodStr, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, authnMethodStr, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -271,7 +248,7 @@ public class CredentialResource
     // ------------------------- Perform the operation -------------------------
     // Make the service call to get the credentials
     Credential credential;
-    try { credential = systemsService.getUserCredential(authenticatedUser, systemName, userName, accessMethod); }
+    try { credential = systemsService.getUserCredential(authenticatedUser, systemName, userName, authnMethod); }
     catch (Exception e)
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_ERROR", authenticatedUser, systemName, userName, e.getMessage());

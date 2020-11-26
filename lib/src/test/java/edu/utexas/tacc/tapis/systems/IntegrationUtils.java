@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AccessMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 
 import java.time.Instant;
@@ -36,8 +36,8 @@ public final class IntegrationUtils
     "Long tag (1 3 2) special chars [_ $ - & * % @ + = ! ^ ? < > , . ( ) { } / \\ | ]. Backslashes must be escaped."};
   public static final Object notes = TapisGsonUtils.getGson().fromJson("{\"project\": \"myproj1\", \"testdata\": \"abc1\"}", JsonObject.class);
   public static final JsonObject notesObj = (JsonObject) notes;
-  public static final Protocol prot1 = new Protocol(AccessMethod.PKI_KEYS, txfrMethodsList, 22, false, "", 0);
-  public static final Protocol prot2 = new Protocol(AccessMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
+  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, txfrMethodsList, 22, false, "", 0);
+  public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
   public static final Capability capA = new Capability(Capability.Category.SCHEDULER, Capability.DEFAULT_SUBCATEGORY, "Type",
@@ -88,7 +88,7 @@ public final class IntegrationUtils
       String name = getSysName(key, i+1);
       // Constructor initializes all attributes except for JobCapabilities and Credential
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser,
-              "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAccessMethod(), "bucket"+suffix, "/root"+suffix,
+              "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
               "batchScheduler"+suffix, "batchDefaultLogicalQueue"+suffix,

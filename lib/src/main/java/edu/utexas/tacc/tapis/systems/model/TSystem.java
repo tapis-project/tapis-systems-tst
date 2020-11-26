@@ -65,7 +65,7 @@ public final class TSystem
   // ************************************************************************
   public enum SystemType {LINUX, OBJECT_STORE}
   public enum Permission {ALL, READ, MODIFY, EXECUTE}
-  public enum AccessMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
+  public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
   public enum TransferMethod {SFTP, S3}
   public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, getPerms,
                                grantPerms, revokePerms, setCred, removeCred, getCred}
@@ -85,8 +85,8 @@ public final class TSystem
   private String host;       // Host name or IP address
   private boolean enabled; // Indicates if systems is currently enabled
   private String effectiveUserId; // User to use when accessing system, may be static or dynamic
-  private AccessMethod defaultAccessMethod; // How access authorization is handled by default
-  private Credential accessCredential; // Credential to be stored in or retrieved from the Security Kernel
+  private AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
+  private Credential authnCredential; // Credential to be stored in or retrieved from the Security Kernel
   private String bucketName; // Name of bucket for system of type OBJECT_STORE
   private String rootDir;    // Effective root directory for system of type LINUX, can also be used for system of type OBJECT_STORE
   private List<TransferMethod> transferMethods; // Supported transfer methods, allowed values determined by system type
@@ -130,12 +130,12 @@ public final class TSystem
   /**
    * Constructor using only required attributes.
    */
-  public TSystem(String name1, SystemType systemType1, String host1, AccessMethod defaultAccessMethod1, boolean canExec1)
+  public TSystem(String name1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
   {
     name = name1;
     systemType = systemType1;
     host = host1;
-    defaultAccessMethod = defaultAccessMethod1;
+    defaultAuthnMethod = defaultAuthnMethod1;
     canExec = canExec1;
   }
 
@@ -144,7 +144,7 @@ public final class TSystem
    * Also useful for testing
    */
   public TSystem(int id1, String tenant1, String name1, String description1, SystemType systemType1,
-                 String owner1, String host1, boolean enabled1, String effectiveUserId1, AccessMethod defaultAccessMethod1,
+                 String owner1, String host1, boolean enabled1, String effectiveUserId1, AuthnMethod defaultAuthnMethod1,
                  String bucketName1, String rootDir1,
                  List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
@@ -160,7 +160,7 @@ public final class TSystem
     host = host1;
     enabled = enabled1;
     effectiveUserId = effectiveUserId1;
-    defaultAccessMethod = defaultAccessMethod1;
+    defaultAuthnMethod = defaultAuthnMethod1;
     bucketName = bucketName1;
     rootDir = rootDir1;
     // When jOOQ does a conversion transferMethods come in as String objects.
@@ -220,8 +220,8 @@ public final class TSystem
     host = t.getHost();
     enabled = t.isEnabled();
     effectiveUserId = t.getEffectiveUserId();
-    defaultAccessMethod = t.getDefaultAccessMethod();
-    accessCredential = t.getAccessCredential();
+    defaultAuthnMethod = t.getDefaultAuthnMethod();
+    authnCredential = t.getAuthnCredential();
     bucketName = t.getBucketName();
     rootDir = t.getRootDir();
     transferMethods =  (t.getTransferMethods() == null) ? null : new ArrayList<>(t.getTransferMethods());
@@ -295,11 +295,11 @@ public final class TSystem
   public String getEffectiveUserId() { return effectiveUserId; }
   public TSystem setEffectiveUserId(String s) { effectiveUserId = s; return this; }
 
-  public AccessMethod getDefaultAccessMethod() { return defaultAccessMethod; }
-  public TSystem setDefaultAccessMethod(AccessMethod a) { defaultAccessMethod = a; return this; }
+  public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
+  public TSystem setDefaultAuthnMethod(AuthnMethod a) { defaultAuthnMethod = a; return this; }
 
-  public Credential getAccessCredential() { return accessCredential; }
-  public TSystem setAccessCredential(Credential c) {accessCredential = c; return this; }
+  public Credential getAuthnCredential() { return authnCredential; }
+  public TSystem setAuthnCredential(Credential c) {authnCredential = c; return this; }
 
   public String getBucketName() { return bucketName; }
   public TSystem setBucketName(String s) { bucketName = s; return this; }

@@ -40,7 +40,7 @@ SET search_path TO tapis_sys;
 CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
 CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
                                     'grantPerms', 'revokePerms', 'setCred', 'removeCred');
-CREATE TYPE access_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
+CREATE TYPE authn_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
 CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');
 CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'NUMBER', 'TIMESTAMP');
 
@@ -60,7 +60,7 @@ CREATE TABLE systems
   host        VARCHAR(256) NOT NULL,
   enabled     BOOLEAN NOT NULL DEFAULT true,
   effective_user_id VARCHAR(60) NOT NULL,
-  default_access_method  access_meth_type NOT NULL,
+  default_authn_method  authn_meth_type NOT NULL,
   bucket_name    VARCHAR(63),
   root_dir       VARCHAR(4096),
   transfer_methods TEXT[],
@@ -97,7 +97,7 @@ COMMENT ON COLUMN systems.owner IS 'User name of system owner';
 COMMENT ON COLUMN systems.host IS 'System host name or ip address';
 COMMENT ON COLUMN systems.enabled IS 'Indicates if system is currently active and available for use';
 COMMENT ON COLUMN systems.effective_user_id IS 'User name to use when accessing the system';
-COMMENT ON COLUMN systems.default_access_method IS 'Enum for how authorization is handled by default';
+COMMENT ON COLUMN systems.default_authn_method IS 'Enum for how authorization is handled by default';
 COMMENT ON COLUMN systems.bucket_name IS 'Name of the bucket for an S3 system';
 COMMENT ON COLUMN systems.root_dir IS 'Effective root directory path for a Unix system';
 COMMENT ON COLUMN systems.transfer_methods IS 'List of supported transfer methods';

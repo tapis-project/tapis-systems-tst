@@ -74,7 +74,7 @@ public class SystemsApplication extends ResourceConfig
 // NOTE on Selectable feature: gave up on this (for now) as too cumbersome and limited. Awkward to specify attributes
 //      and could not get it to work when list of systems nested in results->search.
 // Use jackson as is done for files? Yes, breaks getting notes but allows for Credential
-// With a custom objectmapper and custom jsonobject serializer this now works for both notes and accessCredential
+// With a custom objectmapper and custom jsonobject serializer this now works for both notes and authnCredential
     register(JacksonFeature.class);
 
     // Needed for properly returning timestamps
@@ -86,16 +86,12 @@ public class SystemsApplication extends ResourceConfig
     // Register service class for calling init method during application startup
     register(SystemsServiceImpl.class);
 
-    // We specify what packages JAX-RS should recursively scan
-    // to find annotations.  By setting the value to the top-level
-    // tapis directory in all projects, we can use JAX-RS annotations
-    // in any tapis class.  In particular, the filter classes in
-    // tapis-sharedapi will be discovered whenever that project is
-    // included as a maven dependency.
+    // We specify what packages JAX-RS should recursively scan to find annotations. By setting the value to the
+    // top-level directory in all projects, we can use JAX-RS annotations in any tapis class. In particular, the filter
+    // classes in tapis-shared-api will be discovered whenever that project is included as a maven dependency.
     packages("edu.utexas.tacc.tapis");
 
-    // Set the application name.
-    // Note that this has no impact on base URL
+    // Set the application name. Note that this has no impact on base URL.
     setApplicationName("systems");
 
     // Perform remaining init steps in try block so we can print a fatal error message if something goes wrong.
@@ -106,8 +102,7 @@ public class SystemsApplication extends ResourceConfig
       // Set site on which we are running. This is a required runtime parameter.
       siteId = runParms.getSiteId();
 
-      // ---------------- Initialize Security Filter -------
-      // Required to process any requests.
+      // Initialize security filter used when processing a request.
       JWTValidateRequestFilter.setService(TapisConstants.SERVICE_NAME_SYSTEMS);
       JWTValidateRequestFilter.setSiteId(siteId);
 
@@ -154,13 +149,14 @@ public class SystemsApplication extends ResourceConfig
     // Initialize the service
     // In order to instantiate our service class using HK2 we need to create an application handler
     //   which allows us to get an injection manager which is used to get a locator.
-    //   The locator allows us to get classes that have been registered using AbstractBinder.
+    //   The locator is used get classes that have been registered using AbstractBinder.
     // NOTE: As of Jersey 2.26 dependency injection was abstracted out to make it easier to use DI frameworks
     //       other than HK2, although finding docs and examples on how to do so seems difficult.
     ApplicationHandler handler = new ApplicationHandler(config);
     InjectionManager im = handler.getInjectionManager();
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
+    // Call the main service init method
     svcImpl.initService(SystemsApplication.getSiteId());
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config, false);

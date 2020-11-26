@@ -86,7 +86,7 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
     Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
-    Assert.assertEquals(tmpSys.getDefaultAccessMethod(), sys0.getDefaultAccessMethod());
+    Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
     Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
@@ -247,7 +247,7 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
     Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
-    Assert.assertEquals(tmpSys.getDefaultAccessMethod(), sys0.getDefaultAccessMethod());
+    Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
     Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
@@ -266,12 +266,12 @@ public class SystemsDaoTest
   public void testMissingSystem() throws Exception {
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
-            prot2.getAccessMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
+            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), capList1, tags, notes);
     patchSys.setTenant(tenantName);
     patchSys.setName(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,
-            "effUser", prot2.getAccessMethod(), "bucket", "/root", prot2.getTransferMethods(),
+            "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(), canExec, "jobWorkDir",
             jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch, "batchScheduler", "batchDefaultLogicalQueue",
             tags, notes, null, isDeleted, created, updated);
