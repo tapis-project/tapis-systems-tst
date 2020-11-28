@@ -23,7 +23,6 @@ import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
-import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 
@@ -489,6 +488,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (r == null) return null;
       else result = r.into(TSystem.class);
 
+      // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
+      //       in one call which should improve performance.
+
       // Retrieve and set batch logical queues
       result.setBatchLogicalQueues(retrieveLogicalQueues(db, result.getId()));
 
@@ -735,6 +737,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (results == null || results.isEmpty()) return retList;
 
       // Fill in batch logical queues and job capabilities list from aux tables
+      // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
+      //       in one call which should improve performance.
       for (SystemsRecord r : results)
       {
         TSystem s = r.into(TSystem.class);
@@ -763,7 +767,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * getTSystemsSatisfyingConstraints
    * Retrieve all TSystems satisfying capability constraint criteria.
    *     Constraint criteria conditions provided as an abstract syntax tree (AST).
-   *     TODO: Support subcategory
    * @param tenant - tenant name
    * @param matchAST - AST containing match conditions. If null then nothing matches.
    * @param IDs - list of system IDs to consider. If null all allowed. If empty none allowed.
@@ -785,12 +788,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     //       as a first pass we can simply iterate through all systems to find matches.
     //       For performance might need to later do matching with DB queries.
 
-    // List of system IDs for matching systems
-    List<Integer> matchingIDs = new ArrayList<>();
+    // Get all desired capabilities (category, subcategory, name) from AST
+    // TODO: Need changes to support subcategory?
+    List<Capability> capabilitiesInAST = new ArrayList<>();
+    getCapabilitiesFromAST(matchAST, capabilitiesInAST);
 
-    // TODO Get all desired capabilities from AST
-    List<Capability> desiredCapabilities = getAllCapabilitiesFromAST(matchAST);
-
+    List<TSystem> systemsList = null;
     // ------------------------- Build and execute SQL ----------------------------
     Connection conn = null;
     try
@@ -804,41 +807,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // TODO: might be able to optimize with a join somewhere
       if (IDs == null) allowedIDs = getAllSystemIDsInTenant(db, tenant);
 
-      // TODO Get all Systems that specify they support the desired capabilities
-      List<TSystem> systemsList = null; //getAllSystemsHavingCapabilities(db, tenant, desiredCapabilities);
-
-      // TODO Select only those systems satisfying the constraints
-      for (TSystem sys : systemsList)
-      {
-//TODO        if (systemMatchesConstraints(matchAST)) retList.add(sys);
-      }
-
-      // Begin where condition for the query with the IN clause
-      Condition whereCondition = CAPABILITIES.SYSTEM_ID.in(allowedIDs);
-
-      // TODO Build the remainder of the where condition from the AST.
-//    Condition astCondition = createConditionFromAst(matchAST);
-//      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
-
-      // Execute the select
-      Result<CapabilitiesRecord> capResults = db.selectFrom(CAPABILITIES).where(whereCondition).fetch();
-
-      if (capResults == null || capResults.isEmpty()) return retList;
-
-      // Put together list of system IDs from matches
-      for (CapabilitiesRecord r : capResults) { matchingIDs.add(r.getSystemId()); }
-
-      // Get systems based on matching IDs
-      Result<SystemsRecord> systemResults = db.selectFrom(SYSTEMS).where(SYSTEMS.ID.in(matchingIDs)).fetch();
-
-      // Fill in batch logical queues and job capabilities list from aux tables
-      for (SystemsRecord r : systemResults)
-      {
-        TSystem s = r.into(TSystem.class);
-        s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getId()));
-        s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
-        retList.add(s);
-      }
+      // Get all Systems that specify they support the desired Capabilities
+      systemsList = getSystemsHavingCapabilities(db, tenant, capabilitiesInAST, allowedIDs);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -852,6 +822,16 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       // Always return the connection back to the connection pool.
       LibUtils.finalCloseDB(conn);
+    }
+
+    // If there was a problem the list to match against might be null
+    if (systemsList == null) return retList;
+
+    // TODO Select only those systems satisfying the constraints
+    for (TSystem sys : systemsList)
+    {
+// TODO      if (systemMatchesConstraints(sys, matchAST)) retList.add(sys);
+      retList.add(sys);
     }
     return retList;
   }
@@ -1646,41 +1626,229 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * Get all Capabilities contained in an abstract syntax tree nodes by recursively walking the tree
+   * Get all capabilities contained in an abstract syntax tree by recursively walking the tree
    * @param astNode Abstract syntax tree node containing constraint matching conditions
    * @return list of capabilities
    * @throws TapisException on error
    */
-  private static List<Capability> getAllCapabilitiesFromAST(ASTNode astNode) throws TapisException
+  private static void getCapabilitiesFromAST(ASTNode astNode, List<Capability> capList) throws TapisException
   {
-//    if (astNode == null || astNode instanceof ASTLeaf)
-//    { // TODO
-//      // A leaf node is a column name or value. Nothing to process since we only process a complete condition
-//      //   having the form column_name.op.value. We should never make it to here
-//      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST1", (astNode == null ? "null" : astNode.toString()));
-//      throw new TapisException(msg);
-//    }
-//    else if (astNode instanceof ASTUnaryExpression)
-//    {
-//      // A unary node should have no operator and contain a binary node with two leaf nodes.
-//      // NOTE: Currently unary operators not supported. If support is provided for unary operators (such as NOT) then
-//      //   changes will be needed here.
-//      ASTUnaryExpression unaryNode = (ASTUnaryExpression) astNode;
-//      if (!StringUtils.isBlank(unaryNode.getOp()))
-//      {
-//        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_UNARY_OP", unaryNode.getOp(), unaryNode.toString());
-//        throw new TapisException(msg);
-//      }
-//      // Recursive call
-//      return createConditionFromAst(unaryNode.getNode());
-//    }
-//    else if (astNode instanceof ASTBinaryExpression)
-//    {
-//      // It is a binary node
-//      ASTBinaryExpression binaryNode = (ASTBinaryExpression) astNode;
-//      // Recursive call
-//      return createConditionFromBinaryExpression(binaryNode);
-//    }
-    return null;
+    if (astNode == null || astNode instanceof ASTLeaf)
+    {
+      // A leaf node is "category$subcategory$name" or value. Nothing to process since we only process a complete condition
+      //   having the form category$subcategory$name op value. We should never make it to here
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST1", (astNode == null ? "null" : astNode.toString()));
+      throw new TapisException(msg);
+    }
+    else if (astNode instanceof ASTUnaryExpression)
+    {
+      // A unary node should have no operator and contain a binary node with two leaf nodes.
+      // NOTE: Currently unary operators not supported. If support is provided for unary operators (such as NOT) then
+      //   changes will be needed here.
+      ASTUnaryExpression unaryNode = (ASTUnaryExpression) astNode;
+      if (!StringUtils.isBlank(unaryNode.getOp()))
+      {
+        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_UNARY_OP", unaryNode.getOp(), unaryNode.toString());
+        throw new TapisException(msg);
+      }
+      // Recursive call
+      getCapabilitiesFromAST(unaryNode.getNode(), capList);
+    }
+    else if (astNode instanceof ASTBinaryExpression)
+    {
+      // It is a binary node
+      ASTBinaryExpression binaryNode = (ASTBinaryExpression) astNode;
+      // Recursive call
+      getCapabilitiesFromBinaryExpression(binaryNode, capList);
+    }
+  }
+
+  /**
+   * Add capabilities from an abstract syntax tree binary node
+   * @param binaryNode Abstract syntax tree binary node to add
+   * @throws TapisException on error
+   */
+  private static void getCapabilitiesFromBinaryExpression(ASTBinaryExpression binaryNode, List<Capability> capList)
+          throws TapisException
+  {
+    // If we are given a null then something went very wrong.
+    if (binaryNode == null)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST2");
+      throw new TapisException(msg);
+    }
+    // If operator is AND or OR then make recursive call for each side
+    // Since we are just collecting capabilities we do not distinguish between AND, OR
+    // For other operators extract the capability and return
+    String op = binaryNode.getOp();
+    ASTNode leftNode = binaryNode.getLeft();
+    ASTNode rightNode = binaryNode.getRight();
+    if (StringUtils.isBlank(op))
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST3", binaryNode.toString());
+      throw new TapisException(msg);
+    }
+    else if (op.equalsIgnoreCase("AND") || op.equalsIgnoreCase("OR"))
+    {
+      // Recursive calls
+      getCapabilitiesFromAST(leftNode, capList);
+      getCapabilitiesFromAST(rightNode, capList);
+      return;
+    }
+    else
+    {
+      // End of recursion. Extract the capability and return
+      // Since operator is not an AND or an OR we should have 2 unary nodes or a unary and leaf node
+      // lValue should be in the form category-subcategory-name or category$name
+      // rValue should be the Capability value.
+      String lValue;
+      String rValue;
+      if (leftNode instanceof ASTLeaf) lValue = ((ASTLeaf) leftNode).getValue();
+      else if (leftNode instanceof ASTUnaryExpression) lValue =  ((ASTLeaf) ((ASTUnaryExpression) leftNode).getNode()).getValue();
+      else
+      {
+        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST5", binaryNode.toString());
+        throw new TapisException(msg);
+      }
+      if (rightNode instanceof ASTLeaf) rValue = ((ASTLeaf) rightNode).getValue();
+      else if (rightNode instanceof ASTUnaryExpression) rValue =  ((ASTLeaf) ((ASTUnaryExpression) rightNode).getNode()).getValue();
+      else
+      {
+        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST6", binaryNode.toString());
+        throw new TapisException(msg);
+      }
+      // Validate and create a capability using lValue, rValue from node
+      Capability cap = getCapabilityFromNode(lValue, rValue, binaryNode);
+      capList.add(cap);
+    }
+  }
+
+  /**
+   * Construct a Capability based on lValue, rValue from a binary ASTNode containing a constraint matching condition
+   * Validate and extract capability attributes: category, subcategory, name and value.
+   *   lValue must be in the form category$name or category$subcategory$name
+   * @param lValue - left string value from the condition in the form category-subcategory-name or category-name
+   * @param rValue - right string value from the condition
+   * @return - capability
+   * @throws TapisException on error
+   */
+  private static Capability getCapabilityFromNode(String lValue, String rValue, ASTBinaryExpression binaryNode)
+          throws TapisException
+  {
+    // If lValue is empty it is an error
+    if (StringUtils.isBlank(lValue))
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
+      throw new TapisException(msg);
+    }
+    // Validate and extract components from lValue
+    // Parse lValue into category, subcategory and name
+    // Format must be column_name.op.value
+    String[] parsedStrArray = lValue.split("\\$", 3);
+    // Must have at least two items
+    if (parsedStrArray.length < 2)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
+      throw new TapisException(msg);
+    }
+    String categoryStr = parsedStrArray[0];
+    Capability.Category category = null;
+    try { category = Capability.Category.valueOf(categoryStr.toUpperCase()); }
+    catch (IllegalArgumentException e)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
+      throw new TapisException(msg);
+    }
+    // If 2 items then we have category$name, else we have category$subcategory$name
+    String subcategory = null;
+    String name = null;
+    if (parsedStrArray.length == 2)
+    {
+      name = parsedStrArray[1];
+    }
+    else
+    {
+      subcategory = parsedStrArray[1];
+      name = parsedStrArray[2];
+    }
+    Capability.Datatype datatype = null;
+    int precedence = -1;
+    Capability cap = new Capability(category, subcategory, name, datatype, precedence, rValue);
+    return cap;
+  }
+
+  /**
+   * Given an sql connection, a tenant, a list of Category names and a list of system IDs to consider,
+   *   fetch all systems that have a Capability matching a category, subcategory, name.
+   * @param db - jooq context
+   * @param tenant - name of tenant
+   * @param capabilityList - list of Capabilities from AST (category, subcategory, name)
+   * @param allowedIDs - list of system IDs to consider.
+   * @return - true if system exists, else false
+   */
+  private static List<TSystem> getSystemsHavingCapabilities(DSLContext db, String tenant, List<Capability> capabilityList,
+                                                            List<Integer> allowedIDs)
+  {
+    List<TSystem> retList = new ArrayList<>();
+    if (allowedIDs == null || allowedIDs.isEmpty()) return retList;
+
+    // Begin where condition for the query
+    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+
+    Field catCol = CAPABILITIES.CATEGORY;
+    Field subcatCol = CAPABILITIES.SUBCATEGORY;
+    Field nameCol = CAPABILITIES.NAME;
+
+    // For each capability add a condition joined by OR
+    Condition newCondition1 = null;
+    for (Capability cap : capabilityList)
+    {
+      Condition newCondition2 = catCol.eq(cap.getCategory().name());
+      newCondition2 = newCondition2.and(subcatCol.eq(cap.getSubCategory()));
+      newCondition2 = newCondition2.and(nameCol.eq(cap.getName()));
+      if (newCondition1 == null) newCondition1 = newCondition2;
+      else newCondition1 = newCondition1.or(newCondition2);
+    }
+    whereCondition = whereCondition.and(newCondition1);
+
+    // TODO: Work out raw SQL, copy it here and translate it into jOOQ.
+    /*
+     * --  select S.id,S.name as s_name, C.id as c_id, C.category,C.subcategory,C.name,C.value from systems as S
+     * select S.* from systems as S
+     *   join capabilities as C on (S.id = C.system_id)
+     *   where c.category = 'SCHEDULER' and c.subcategory = 'test1' and c.name = 'Type'
+     *   and S.id in (222, 230, 245);
+     *
+     * select S.* from systems as S
+     *   inner join capabilities as C on (S.id = C.system_id)
+     *   where (c.category = 'SCHEDULER' and c.subcategory = 'test1' and c.name = 'Type') OR
+     *   (c.category = 'SCHEDULER' and c.subcategory = 'test2' and c.name = 'Type')
+     *   AND S.id in (222, 230, 245);
+     */
+
+    // Add IN condition for list of IDs
+    whereCondition = whereCondition.and(SYSTEMS.ID.in(allowedIDs));
+
+    // Inner join on capabilities table
+    // Execute the select
+
+    Result<SystemsRecord> results = db.selectFrom(SYSTEMS.join(CAPABILITIES).on(SYSTEMS.ID.eq(CAPABILITIES.SYSTEM_ID)))
+                                      .where(whereCondition).fetchInto(SYSTEMS);
+//    Result<SystemsRecord> results = db.select(SYSTEMS.fields()).from(SYSTEMS)
+//            .innerJoin(CAPABILITIES).on(SYSTEMS.ID.eq(CAPABILITIES.SYSTEM_ID))
+//            .where(whereCondition).fetchInto(SYSTEMS);
+
+    if (results == null || results.isEmpty()) return retList;
+
+    // Fill in batch logical queues and job capabilities list from aux tables
+    // TODO might be able to use fetchGroups to populate these.
+    for (SystemsRecord r : results)
+    {
+      TSystem s = r.into(TSystem.class);
+      s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getId()));
+      s.setJobCapabilities(retrieveJobCaps(db, s.getId()));
+      retList.add(s);
+    }
+    return retList;
   }
 }

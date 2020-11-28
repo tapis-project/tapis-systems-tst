@@ -40,22 +40,25 @@ public final class IntegrationUtils
   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
-  public static final Capability capA = new Capability(Capability.Category.SCHEDULER, Capability.DEFAULT_SUBCATEGORY, "Type",
+  private static final String subcategory1 = "test1";
+  private static final String subcategory2 = "test2";
+
+  public static final Capability capA = new Capability(Capability.Category.SCHEDULER, subcategory1, "Type",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "Slurm");
-  public static final Capability capB = new Capability(Capability.Category.HARDWARE, Capability.DEFAULT_SUBCATEGORY, "CoresPerNode",
+  public static final Capability capB = new Capability(Capability.Category.HARDWARE, subcategory1, "CoresPerNode",
                                                        Capability.Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "4");
-  public static final Capability capC = new Capability(Capability.Category.SOFTWARE, Capability.DEFAULT_SUBCATEGORY, "OpenMP",
+  public static final Capability capC = new Capability(Capability.Category.SOFTWARE, subcategory1, "OpenMP",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "4.5");
-  public static final Capability capD = new Capability(Capability.Category.CONTAINER, Capability.DEFAULT_SUBCATEGORY, "Singularity",
+  public static final Capability capD = new Capability(Capability.Category.CONTAINER, subcategory1, "Singularity",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList1 = new ArrayList<>(List.of(capA, capB, capC, capD));
-  public static final Capability capA1 = new Capability(Capability.Category.SCHEDULER, Capability.DEFAULT_SUBCATEGORY, "Type",
+  public static final Capability capA1 = new Capability(Capability.Category.SCHEDULER, subcategory2, "Type",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "PBS");
-  public static final Capability capB1 = new Capability(Capability.Category.HARDWARE, Capability.DEFAULT_SUBCATEGORY, "CoresPerNode",
+  public static final Capability capB1 = new Capability(Capability.Category.HARDWARE, subcategory2, "CoresPerNode",
           Capability.Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "8");
-  public static final Capability capC1 = new Capability(Capability.Category.SOFTWARE, Capability.DEFAULT_SUBCATEGORY, "OpenMP",
+  public static final Capability capC1 = new Capability(Capability.Category.SOFTWARE, subcategory2, "OpenMP",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
-  public static final Capability capD1 = new Capability(Capability.Category.CONTAINER, Capability.DEFAULT_SUBCATEGORY, "Docker",
+  public static final Capability capD1 = new Capability(Capability.Category.CONTAINER, subcategory2, "Docker",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList2 = new ArrayList<>(List.of(capA1, capB1, capC1, capD1));
 

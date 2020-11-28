@@ -121,8 +121,19 @@ public class MatchConstraintsDaoTest
     var validCaseInputs = new HashMap<Integer, CaseData>();
     // Test basic types and operators
     // TODO ASTParser does not like the "." in the middle of the attribute name. Modify parser to support the "." ?
+    //      use ~ instead? No, parser also barfs with ~. check parser details. Looks like $ should work
 // TODO    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler.Type = Slurm"));
-    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler = Slurm"));
+
+    // TODO: Comparison with values not yet implemented, but call does consider category$subcategory$name such
+    //       that only systems that might possibly match are returned
+    //       So, for example, for case 1 only half the systems have Scheduler$test1$Type
+    //       and for case 2 all systems have either Scheduler$test1$Type or Scheduler$test2$Type
+    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler$test1$Type = Slurm"));
+    validCaseInputs.put( 2,new CaseData(numSystems, "Scheduler$test1$Type = Slurm OR Scheduler$test2$Type = Slurm"));
+//    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler_Type = Slurm"));
+//    validCaseInputs.put( 11,new CaseData(numSystems/2, "Scheduler~Type = Slurm"));
+//    validCaseInputs.put( 12,new CaseData(numSystems/2, "Scheduler~Type = PBS"));
+//    validCaseInputs.put( 13,new CaseData(numSystems/2, "Scheduler~Type = adsf"));
 
 //    validCaseInputs.put( 3,new CaseData(1, "host = " + sys0.getHost()));
 //    validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sys0.getBucketName()));
@@ -202,11 +213,11 @@ public class MatchConstraintsDaoTest
       System.out.println("Checking case # " + caseNum + " Input:        " + cd.sqlMatchStr);
       // Build an AST from the sql-like match string
       // TODO
-//      ASTNode matchAST = ASTParser.parse(cd.sqlMatchStr);
-//      System.out.println("  Created AST with leaf node count: " + matchAST.countLeaves());
-//      List<TSystem> matchResults = dao.getTSystemsSatisfyingConstraints(tenantName, matchAST, allowedIDs);
-//      System.out.println("  Result size: " + matchResults.size());
-//      assertEquals(matchResults.size(), cd.count, "MatchConstraintsDaoTest.testValidCases: Incorrect result count for case number: " + caseNum);
+      ASTNode matchAST = ASTParser.parse(cd.sqlMatchStr);
+      System.out.println("  Created AST with leaf node count: " + matchAST.countLeaves());
+      List<TSystem> matchResults = dao.getTSystemsSatisfyingConstraints(tenantName, matchAST, allowedIDs);
+      System.out.println("  Result size: " + matchResults.size());
+      assertEquals(matchResults.size(), cd.count, "MatchConstraintsDaoTest.testValidCases: Incorrect result count for case number: " + caseNum);
     }
   }
 
