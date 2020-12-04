@@ -1221,7 +1221,8 @@ public class SystemResource
   {
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
-                           req.proxyHost, req.proxyPort, req.jobCapabilities, req.tags, req.notes);
+                           req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir,
+                           req.jobCapabilities, req.tags, req.notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);
     patchSystem.setId(systemId);

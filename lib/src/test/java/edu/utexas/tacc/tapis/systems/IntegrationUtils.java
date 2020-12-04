@@ -19,8 +19,8 @@ public final class IntegrationUtils
 {
   // Test data
   public static final String tenantName = "dev";
-  public static final String ownerUser = "owner1";
-  public static final String ownerUser2 = "owner2";
+  public static final String ownerUser1 = "testuser1";
+  public static final String ownerUser2 = "testuser2";
   public static final String apiUser = "testApiUser";
   public static final String sysNamePrefix = "TestSys";
   public static final Gson gson =  TapisGsonUtils.getGson();
@@ -93,7 +93,7 @@ public final class IntegrationUtils
       String suffix = key + "_" + String.format("%03d", i+1);
       String name = getSysName(key, i+1);
       // Constructor initializes all attributes except for JobCapabilities and Credential
-      systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser,
+      systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser1,
               "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
               dtnSystemId, dtnMountPoint, dtnSubDir,

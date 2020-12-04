@@ -29,16 +29,16 @@ public interface SystemsService
   int updateSystem(AuthenticatedUser authenticatedUser, PatchSystem patchSystem, String scrubbedText)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException;
 
-  int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemName, String newOwnerName)
+  int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemId, String newOwnerName)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
 
-  int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemName)
+  int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemName)
+  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemName, boolean getCreds, AuthnMethod authnMethod,
+  TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds, AuthnMethod authnMethod,
                     boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
@@ -56,7 +56,7 @@ public interface SystemsService
   List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)
           throws TapisException, TapisClientException;
 
-  SystemBasic getSystemBasic(AuthenticatedUser authenticatedUser, String systemName)
+  SystemBasic getSystemBasic(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
@@ -69,24 +69,24 @@ public interface SystemsService
 
   List<String> getSystemNames(AuthenticatedUser authenticatedUser) throws TapisException;
 
-  String getSystemOwner(AuthenticatedUser authenticatedUser, String systemName)
+  String getSystemOwner(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  void grantUserPermissions(AuthenticatedUser authenticatedUser, String systemName, String userName, Set<Permission> permissions, String updateText)
+  void grantUserPermissions(AuthenticatedUser authenticatedUser, String systemId, String userName, Set<Permission> permissions, String updateText)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  int revokeUserPermissions(AuthenticatedUser authenticatedUser, String systemName, String userName, Set<Permission> permissions, String updateText)
+  int revokeUserPermissions(AuthenticatedUser authenticatedUser, String systemId, String userName, Set<Permission> permissions, String updateText)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  Set<Permission> getUserPermissions(AuthenticatedUser authenticatedUser, String systemName, String userName)
+  Set<Permission> getUserPermissions(AuthenticatedUser authenticatedUser, String systemId, String userName)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  void createUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, Credential credential, String scrubbedText)
+  void createUserCredential(AuthenticatedUser authenticatedUser, String systemId, String userName, Credential credential, String scrubbedText)
           throws TapisException, NotAuthorizedException, IllegalStateException, TapisClientException;
 
-  int deleteUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName)
+  int deleteUserCredential(AuthenticatedUser authenticatedUser, String systemId, String userName)
           throws TapisException, NotAuthorizedException, IllegalStateException, TapisClientException;
 
-  Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemName, String userName, AuthnMethod authnMethod)
+  Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemId, String userName, AuthnMethod authnMethod)
           throws TapisException, TapisClientException, NotAuthorizedException;
 }

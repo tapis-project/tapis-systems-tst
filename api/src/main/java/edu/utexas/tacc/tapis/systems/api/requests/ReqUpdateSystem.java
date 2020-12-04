@@ -21,6 +21,9 @@ public final class ReqUpdateSystem
   public Boolean useProxy;  // Indicates if a system should be accessed through a proxy
   public String proxyHost;  // Name or IP address of proxy host
   public Integer proxyPort;     // Port number for proxy host
+  public String dtnSystemId;
+  public String dtnMountPoint;
+  public String dtnSubDir;
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   public String[] tags;       // List of arbitrary tags as strings
   public Object notes;      // Simple metadata as json

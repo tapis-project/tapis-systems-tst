@@ -238,7 +238,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // If jobCapabilities updated then replace them
       if (patchSystem.getJobCapabilities() != null) {
-        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SEQ_ID.eq(seqId)).execute();
+        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
         persistJobCapabilities(db, patchedSystem, seqId);
       }
 

@@ -132,12 +132,12 @@ public class SearchASTDaoTest
     String sys0Name = sys0.getId();
     String nameList = "noSuchName1,noSuchName2," + sys0Name + ",noSuchName3";
     // Create all input and validation data for tests
-    // NOTE: Some cases require "name LIKE " + sysNameLikeAll in the list of conditions since maven runs the tests in
+    // NOTE: Some cases require "id LIKE " + sysNameLikeAll in the list of conditions since maven runs the tests in
     //       parallel and not all attribute names are unique across integration tests
     class CaseData {public final int count; public final String sqlSearchStr; CaseData(int c, String s) { count = c; sqlSearchStr = s; }}
     var validCaseInputs = new HashMap<Integer, CaseData>();
     // Test basic types and operators
-    validCaseInputs.put( 1,new CaseData(1, "name = " + sys0Name)); // 1 has specific name
+    validCaseInputs.put( 1,new CaseData(1, "id = " + sys0Name)); // 1 has specific name
 //    validCaseInputs.put( 2,new CaseData(1, "description = " + sys0.getDescription())); // TODO handle underscore character properly. how?
     validCaseInputs.put( 3,new CaseData(1, "host = " + sys0.getHost()));
     validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sys0.getBucketName()));
@@ -145,71 +145,71 @@ public class SearchASTDaoTest
     validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sys0.getJobWorkingDir()));
     validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sys0.getBatchScheduler()));
     validCaseInputs.put( 8,new CaseData(1, "batch_default_logical_queue = " + sys0.getBatchDefaultLogicalQueue()));
-    validCaseInputs.put(10,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser)));  // Half owned by one user
-    validCaseInputs.put(11,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser2))); // and half owned by another
-    validCaseInputs.put(12,new CaseData(numSystems, "name LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled
-    validCaseInputs.put(13,new CaseData(numSystems, "name LIKE " + sysNameLikeAll + " AND deleted = false")); // none are deleted
-    validCaseInputs.put(14,new CaseData(numSystems, "name LIKE " + sysNameLikeAll + " AND deleted <> true")); // none are deleted
-    validCaseInputs.put(15,new CaseData(0, "name LIKE " + sysNameLikeAll + " AND deleted = true"));           // none are deleted
-    validCaseInputs.put(16,new CaseData(1, "name LIKE " + sq(sys0Name)));
-    validCaseInputs.put(17,new CaseData(0, "name LIKE 'NOSUCHSYSTEMxFM2c29bc8RpKWeE2sht7aZrJzQf3s'"));
-    validCaseInputs.put(18,new CaseData(numSystems, "name LIKE " + sysNameLikeAll));
+    validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser1)));  // Half owned by one user
+    validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser2))); // and half owned by another
+    validCaseInputs.put(12,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled
+    validCaseInputs.put(13,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted = false")); // none are deleted
+    validCaseInputs.put(14,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted <> true")); // none are deleted
+    validCaseInputs.put(15,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND deleted = true"));           // none are deleted
+    validCaseInputs.put(16,new CaseData(1, "id LIKE " + sq(sys0Name)));
+    validCaseInputs.put(17,new CaseData(0, "id LIKE 'NOSUCHSYSTEMxFM2c29bc8RpKWeE2sht7aZrJzQf3s'"));
+    validCaseInputs.put(18,new CaseData(numSystems, "id LIKE " + sysNameLikeAll));
 // TODO - continue
-//    validCaseInputs.put(19,new CaseData(numSystems-1, "name LIKE " + sysNameLikeAll + " AND name NLIKE " + sys0Name)); // TODO support NLIKE
-//    validCaseInputs.put(20,new CaseData(1, "name LIKE " + sysNameLikeAll + " AND name IN " + nameList)); // TODO
-//    validCaseInputs.put(21,new CaseData(numSystems-1, "name LIKE " + sysNameLikeAll, "name.nin." + nameList));
-//    validCaseInputs.put(22,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "system_type = LINUX"));
-//    validCaseInputs.put(23,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll, "system_type = LINUX","owner <> " + sq(ownerUser2)));
+//    validCaseInputs.put(19,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll + " AND id NLIKE " + sys0Name)); // TODO support NLIKE
+//    validCaseInputs.put(20,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND id IN " + nameList)); // TODO
+//    validCaseInputs.put(21,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll, "id.nin." + nameList));
+//    validCaseInputs.put(22,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "system_type = LINUX"));
+//    validCaseInputs.put(23,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll, "system_type = LINUX","owner <> " + sq(ownerUser2)));
 //    // Test numeric relational
-//    validCaseInputs.put(50,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll, "port.between.1," + numSystems/2));
-//    validCaseInputs.put(51,new CaseData(numSystems/2-1, "name LIKE " + sysNameLikeAll, "port.between.2," + numSystems/2));
-//    validCaseInputs.put(52,new CaseData(numSystems/2, "name LIKE " + sysNameLikeAll, "port.nbetween.1," + numSystems/2));
-//    validCaseInputs.put(53,new CaseData(13, "name LIKE " + sysNameLikeAll, "enabled = true","port.lte.13"));
-//    validCaseInputs.put(54,new CaseData(5, "name LIKE " + sysNameLikeAll,"enabled = true","port.gt.1","port.lt.7"));
+//    validCaseInputs.put(50,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll, "port.between.1," + numSystems/2));
+//    validCaseInputs.put(51,new CaseData(numSystems/2-1, "id LIKE " + sysNameLikeAll, "port.between.2," + numSystems/2));
+//    validCaseInputs.put(52,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll, "port.nbetween.1," + numSystems/2));
+//    validCaseInputs.put(53,new CaseData(13, "id LIKE " + sysNameLikeAll, "enabled = true","port.lte.13"));
+//    validCaseInputs.put(54,new CaseData(5, "id LIKE " + sysNameLikeAll,"enabled = true","port.gt.1","port.lt.7"));
 //    // Test char relational
-//    validCaseInputs.put(70,new CaseData(1, "name LIKE " + sysNameLikeAll,"host.lt."+hostName1));
-//    validCaseInputs.put(71,new CaseData(numSystems-8, "name LIKE " + sysNameLikeAll,"enabled = true","host.gt."+hostName7));
-//    validCaseInputs.put(72,new CaseData(5, "name LIKE " + sysNameLikeAll,"host.gt."+hostName1,"host.lt."+hostName7));
-//    validCaseInputs.put(73,new CaseData(0, "name LIKE " + sysNameLikeAll,"host.lt."+hostName1,"host.gt."+hostName7));
-//    validCaseInputs.put(74,new CaseData(7, "name LIKE " + sysNameLikeAll,"host.between."+hostName1+","+hostName7));
-//    validCaseInputs.put(75,new CaseData(numSystems-7, "name LIKE " + sysNameLikeAll,"host.nbetween."+hostName1+","+hostName7));
+//    validCaseInputs.put(70,new CaseData(1, "id LIKE " + sysNameLikeAll,"host.lt."+hostName1));
+//    validCaseInputs.put(71,new CaseData(numSystems-8, "id LIKE " + sysNameLikeAll,"enabled = true","host.gt."+hostName7));
+//    validCaseInputs.put(72,new CaseData(5, "id LIKE " + sysNameLikeAll,"host.gt."+hostName1,"host.lt."+hostName7));
+//    validCaseInputs.put(73,new CaseData(0, "id LIKE " + sysNameLikeAll,"host.lt."+hostName1,"host.gt."+hostName7));
+//    validCaseInputs.put(74,new CaseData(7, "id LIKE " + sysNameLikeAll,"host.between."+hostName1+","+hostName7));
+//    validCaseInputs.put(75,new CaseData(numSystems-7, "id LIKE " + sysNameLikeAll,"host.nbetween."+hostName1+","+hostName7));
 //    // Test timestamp relational
-//    validCaseInputs.put(90,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.gt." + longPast1));
-//    validCaseInputs.put(91,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture1));
-//    validCaseInputs.put(92,new CaseData(0, "name LIKE " + sysNameLikeAll, "created.lte." + longPast1));
-//    validCaseInputs.put(93,new CaseData(0, "name LIKE " + sysNameLikeAll, "created.gte." + farFuture1));
-//    validCaseInputs.put(94,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.between." + longPast1 + "," + farFuture1));
-//    validCaseInputs.put(95,new CaseData(0, "name LIKE " + sysNameLikeAll, "created.nbetween." + longPast1 + "," + farFuture1));
+//    validCaseInputs.put(90,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.gt." + longPast1));
+//    validCaseInputs.put(91,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture1));
+//    validCaseInputs.put(92,new CaseData(0, "id LIKE " + sysNameLikeAll, "created.lte." + longPast1));
+//    validCaseInputs.put(93,new CaseData(0, "id LIKE " + sysNameLikeAll, "created.gte." + farFuture1));
+//    validCaseInputs.put(94,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.between." + longPast1 + "," + farFuture1));
+//    validCaseInputs.put(95,new CaseData(0, "id LIKE " + sysNameLikeAll, "created.nbetween." + longPast1 + "," + farFuture1));
 //    // Variations of timestamp format
-//    validCaseInputs.put(96,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture2));
-//    validCaseInputs.put(97,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture3));
-//    validCaseInputs.put(98,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture4));
-//    validCaseInputs.put(99,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture5));
-//    validCaseInputs.put(100,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture6));
-//    validCaseInputs.put(101,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture7));
-//    validCaseInputs.put(102,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture8));
-//    validCaseInputs.put(103,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture9));
-//    validCaseInputs.put(104,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture10));
-//    validCaseInputs.put(105,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture11));
-//    validCaseInputs.put(106,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture12));
-//    validCaseInputs.put(107,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture13));
-//    validCaseInputs.put(108,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture14));
-//    validCaseInputs.put(109,new CaseData(numSystems, "name LIKE " + sysNameLikeAll, "created.lt." + farFuture15));
+//    validCaseInputs.put(96,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture2));
+//    validCaseInputs.put(97,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture3));
+//    validCaseInputs.put(98,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture4));
+//    validCaseInputs.put(99,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture5));
+//    validCaseInputs.put(100,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture6));
+//    validCaseInputs.put(101,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture7));
+//    validCaseInputs.put(102,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture8));
+//    validCaseInputs.put(103,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture9));
+//    validCaseInputs.put(104,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture10));
+//    validCaseInputs.put(105,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture11));
+//    validCaseInputs.put(106,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture12));
+//    validCaseInputs.put(107,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture13));
+//    validCaseInputs.put(108,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture14));
+//    validCaseInputs.put(109,new CaseData(numSystems, "id LIKE " + sysNameLikeAll, "created.lt." + farFuture15));
 //    // Test wildcards
 //    validCaseInputs.put(130,new CaseData(numSystems, "enabled = true","host LIKE host" + testKey + "*"));
-//    validCaseInputs.put(131,new CaseData(0, "name LIKE " + sysNameLikeAll, "enabled = true","host NLIKE host" + testKey + "*"));
-//    validCaseInputs.put(132,new CaseData(10, "name LIKE " + sysNameLikeAll, "enabled = true","host LIKE host" + testKey + "_00!"));
-//    validCaseInputs.put(133,new CaseData(10, "name LIKE " + sysNameLikeAll, "enabled = true","host NLIKE host" + testKey + "_00!"));
+//    validCaseInputs.put(131,new CaseData(0, "id LIKE " + sysNameLikeAll, "enabled = true","host NLIKE host" + testKey + "*"));
+//    validCaseInputs.put(132,new CaseData(10, "id LIKE " + sysNameLikeAll, "enabled = true","host LIKE host" + testKey + "_00!"));
+//    validCaseInputs.put(133,new CaseData(10, "id LIKE " + sysNameLikeAll, "enabled = true","host NLIKE host" + testKey + "_00!"));
 //    // Test that underscore and % get escaped as needed before being used as SQL
-//    validCaseInputs.put(150,new CaseData(0, "name LIKE " + sysNameLikeAll, "host LIKE host" + testKey + "_00_"));
-//    validCaseInputs.put(151,new CaseData(0, "name LIKE " + sysNameLikeAll, "host LIKE host" + testKey + "_00%"));
+//    validCaseInputs.put(150,new CaseData(0, "id LIKE " + sysNameLikeAll, "host LIKE host" + testKey + "_00_"));
+//    validCaseInputs.put(151,new CaseData(0, "id LIKE " + sysNameLikeAll, "host LIKE host" + testKey + "_00%"));
 //    // Check various special characters in description. 7 special chars in value: ,()~*!\
-//    validCaseInputs.put(171,new CaseData(1, "name LIKE " + sysNameLikeAll, "description LIKE " + specialChar7LikeSearchStr));
-//    validCaseInputs.put(172,new CaseData(numSystems-1, "name LIKE " + sysNameLikeAll, "description NLIKE " + specialChar7LikeSearchStr));
-//    validCaseInputs.put(173,new CaseData(1, "name LIKE " + sysNameLikeAll, "description = " + specialChar7EqSearchStr));
-//    validCaseInputs.put(174,new CaseData(numSystems-1, "name LIKE " + sysNameLikeAll, "description <> " + specialChar7EqSearchStr));
+//    validCaseInputs.put(171,new CaseData(1, "id LIKE " + sysNameLikeAll, "description LIKE " + specialChar7LikeSearchStr));
+//    validCaseInputs.put(172,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll, "description NLIKE " + specialChar7LikeSearchStr));
+//    validCaseInputs.put(173,new CaseData(1, "id LIKE " + sysNameLikeAll, "description = " + specialChar7EqSearchStr));
+//    validCaseInputs.put(174,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll, "description <> " + specialChar7EqSearchStr));
 //    // Escaped comma in a list of values
-//    validCaseInputs.put(200,new CaseData(1, "name LIKE " + sysNameLikeAll, "job_working_dir IN " + "noSuchDir," + escapedCommanInListValue));
+//    validCaseInputs.put(200,new CaseData(1, "id LIKE " + sysNameLikeAll, "job_working_dir IN " + "noSuchDir," + escapedCommanInListValue));
 
     // Iterate over valid cases
     for (Map.Entry<Integer,CaseData> item : validCaseInputs.entrySet())
@@ -233,7 +233,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testLimitSkip() throws Exception
   {
-    String searchStr = "name LIKE " + sysNameLikeAll;
+    String searchStr = "id LIKE " + sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -291,7 +291,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testSortingSkip() throws Exception
   {
-    String searchStr = "name LIKE " + sysNameLikeAll;
+    String searchStr = "id LIKE " + sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -301,31 +301,31 @@ public class SearchASTDaoTest
     int limit;
     int skip;
     // Sort and check order with no limit or skip
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "asc";
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     checkOrder(searchResults, 1, numSystems);
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "desc";
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, DEFAULT_LIMIT, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     assertEquals(searchResults.size(), numSystems, "Incorrect result count");
     checkOrder(searchResults, numSystems, 1);
     // Sort and check order with limit and no skip
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "asc";
     limit = 4;
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     checkOrder(searchResults, 1, limit);
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "desc";
     limit = 19;
     searchResults = dao.getTSystems(tenantName, null, searchAST, null, limit, sortBy, sortDirection, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     checkOrder(searchResults, numSystems, numSystems - (limit-1));
     // Sort and check order with limit and skip
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "asc";
     limit = 2;
     skip = 5;
@@ -333,7 +333,7 @@ public class SearchASTDaoTest
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_006 to SrchGet_007
     checkOrder(searchResults, skip + 1, skip + limit);
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "desc";
     limit = 4;
     skip = 3;
@@ -349,7 +349,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testSortingStartAfter() throws Exception
   {
-    String searchStr = "name LIKE " + sysNameLikeAll;
+    String searchStr = "id LIKE " + sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -360,7 +360,7 @@ public class SearchASTDaoTest
     int startAfterIdx;
     String startAfter;
     // Sort and check order with limit and startAfter
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "asc";
     limit = 2;
     startAfterIdx = 5;
@@ -369,7 +369,7 @@ public class SearchASTDaoTest
     assertEquals(searchResults.size(), limit, "Incorrect result count");
     // Should get systems named SrchGet_006 to SrchGet_007
     checkOrder(searchResults, startAfterIdx + 1, startAfterIdx + limit);
-    sortBy = "name";
+    sortBy = "id";
     sortDirection = "desc";
     limit = 4;
     startAfterIdx = 18;
