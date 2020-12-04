@@ -21,6 +21,7 @@ import java.util.Map;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.gson;
+import static edu.utexas.tacc.tapis.systems.IntegrationUtils.queueList2;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.scrubbedJson;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.tenantName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.capList2;
@@ -73,9 +74,10 @@ public class MatchConstraintsDaoTest
     // Cleanup anything leftover from previous failed run
     teardown();
 
-    // For half the systems vary capabilities so we can test matching
+    // For half the systems vary queues and capabilities so we can test matching
     for (int i = 0; i < numSystems/2; i++)
     {
+      systems[i].setBatchLogicalQueues(queueList2);
       systems[i].setJobCapabilities(capList2);
     }
 

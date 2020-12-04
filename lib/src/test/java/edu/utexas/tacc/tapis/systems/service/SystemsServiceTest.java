@@ -222,7 +222,9 @@ public class SystemsServiceTest
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
     PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, cap2List, tags2, notes2);
+            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            cap2List, tags2, notes2);
     patchSystem.setId(sys0.getId());
     patchSystem.setTenant(tenantName);
     int itemId = svc.createSystem(authenticatedOwnerUser1, sys0, createText);
@@ -612,7 +614,9 @@ public class SystemsServiceTest
     TSystem sys0 = systems[12];
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, cap2List, tags2, notes2);
+            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            cap2List, tags2, notes2);
     patchSys.setId(sys0.getId());
     patchSys.setTenant(tenantName);
     // CREATE - Deny user not owner/admin, deny service

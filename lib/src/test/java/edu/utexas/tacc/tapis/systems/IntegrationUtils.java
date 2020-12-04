@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
@@ -31,6 +32,9 @@ public final class IntegrationUtils
   public static final String dtnSystemId = null;
   public static final String dtnMountPoint = null;
   public static final String dtnSubDir = null;
+  public static final String jobWorkingDir = null;
+  public static final String batchScheduler = null;
+  public static final String batchDefaultLogicalQueue = null;
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
   public static final boolean jobIsBatch = true;
   public static final int jobMaxJobs = -1;
@@ -45,6 +49,14 @@ public final class IntegrationUtils
 
   private static final String subcategory1 = "test1";
   private static final String subcategory2 = "test2";
+
+  public static final LogicalQueue queueA1 = new LogicalQueue("qA1", 1, 1, 1, 1, 1, 1);
+  public static final LogicalQueue queueB1 = new LogicalQueue("qB1", 2, 2, 2, 2, 2, 2);
+  public static final LogicalQueue queueC1 = new LogicalQueue("qC1", 3, 3, 3, 3, 3, 3);
+  public static final List<LogicalQueue> queueList1 = new ArrayList<>(List.of(queueA1, queueB1, queueC1));
+  public static final LogicalQueue queueA2 = new LogicalQueue("qA2", 10, 10, 10, 10,10, 10);
+  public static final LogicalQueue queueB2 = new LogicalQueue("qB2", 20, 20, 20, 20,20, 20);
+  public static final List<LogicalQueue> queueList2 = new ArrayList<>(List.of(queueA2, queueB2));
 
   public static final Capability capA = new Capability(Capability.Category.SCHEDULER, subcategory1, "Type",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "Slurm");
@@ -98,8 +110,8 @@ public final class IntegrationUtils
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
               dtnSystemId, dtnMountPoint, dtnSubDir,
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
-              "batchScheduler"+suffix, "batchDefaultLogicalQueue"+suffix,
-              tags, notes, importRefId , isDeleted, created, updated);
+              "batchScheduler"+suffix, queueA1.getName(), tags, notes, importRefId , isDeleted, created, updated);
+      systems[i].setBatchLogicalQueues(queueList1);
       systems[i].setJobCapabilities(capList1);
     }
     return systems;
