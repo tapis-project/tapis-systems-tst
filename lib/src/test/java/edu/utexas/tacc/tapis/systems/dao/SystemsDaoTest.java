@@ -52,11 +52,11 @@ public class SystemsDaoTest
     //Remove all objects created by tests
     for (int i = 0; i < numSystems; i++)
     {
-      dao.hardDeleteTSystem(tenantName, systems[i].getName());
+      dao.hardDeleteTSystem(tenantName, systems[i].getId());
     }
 
-    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getName());
-    Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getName());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId());
+    Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
   }
 
   // Test create for a single item
@@ -74,10 +74,10 @@ public class SystemsDaoTest
     TSystem sys0 = systems[1];
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getName());
-    Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getName());
-    System.out.println("Found item: " + sys0.getName());
-    Assert.assertEquals(tmpSys.getName(), sys0.getName());
+    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
+    System.out.println("Found item: " + sys0.getId());
+    Assert.assertEquals(tmpSys.getId(), sys0.getId());
     Assert.assertEquals(tmpSys.getDescription(), sys0.getDescription());
     Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
@@ -147,8 +147,8 @@ public class SystemsDaoTest
     for (String name : systemNames) {
       System.out.println("Found item: " + name);
     }
-    Assert.assertTrue(systemNames.contains(systems[2].getName()), "List of systems did not contain system name: " + systems[2].getName());
-    Assert.assertTrue(systemNames.contains(systems[3].getName()), "List of systems did not contain system name: " + systems[3].getName());
+    Assert.assertTrue(systemNames.contains(systems[2].getId()), "List of systems did not contain system name: " + systems[2].getId());
+    Assert.assertTrue(systemNames.contains(systems[3].getId()), "List of systems did not contain system name: " + systems[3].getId());
   }
 
   // Test retrieving all systems
@@ -160,7 +160,7 @@ public class SystemsDaoTest
     List<TSystem> systems = dao.getTSystems(tenantName, null, null, null, DEFAULT_LIMIT, DEFAULT_SORTBY,
                                             DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
-      System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
+      System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
   }
 
@@ -181,7 +181,7 @@ public class SystemsDaoTest
     List<TSystem> systems = dao.getTSystems(tenantName, null, null, idList, DEFAULT_LIMIT, DEFAULT_SORTBY,
                                             DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
-      System.out.println("Found item with id: " + system.getId() + " and name: " + system.getName());
+      System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(idList.contains(system.getId()));
     }
     Assert.assertEquals(idList.size(), systems.size());
@@ -195,7 +195,7 @@ public class SystemsDaoTest
     System.out.println("Created item with id: " + itemId);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     dao.updateSystemOwner(authenticatedUser, itemId, "newOwner");
-    TSystem tmpSystem = dao.getTSystem(sys0.getTenant(), sys0.getName());
+    TSystem tmpSystem = dao.getTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
 
@@ -210,8 +210,8 @@ public class SystemsDaoTest
     Assert.assertEquals(numDeleted, 1);
     numDeleted = dao.softDeleteTSystem(authenticatedUser, itemId);
     Assert.assertEquals(numDeleted, 0);
-    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getName(), false ),
-            "System not deleted. System name: " + sys0.getName());
+    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getId(), false ),
+            "System not deleted. System name: " + sys0.getId());
   }
 
   // Test hard deleting a single item
@@ -221,8 +221,8 @@ public class SystemsDaoTest
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with id: " + itemId);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    dao.hardDeleteTSystem(sys0.getTenant(), sys0.getName());
-    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getName(), true),"System not deleted. System name: " + sys0.getName());
+    dao.hardDeleteTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getId(), true),"System not deleted. System name: " + sys0.getId());
   }
 
   // Test create and get for a single item with no transfer methods supported and unusual port settings
@@ -235,10 +235,10 @@ public class SystemsDaoTest
     sys0.setProxyPort(-1);
     int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getName());
-    Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getName());
-    System.out.println("Found item: " + sys0.getName());
-    Assert.assertEquals(tmpSys.getName(), sys0.getName());
+    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
+    System.out.println("Found item: " + sys0.getId());
+    Assert.assertEquals(tmpSys.getId(), sys0.getId());
     Assert.assertEquals(tmpSys.getDescription(), sys0.getDescription());
     Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
@@ -269,10 +269,11 @@ public class SystemsDaoTest
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), capList1, tags, notes);
     patchSys.setTenant(tenantName);
-    patchSys.setName(fakeSystemName);
+    patchSys.setId(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,
             "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(), canExec, "jobWorkDir",
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            dtnSystemId, dtnMountPoint, dtnSubDir, canExec, "jobWorkDir",
             jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch, "batchScheduler", "batchDefaultLogicalQueue",
             tags, notes, null, isDeleted, created, updated);
     // Make sure system does not exist

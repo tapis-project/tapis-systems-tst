@@ -199,7 +199,7 @@
             <generator>
               <name>org.jooq.codegen.JavaGenerator</name>
                <!-- Turn on gen of equals, hashcode for POJOs so we can put them in HashMaps -->
-              <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
+<!--              <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>-->
               <generate>
                 <javaTimeTypes>true</javaTimeTypes>
               </generate>

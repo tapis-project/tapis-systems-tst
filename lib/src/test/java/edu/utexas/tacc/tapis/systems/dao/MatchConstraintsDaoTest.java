@@ -98,11 +98,11 @@ public class MatchConstraintsDaoTest
     //Remove all objects created by tests
     for (TSystem sys : systems)
     {
-      dao.hardDeleteTSystem(tenantName, sys.getName());
+      dao.hardDeleteTSystem(tenantName, sys.getId());
     }
 
-    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getName());
-    Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getName());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId());
+    Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
   }
 
   /*
@@ -112,7 +112,7 @@ public class MatchConstraintsDaoTest
   public void testValidCases() throws Exception
   {
     TSystem sys0 = systems[0];
-    String sys0Name = sys0.getName();
+    String sys0Name = sys0.getId();
     String nameList = "noSuchName1,noSuchName2," + sys0Name + ",noSuchName3";
     // Create all input and validation data for tests
     // NOTE: Some cases require "name LIKE " + sysNameLikeAll in the list of conditions since maven runs the tests in
@@ -237,7 +237,7 @@ public class MatchConstraintsDaoTest
       for (int i = start; i <= end; i++)
       {
         String sysName = getSysName(testKey, i);
-        assertEquals(searchResults.get(idx).getName(), sysName, "Incorrect system name at position: " + (idx+1));
+        assertEquals(searchResults.get(idx).getId(), sysName, "Incorrect system name at position: " + (idx+1));
         idx++;
       }
     }
@@ -246,7 +246,7 @@ public class MatchConstraintsDaoTest
       for (int i = start; i >= end; i--)
       {
         String sysName = getSysName(testKey, i);
-        assertEquals(searchResults.get(idx).getName(), sysName, "Incorrect system name at position: " + (idx+1));
+        assertEquals(searchResults.get(idx).getId(), sysName, "Incorrect system name at position: " + (idx+1));
         idx++;
       }
     }

@@ -4,7 +4,7 @@
   "description": "Common definitions for requests",
   "additionalProperties": false,
 
-  "systemName": { "type": "string", "minLength": 1, "maxLength": 80 },
+  "systemId": { "type": "string", "minLength": 1, "maxLength": 80 },
   "hostName": { "type": "string", "minLength": 1, "maxLength": 256 },
   "userName": { "type": "string", "minLength": 1, "maxLength": 60 },
   "dirPath": { "type": "string", "minLength": 1, "maxLength": 4096 },

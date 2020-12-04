@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = -1076052583;
+    private static final long serialVersionUID = -1630139163;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -49,14 +49,14 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     }
 
     /**
-     * The column <code>tapis_sys.logical_queues.id</code>. Logical queue id
+     * The column <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
      */
-    public final TableField<LogicalQueuesRecord, Integer> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Logical queue id");
+    public final TableField<LogicalQueuesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Logical queue sequence id");
 
     /**
-     * The column <code>tapis_sys.logical_queues.system_id</code>. Id of system associated with the logical queue
+     * The column <code>tapis_sys.logical_queues.system_seq_id</code>. Sequence id of system associated with the logical queue
      */
-    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_ID = createField(DSL.name("system_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_system_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Id of system associated with the logical queue");
+    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_system_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Sequence id of system associated with the logical queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.name</code>. Name of logical queue
@@ -153,16 +153,16 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
     @Override
     public List<UniqueKey<LogicalQueuesRecord>> getKeys() {
-        return Arrays.<UniqueKey<LogicalQueuesRecord>>asList(Keys.LOGICAL_QUEUES_PKEY, Keys.LOGICAL_QUEUES_SYSTEM_ID_NAME_KEY);
+        return Arrays.<UniqueKey<LogicalQueuesRecord>>asList(Keys.LOGICAL_QUEUES_PKEY, Keys.LOGICAL_QUEUES_SYSTEM_SEQ_ID_NAME_KEY);
     }
 
     @Override
     public List<ForeignKey<LogicalQueuesRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<LogicalQueuesRecord, ?>>asList(Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_ID_FKEY);
+        return Arrays.<ForeignKey<LogicalQueuesRecord, ?>>asList(Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY);
     }
 
     public Systems systems() {
-        return new Systems(this, Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_ID_FKEY);
+        return new Systems(this, Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY);
     }
 
     @Override

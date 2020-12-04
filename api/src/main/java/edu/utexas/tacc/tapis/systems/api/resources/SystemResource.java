@@ -97,7 +97,7 @@ public class SystemResource
   private static final String FILE_SYSTEM_UPDATESGCI_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateSGCIRequest.json";
 
   // Field names used in Json
-  private static final String NAME_FIELD = "name";
+  private static final String ID_FIELD = "id";
   private static final String NOTES_FIELD = "notes";
   private static final String SYSTEM_TYPE_FIELD = "systemType";
   private static final String HOST_FIELD = "host";
@@ -204,7 +204,7 @@ public class SystemResource
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience
     system.setTenant(authenticatedUser.getTenantId());
-    String systemName = system.getName();
+    String systemId = system.getId();
     try
     {
       systemsService.createSystem(authenticatedUser, system, scrubbedJson);
@@ -214,21 +214,21 @@ public class SystemResource
       if (e.getMessage().contains("SYSLIB_SYS_EXISTS"))
       {
         // IllegalStateException with msg containing SYS_EXISTS indicates object exists - return 409 - Conflict
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_EXISTS", authenticatedUser, systemName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_EXISTS", authenticatedUser, systemId);
         _log.warn(msg);
         return Response.status(Status.CONFLICT).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else if (e.getMessage().contains("SYSLIB_UNAUTH"))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemName, opName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid TSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -236,13 +236,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -250,24 +250,24 @@ public class SystemResource
     // ---------------------------- Success ------------------------------- 
     // Success means the object was created.
     ResultResourceUrl respUrl = new ResultResourceUrl();
-    respUrl.url = _request.getRequestURL().toString() + "/" + systemName;
+    respUrl.url = _request.getRequestURL().toString() + "/" + systemId;
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.CREATED).entity(TapisRestUtils.createSuccessResponse(
-      ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemName), prettyPrint, resp1)).build();
+      ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
    * Update a system
-   * @param systemName - name of the system
+   * @param systemId - name of the system
    * @param payloadStream - request body
    * @param securityContext - user identity
    * @return response containing reference to updated object
    */
   @PATCH
-  @Path("{systemName}")
+  @Path("{systemId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response updateSystem(@PathParam("systemName") String systemName,
+  public Response updateSystem(@PathParam("systemId") String systemId,
                                InputStream payloadStream,
                                @Context SecurityContext securityContext)
   {
@@ -317,7 +317,7 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
-    PatchSystem patchSystem = createPatchSystemFromRequest(req, authenticatedUser.getTenantId(), systemName);
+    PatchSystem patchSystem = createPatchSystemFromRequest(req, authenticatedUser.getTenantId(), systemId);
 
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
@@ -333,7 +333,7 @@ public class SystemResource
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemName);
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -342,14 +342,14 @@ public class SystemResource
       if (e.getMessage().contains("SYSLIB_UNAUTH"))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemName, opName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -357,13 +357,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -374,7 +374,7 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemName), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
@@ -442,17 +442,17 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse("WIP: COMING SOON", prettyPrint)).build();
 
     // Construct the name or get it from the request
-    String systemName;
-    if (StringUtils.isBlank(req.name))
+    String systemId;
+    if (StringUtils.isBlank(req.id))
     {
-      systemName = "sgci-" + req.sgciResourceId;
+      systemId = "sgci-" + req.sgciResourceId;
     }
     else
     {
-      systemName = req.name;
+      systemId = req.id;
     }
     // TODO Create a TSystem from the request
-    TSystem system = null; //createTSystemFromSGCIImportRequest(req, systemName);
+    TSystem system = null; //createTSystemFromSGCIImportRequest(req, systemId);
     system.setImportRefId(req.sgciResourceId);
     // Fill in defaults and check constraints on TSystem attributes
     resp = validateTSystem(system, authenticatedUser, prettyPrint);
@@ -478,21 +478,21 @@ public class SystemResource
       if (e.getMessage().contains("SYSLIB_SYS_EXISTS"))
       {
         // IllegalStateException with msg containing SYS_EXISTS indicates object exists - return 409 - Conflict
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_EXISTS", authenticatedUser, systemName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_EXISTS", authenticatedUser, systemId);
         _log.warn(msg);
         return Response.status(Status.CONFLICT).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else if (e.getMessage().contains("SYSLIB_UNAUTH"))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemName, opName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid TSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -500,13 +500,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -514,10 +514,10 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     // Success means the object was created.
     ResultResourceUrl respUrl = new ResultResourceUrl();
-    respUrl.url = _request.getRequestURL().toString() + "/" + systemName;
+    respUrl.url = _request.getRequestURL().toString() + "/" + systemId;
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.CREATED).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemName), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
@@ -527,10 +527,10 @@ public class SystemResource
    * @return response containing reference to updated object
    */
   @PATCH
-  @Path("import/sgci/{systemName}")
+  @Path("import/sgci/{systemId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response updateSGCISystem(@PathParam("systemName") String systemName,
+  public Response updateSGCISystem(@PathParam("systemId") String systemId,
                                    InputStream payloadStream,
                                    @Context SecurityContext securityContext)
   {
@@ -586,7 +586,7 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse("WIP: COMING SOON", prettyPrint)).build();
 
     // TODO
-    PatchSystem patchSystem = null;// createPatchSystemFromSGCIRequest(req, authenticatedUser.getTenantId(), systemName);
+    PatchSystem patchSystem = null;// createPatchSystemFromSGCIRequest(req, authenticatedUser.getTenantId(), systemId);
 
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
@@ -602,7 +602,7 @@ public class SystemResource
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemName);
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -611,14 +611,14 @@ public class SystemResource
       if (e.getMessage().contains("SYSLIB_UNAUTH"))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemName, opName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -626,13 +626,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -643,21 +643,21 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemName), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
    * Change owner of a system
-   * @param systemName - name of the system
+   * @param systemId - name of the system
    * @param userName - name of the new owner
    * @param securityContext - user identity
    * @return response containing reference to updated object
    */
   @POST
-  @Path("{systemName}/changeOwner/{userName}")
+  @Path("{systemId}/changeOwner/{userName}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response changeSystemOwner(@PathParam("systemName") String systemName,
+  public Response changeSystemOwner(@PathParam("systemId") String systemId,
                                     @PathParam("userName") String userName,
                                     @Context SecurityContext securityContext)
   {
@@ -681,11 +681,11 @@ public class SystemResource
     String msg;
     try
     {
-      changeCount = systemsService.changeSystemOwner(authenticatedUser, systemName, userName);
+      changeCount = systemsService.changeSystemOwner(authenticatedUser, systemId, userName);
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemName);
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -694,14 +694,14 @@ public class SystemResource
       if (e.getMessage().contains("SYSLIB_UNAUTH"))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemName, opName);
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -709,13 +709,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -727,12 +727,12 @@ public class SystemResource
     count.changes = changeCount;
     RespChangeCount resp1 = new RespChangeCount(count);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemName), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
    * getSystem
-   * @param systemName - name of the system
+   * @param systemId - name of the system
    * @param getCreds - should credentials of effectiveUser be included
    * @param authnMethodStr - authn method to use instead of default
    * @param requireExecPerm - check for EXECUTE permission as well as READ permission
@@ -740,10 +740,10 @@ public class SystemResource
    * @return Response with system object as the result
    */
   @GET
-  @Path("{systemName}")
+  @Path("{systemId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystem(@PathParam("systemName") String systemName,
+  public Response getSystem(@PathParam("systemId") String systemId,
                             @QueryParam("returnCredentials") @DefaultValue("false") boolean getCreds,
                             @QueryParam("authnMethod") @DefaultValue("") String authnMethodStr,
                             @QueryParam("requireExecPerm") @DefaultValue("false") boolean requireExecPerm,
@@ -767,7 +767,7 @@ public class SystemResource
     try { if (!StringUtils.isBlank(authnMethodStr)) authnMethod =  AuthnMethod.valueOf(authnMethodStr); }
     catch (IllegalArgumentException e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, authnMethodStr, e.getMessage());
+      String msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemId, authnMethodStr, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -775,11 +775,11 @@ public class SystemResource
     TSystem system;
     try
     {
-      system = systemsService.getSystem(authenticatedUser, systemName, getCreds, authnMethod, requireExecPerm);
+      system = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_GET_NAME_ERROR", authenticatedUser, systemName, e.getMessage());
+      String msg = ApiUtils.getMsgAuth("SYSAPI_GET_NAME_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -787,7 +787,7 @@ public class SystemResource
     // Resource was not found.
     if (system == null)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemName);
+      String msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -795,7 +795,7 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the system information.
     RespSystem resp1 = new RespSystem(system);
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "System", systemName), resp1);
+    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "System", systemId), resp1);
   }
 
   /**
@@ -1145,16 +1145,16 @@ public class SystemResource
 
   /**
    * deleteSystem
-   * @param systemName - name of the system to delete
+   * @param systemId - name of the system to delete
    * @param securityContext - user identity
    * @return - response with change count as the result
    */
   @DELETE
-  @Path("{systemName}")
+  @Path("{systemId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
 // TODO/TBD Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
-  public Response deleteSystem(@PathParam("systemName") String systemName,
+  public Response deleteSystem(@PathParam("systemId") String systemId,
                                @Context SecurityContext securityContext)
   {
     String opName = "deleteSystem";
@@ -1174,11 +1174,11 @@ public class SystemResource
     int changeCount;
     try
     {
-      changeCount = systemsService.softDeleteSystem(authenticatedUser, systemName);
+      changeCount = systemsService.softDeleteSystem(authenticatedUser, systemId);
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NAME_ERROR", authenticatedUser, systemName, e.getMessage());
+      String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NAME_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1190,7 +1190,7 @@ public class SystemResource
     count.changes = changeCount;
     RespChangeCount resp1 = new RespChangeCount(count);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-      MsgUtils.getMsg("TAPIS_DELETED", "System", systemName), prettyPrint, resp1)).build();
+      MsgUtils.getMsg("TAPIS_DELETED", "System", systemId), prettyPrint, resp1)).build();
   }
 
   /* **************************************************************************** */
@@ -1202,10 +1202,10 @@ public class SystemResource
    */
   private static TSystem createTSystemFromRequest(ReqCreateSystem req)
   {
-    var system = new TSystem(-1, null, req.name, req.description, req.systemType, req.owner, req.host,
-                       req.enabled, req.effectiveUserId, req.defaultAuthnMethod,
-                       req.bucketName, req.rootDir, req.transferMethods, req.port, req.useProxy,
-                       req.proxyHost, req.proxyPort, req.canExec, req.jobWorkingDir,
+    var system = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
+                       req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
+                       req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
+                       req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir, req.canExec, req.jobWorkingDir,
                        req.jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
     system.setAuthnCredential(req.authnCredential);
@@ -1217,20 +1217,20 @@ public class SystemResource
   /**
    * Create a PatchSystem from a ReqUpdateSystem
    */
-  private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemName)
+  private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId)
   {
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.jobCapabilities, req.tags, req.notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);
-    patchSystem.setName(systemName);
+    patchSystem.setId(systemId);
     return patchSystem;
   }
 
   /**
    * Fill in defaults and check constraints on TSystem attributes
-   * Check values. name, host, authnMethod must be set. effectiveUserId is restricted.
+   * Check values. systemId, host, authnMethod must be set. effectiveUserId is restricted.
    * If transfer mechanism S3 is supported then bucketName must be set.
    * Collect and report as many errors as possible so they can all be fixed before next attempt
    * NOTE: JsonSchema validation should handle some of these checks but we check here again just in case
@@ -1244,12 +1244,12 @@ public class SystemResource
 
     String effectiveUserId = system1.getEffectiveUserId();
     String owner  = system1.getOwner();
-    String name = system1.getName();
+    String id = system1.getId();
     String msg;
     var errMessages = new ArrayList<String>();
-    if (StringUtils.isBlank(system1.getName()))
+    if (StringUtils.isBlank(system1.getId()))
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", NAME_FIELD);
+      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", ID_FIELD);
       errMessages.add(msg);
     }
     if (system1.getSystemType() == null)
@@ -1295,7 +1295,7 @@ public class SystemResource
     if (!errMessages.isEmpty())
     {
       // Construct message reporting all errors
-      String allErrors = getListOfErrors(errMessages, authenticatedUser, name);
+      String allErrors = getListOfErrors(errMessages, authenticatedUser, id);
       _log.error(allErrors);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(allErrors, prettyPrint)).build();
     }

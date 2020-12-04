@@ -27,7 +27,7 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_USEPROXY;
  */
 public final class ReqCreateSystem
 {
-  public String name;       // Name of the system
+  public String id;       // Name of the system
   public String description; // Full description of the system
   public SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
   public String owner = DEFAULT_OWNER;      // User who owns the system and has full privileges
@@ -43,6 +43,9 @@ public final class ReqCreateSystem
   public boolean useProxy = DEFAULT_USEPROXY;  // Indicates if a system should be accessed through a proxy
   public String proxyHost = DEFAULT_PROXYHOST;  // Name or IP address of proxy host
   public int proxyPort = DEFAULT_PROXYPORT;     // Port number for proxy host
+  public String dtnSystemId;
+  public String dtnMountPoint;
+  public String dtnSubDir;
   public boolean canExec; // Indicates if system will be used to execute jobs
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
   public String[] jobEnvVariables;

@@ -51,9 +51,9 @@ CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'N
 -- Basic system attributes
 CREATE TABLE systems
 (
-  id          SERIAL PRIMARY KEY,
+  seq_id      SERIAL PRIMARY KEY,
   tenant      VARCHAR(24) NOT NULL,
-  name        VARCHAR(80) NOT NULL,
+  id          VARCHAR(80) NOT NULL,
   description VARCHAR(2048),
   system_type system_type_type NOT NULL,
   owner       VARCHAR(60) NOT NULL,
@@ -68,6 +68,9 @@ CREATE TABLE systems
   use_proxy  BOOLEAN NOT NULL DEFAULT false,
   proxy_host VARCHAR(256) NOT NULL DEFAULT '',
   proxy_port INTEGER NOT NULL DEFAULT -1,
+  dtn_system_id VARCHAR(80),
+  dtn_mount_point VARCHAR(4096),
+  dtn_sub_dir VARCHAR(4096),
   can_exec   BOOLEAN NOT NULL DEFAULT false,
   job_working_dir VARCHAR(4096),
   job_env_variables TEXT[],
@@ -82,15 +85,15 @@ CREATE TABLE systems
   deleted    BOOLEAN NOT NULL DEFAULT false,
   created    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
   updated    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-  UNIQUE (tenant,name)
+  UNIQUE (tenant, id)
 );
 ALTER TABLE systems OWNER TO tapis_sys;
-CREATE INDEX sys_tenant_name_idx ON systems (tenant, name);
+CREATE INDEX sys_tenant_name_idx ON systems (tenant, id);
 CREATE INDEX sys_host_idx ON systems (host);
 CREATE INDEX sys_owner_idx ON systems (owner);
-COMMENT ON COLUMN systems.id IS 'System id';
+COMMENT ON COLUMN systems.seq_id IS 'System sequence id';
 COMMENT ON COLUMN systems.tenant IS 'Tenant name associated with system';
-COMMENT ON COLUMN systems.name IS 'Unique name for the system';
+COMMENT ON COLUMN systems.id IS 'Unique name for the system';
 COMMENT ON COLUMN systems.description IS 'System description';
 COMMENT ON COLUMN systems.system_type IS 'Type of system';
 COMMENT ON COLUMN systems.owner IS 'User name of system owner';
@@ -105,6 +108,9 @@ COMMENT ON COLUMN systems.port IS 'Port number used to access a system';
 COMMENT ON COLUMN systems.use_proxy IS 'Indicates if system should accessed through a proxy';
 COMMENT ON COLUMN systems.proxy_host IS 'Proxy host name or ip address';
 COMMENT ON COLUMN systems.proxy_port IS 'Proxy port number';
+COMMENT ON COLUMN systems.dtn_system_id IS 'Alternate system to use as a Data Transfer Node (DTN)';
+COMMENT ON COLUMN systems.dtn_mount_point IS 'Mount point on local system for the DTN';
+COMMENT ON COLUMN systems.dtn_sub_dir IS 'Optional subdirectory relative to dtnMountPoint';
 COMMENT ON COLUMN systems.can_exec IS 'Indicates if system can be used to execute jobs';
 COMMENT ON COLUMN systems.job_working_dir IS 'Parent directory from which a job is run. Relative to effective root directory.';
 COMMENT ON COLUMN systems.job_env_variables IS 'Environment variables added to shell environment';
@@ -124,8 +130,8 @@ COMMENT ON COLUMN systems.updated IS 'UTC time for when record was last updated'
 -- Track update requests for systems
 CREATE TABLE system_updates
 (
-    id SERIAL PRIMARY KEY,
-    system_id SERIAL REFERENCES systems(id) ON DELETE CASCADE,
+    seq_id SERIAL PRIMARY KEY,
+    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
     user_name VARCHAR(60) NOT NULL,
     user_tenant VARCHAR(24) NOT NULL,
     operation operation_type NOT NULL,
@@ -134,8 +140,8 @@ CREATE TABLE system_updates
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
 );
 ALTER TABLE system_updates OWNER TO tapis_sys;
-COMMENT ON COLUMN system_updates.id IS 'System update request id';
-COMMENT ON COLUMN system_updates.system_id IS 'Id of system being updated';
+COMMENT ON COLUMN system_updates.seq_id IS 'System update request sequence id';
+COMMENT ON COLUMN system_updates.system_seq_id IS 'Sequence id of system being updated';
 COMMENT ON COLUMN system_updates.user_name IS 'Name of user who requested the update';
 COMMENT ON COLUMN system_updates.user_tenant IS 'Tenant of user who requested the update';
 COMMENT ON COLUMN system_updates.operation IS 'Type of update operation';
@@ -150,8 +156,8 @@ COMMENT ON COLUMN system_updates.created IS 'UTC time for when record was create
 -- Logical queues associated with a system
 CREATE TABLE logical_queues
 (
-    id SERIAL PRIMARY KEY,
-    system_id SERIAL REFERENCES systems(id) ON DELETE CASCADE,
+    seq_id SERIAL PRIMARY KEY,
+    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
     name   VARCHAR(128) NOT NULL DEFAULT '',
     max_jobs INTEGER NOT NULL DEFAULT -1,
     max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
@@ -161,11 +167,11 @@ CREATE TABLE logical_queues
     max_minutes INTEGER NOT NULL DEFAULT -1,
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    UNIQUE (system_id, name)
+    UNIQUE (system_seq_id, name)
 );
 ALTER TABLE logical_queues OWNER TO tapis_sys;
-COMMENT ON COLUMN logical_queues.id IS 'Logical queue id';
-COMMENT ON COLUMN logical_queues.system_id IS 'Id of system associated with the logical queue';
+COMMENT ON COLUMN logical_queues.seq_id IS 'Logical queue sequence id';
+COMMENT ON COLUMN logical_queues.system_seq_id IS 'Sequence id of system associated with the logical queue';
 COMMENT ON COLUMN logical_queues.name IS 'Name of logical queue';
 COMMENT ON COLUMN logical_queues.max_jobs IS 'Maximum total number of jobs that can be queued or running in this queue at a given time.';
 COMMENT ON COLUMN logical_queues.max_jobs_per_user IS 'Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.';
@@ -184,21 +190,21 @@ COMMENT ON COLUMN logical_queues.updated IS 'UTC time for when record was last u
 -- All columns are specified NOT NULL to make queries easier. <col> = null is not the same as <col> is null
 CREATE TABLE capabilities
 (
-    id SERIAL PRIMARY KEY,
-    system_id SERIAL REFERENCES systems(id) ON DELETE CASCADE,
+    seq_id SERIAL PRIMARY KEY,
+    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
     category capability_category_type NOT NULL,
     subcategory VARCHAR(128),
-    name   VARCHAR(128) NOT NULL DEFAULT '',
+    name VARCHAR(128) NOT NULL DEFAULT '',
     datatype capability_datatype_type NOT NULL,
     precedence INTEGER NOT NULL DEFAULT 100,
     value  VARCHAR(128) NOT NULL DEFAULT '',
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    UNIQUE (system_id, category, subcategory, name)
+    UNIQUE (system_seq_id, category, subcategory, name)
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;
-COMMENT ON COLUMN capabilities.id IS 'Capability id';
-COMMENT ON COLUMN capabilities.system_id IS 'Id of system supporting the capability';
+COMMENT ON COLUMN capabilities.seq_id IS 'Capability sequence id';
+COMMENT ON COLUMN capabilities.system_seq_id IS 'Sequenc id of system supporting the capability';
 COMMENT ON COLUMN capabilities.category IS 'Category for grouping of capabilities';
 COMMENT ON COLUMN capabilities.subcategory IS 'Subcategory for grouping of capabilities';
 COMMENT ON COLUMN capabilities.name IS 'Name of capability';

@@ -17,12 +17,12 @@ import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 /*
  * Tapis System representing a server or collection of servers exposed through a
  * single host name or ip address. Each system is associated with a specific tenant.
- * Name of the system must be URI safe, see RFC 3986.
+ * Id of the system must be URI safe, see RFC 3986.
  *   Allowed characters: Alphanumeric  [0-9a-zA-Z] and special characters [-._~].
  * Each system has an owner, effective access user, protocol attributes
  *   and flag indicating if it is currently enabled.
  *
- * Tenant + name must be unique
+ * Tenant + id must be unique
  *
  * Make defensive copies as needed on get/set to keep this class as immutable as possible.
  * Note Credential is immutable so no need for copy.
@@ -75,10 +75,9 @@ public final class TSystem
   // ************************************************************************
 
   // NOTE: In order to use jersey's SelectableEntityFilteringFeature fields cannot be final.
-  private int id;           // Unique database sequence number
-
+  private int seqId;         // Unique database sequence number
   private String tenant;     // Name of the tenant for which the system is defined
-  private String name;       // Name of the system
+  private String id;       // Name of the system
   private String description; // Full description of the system
   private SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
   private String owner;      // User who owns the system and has full privileges
@@ -94,6 +93,9 @@ public final class TSystem
   private boolean useProxy;  // Indicates if a system should be accessed through a proxy
   private String proxyHost;  // Name or IP address of proxy host
   private int proxyPort;     // Port number for proxy host
+  private String dtnSystemId;
+  private String dtnMountPoint;
+  private String dtnSubDir;
   private boolean canExec; // Indicates if system will be used to execute jobs
   private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
   private String[] jobEnvVariables;
@@ -104,7 +106,7 @@ public final class TSystem
   private List<LogicalQueue> batchLogicalQueues;
   private String batchDefaultLogicalQueue;
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
-  private String[] tags;       // List of arbitrary tags as strings
+  private String[] tags; // List of arbitrary tags as strings
 
   // Json objects require special serializer for Jackson to handle properly in outgoing response.
   @JsonSerialize(using = JsonObjectSerializer.class)
@@ -130,9 +132,9 @@ public final class TSystem
   /**
    * Constructor using only required attributes.
    */
-  public TSystem(String name1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
+  public TSystem(String id1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
   {
-    name = name1;
+    id = id1;
     systemType = systemType1;
     host = host1;
     defaultAuthnMethod = defaultAuthnMethod1;
@@ -143,17 +145,18 @@ public final class TSystem
    * Constructor for jOOQ with input parameter matching order of columns in DB
    * Also useful for testing
    */
-  public TSystem(int id1, String tenant1, String name1, String description1, SystemType systemType1,
+  public TSystem(int seqId1, String tenant1, String id1, String description1, SystemType systemType1,
                  String owner1, String host1, boolean enabled1, String effectiveUserId1, AuthnMethod defaultAuthnMethod1,
                  String bucketName1, String rootDir1,
                  List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
+                 String dtnSystemId1, String dtnMountPoint1, String dtnSubDir1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
                  int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
                  String[] tags1, Object notes1, String importRefId1, boolean deleted1, Instant created1, Instant updated1)
   {
-    id = id1;
+    seqId = seqId1;
     tenant = tenant1;
-    name = name1;
+    id = id1;
     description = description1;
     systemType = systemType1;
     owner = owner1;
@@ -186,6 +189,9 @@ public final class TSystem
     useProxy = useProxy1;
     proxyHost = proxyHost1;
     proxyPort = proxyPort1;
+    dtnSystemId = dtnSystemId1;
+    dtnMountPoint = dtnMountPoint1;
+    dtnSubDir = dtnSubDir1;
     canExec = canExec1;
     jobWorkingDir = jobWorkingDir1;
     jobEnvVariables = (jobEnvVariables1 == null) ? null : jobEnvVariables1.clone();
@@ -209,11 +215,11 @@ public final class TSystem
   public TSystem(TSystem t)
   {
     if (t==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
-    id = t.getId();
+    seqId = t.getSeqId();
     created = t.getCreated();
     updated = t.getUpdated();
     tenant = t.getTenant();
-    name = t.getName();
+    id = t.getId();
     description = t.getDescription();
     systemType = t.getSystemType();
     owner = t.getOwner();
@@ -229,6 +235,9 @@ public final class TSystem
     useProxy = t.isUseProxy();
     proxyHost = t.getProxyHost();
     proxyPort = t.getProxyPort();
+    dtnSystemId = t.getDtnSystemId();
+    dtnMountPoint = t.getDtnMountPoint();
+    dtnSubDir = t.dtnSubDir;
     canExec = t.getCanExec();
     jobWorkingDir = t.getJobWorkingDir();
     jobEnvVariables = (t.getJobEnvVariables() == null) ? null : t.getJobEnvVariables().clone();
@@ -264,7 +273,7 @@ public final class TSystem
   // *********************** Accessors **************************************
   // ************************************************************************
 
-  public int getId() { return id; }
+  public int getSeqId() { return seqId; }
 
   @Schema(type = "string")
   public Instant getCreated() { return created; }
@@ -275,8 +284,8 @@ public final class TSystem
   public String getTenant() { return tenant; }
   public TSystem setTenant(String s) { tenant = s; return this; }
 
-  public String getName() { return name; }
-  public TSystem setName(String s) { name = s; return this; }
+  public String getId() { return id; }
+  public TSystem setId(String s) { id = s; return this; }
 
   public String getDescription() { return description; }
   public TSystem setDescription(String d) { description = d; return this; }
@@ -326,6 +335,15 @@ public final class TSystem
 
   public int getProxyPort() { return proxyPort; }
   public TSystem setProxyPort(int i) { proxyPort = i; return this; }
+
+  public String getDtnSystemId() { return dtnSystemId; }
+  public TSystem setDtnSystemId(String s) { dtnSystemId = s; return this; }
+
+  public String getDtnMountPoint() { return dtnMountPoint; }
+  public TSystem setDtnMountPoint(String s) { dtnMountPoint = s; return this; }
+
+  public String getDtnSubDir() { return dtnSubDir; }
+  public TSystem setDtnSubDir(String s) { dtnSubDir = s; return this; }
 
   public boolean getCanExec() { return canExec; }
 

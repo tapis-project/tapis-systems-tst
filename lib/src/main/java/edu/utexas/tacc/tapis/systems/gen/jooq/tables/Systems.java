@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 904357112;
+    private static final long serialVersionUID = 298547547;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -55,9 +55,9 @@ public class Systems extends TableImpl<SystemsRecord> {
     }
 
     /**
-     * The column <code>tapis_sys.systems.id</code>. System id
+     * The column <code>tapis_sys.systems.seq_id</code>. System sequence id
      */
-    public final TableField<SystemsRecord, Integer> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('systems_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "System id");
+    public final TableField<SystemsRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('systems_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "System sequence id");
 
     /**
      * The column <code>tapis_sys.systems.tenant</code>. Tenant name associated with system
@@ -65,9 +65,9 @@ public class Systems extends TableImpl<SystemsRecord> {
     public final TableField<SystemsRecord, String> TENANT = createField(DSL.name("tenant"), org.jooq.impl.SQLDataType.VARCHAR(24).nullable(false), this, "Tenant name associated with system");
 
     /**
-     * The column <code>tapis_sys.systems.name</code>. Unique name for the system
+     * The column <code>tapis_sys.systems.id</code>. Unique name for the system
      */
-    public final TableField<SystemsRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(80).nullable(false), this, "Unique name for the system");
+    public final TableField<SystemsRecord, String> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.VARCHAR(80).nullable(false), this, "Unique name for the system");
 
     /**
      * The column <code>tapis_sys.systems.description</code>. System description
@@ -138,6 +138,21 @@ public class Systems extends TableImpl<SystemsRecord> {
      * The column <code>tapis_sys.systems.proxy_port</code>. Proxy port number
      */
     public final TableField<SystemsRecord, Integer> PROXY_PORT = createField(DSL.name("proxy_port"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Proxy port number");
+
+    /**
+     * The column <code>tapis_sys.systems.dtn_system_id</code>. Alternate system to use as a Data Transfer Node (DTN)
+     */
+    public final TableField<SystemsRecord, String> DTN_SYSTEM_ID = createField(DSL.name("dtn_system_id"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Alternate system to use as a Data Transfer Node (DTN)");
+
+    /**
+     * The column <code>tapis_sys.systems.dtn_mount_point</code>. Mount point on local system for the DTN
+     */
+    public final TableField<SystemsRecord, String> DTN_MOUNT_POINT = createField(DSL.name("dtn_mount_point"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Mount point on local system for the DTN");
+
+    /**
+     * The column <code>tapis_sys.systems.dtn_sub_dir</code>. Optional subdirectory relative to dtnMountPoint
+     */
+    public final TableField<SystemsRecord, String> DTN_SUB_DIR = createField(DSL.name("dtn_sub_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Optional subdirectory relative to dtnMountPoint");
 
     /**
      * The column <code>tapis_sys.systems.can_exec</code>. Indicates if system can be used to execute jobs
@@ -264,7 +279,7 @@ public class Systems extends TableImpl<SystemsRecord> {
 
     @Override
     public List<UniqueKey<SystemsRecord>> getKeys() {
-        return Arrays.<UniqueKey<SystemsRecord>>asList(Keys.SYSTEMS_PKEY, Keys.SYSTEMS_TENANT_NAME_KEY);
+        return Arrays.<UniqueKey<SystemsRecord>>asList(Keys.SYSTEMS_PKEY, Keys.SYSTEMS_TENANT_ID_KEY);
     }
 
     @Override

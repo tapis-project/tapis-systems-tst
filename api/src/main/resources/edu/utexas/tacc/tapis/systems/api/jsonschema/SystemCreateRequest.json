@@ -5,9 +5,9 @@
   "additionalProperties": false,
 
   "type": "object",
-  "required": [ "name", "systemType", "host", "defaultAuthnMethod", "canExec" ],
+  "required": [ "id", "systemType", "host", "defaultAuthnMethod", "canExec" ],
   "properties": {
-    "name": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemName" },
+    "id": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemId" },
     "description": { "type": "string", "maxLength": 2048 },
     "systemType": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemTypeEnum" },
     "owner": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/userName" },
@@ -26,6 +26,9 @@
     "useProxy": { "type": "boolean", "default": false },
     "proxyHost": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/hostName" },
     "proxyPort": { "type": "integer" },
+    "dtnSystemId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemId" },
+    "dtnMountPoint": { "type": "string" },
+    "dtnSubDir": { "type": "string" },
     "canExec": { "type": "boolean" },
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/dirPath" },
     "jobEnvVariables": {

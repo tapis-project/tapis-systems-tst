@@ -19,6 +19,9 @@
     "useProxy": { "type": "boolean", "default": false },
     "proxyHost": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/hostName" },
     "proxyPort": { "type": "integer" },
+    "dtnSystemId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/systemId" },
+    "dtnMountPoint": { "type": "string" },
+    "dtnSubDir": { "type": "string" },
     "jobCapabilities": {
       "type": "array",
       "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/capability" }

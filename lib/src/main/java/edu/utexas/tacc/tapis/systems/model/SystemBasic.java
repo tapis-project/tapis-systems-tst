@@ -22,7 +22,7 @@ public final class SystemBasic
   // *********************** Fields *****************************************
   // ************************************************************************
 
-  private int id;           // Unique database sequence number
+  private int seqId;           // Unique database sequence number
   private String tenant;     // Name of the tenant for which the system is defined
   private String name;       // Name of the system
   private TSystem.SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
@@ -63,9 +63,9 @@ public final class SystemBasic
   {
     if (tSystem != null)
     {
-      id = tSystem.getId();
+      seqId = tSystem.getSeqId();
       tenant = tSystem.getTenant();
-      name = tSystem.getName();
+      name = tSystem.getId();
       systemType = tSystem.getSystemType();
       host = tSystem.getHost();
       defaultAuthnMethod = tSystem.getDefaultAuthnMethod();
@@ -102,7 +102,7 @@ public final class SystemBasic
   // *********************** Accessors **************************************
   // ************************************************************************
 
-  public int getId() { return id; }
+  public int getSeqId() { return seqId; }
 
   @Schema(type = "string")
   public Instant getCreated() { return created; }

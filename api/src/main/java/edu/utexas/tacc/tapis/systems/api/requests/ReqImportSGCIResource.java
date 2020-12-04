@@ -13,7 +13,7 @@ import java.util.List;
 public final class ReqImportSGCIResource
 {
   public String sgciResourceId; // ID of SGCI resource - required
-  public String name;       // Name of the system
+  public String id;       // Name of the system
   public String description; // Description of the system
   public String owner;      // User who owns the system and has full privileges
   public boolean enabled; // Indicates if systems is currently enabled

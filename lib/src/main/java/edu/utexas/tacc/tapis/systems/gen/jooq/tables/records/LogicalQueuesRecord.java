@@ -21,33 +21,33 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord> implements Record11<Integer, Integer, String, Integer, Integer, Integer, Integer, Integer, Integer, LocalDateTime, LocalDateTime> {
 
-    private static final long serialVersionUID = 1102133060;
+    private static final long serialVersionUID = -552159656;
 
     /**
-     * Setter for <code>tapis_sys.logical_queues.id</code>. Logical queue id
+     * Setter for <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
      */
-    public void setId(Integer value) {
+    public void setSeqId(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tapis_sys.logical_queues.id</code>. Logical queue id
+     * Getter for <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
      */
-    public Integer getId() {
+    public Integer getSeqId() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>tapis_sys.logical_queues.system_id</code>. Id of system associated with the logical queue
+     * Setter for <code>tapis_sys.logical_queues.system_seq_id</code>. Sequence id of system associated with the logical queue
      */
-    public void setSystemId(Integer value) {
+    public void setSystemSeqId(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tapis_sys.logical_queues.system_id</code>. Id of system associated with the logical queue
+     * Getter for <code>tapis_sys.logical_queues.system_seq_id</code>. Sequence id of system associated with the logical queue
      */
-    public Integer getSystemId() {
+    public Integer getSystemSeqId() {
         return (Integer) get(1);
     }
 
@@ -202,12 +202,12 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public Field<Integer> field1() {
-        return LogicalQueues.LOGICAL_QUEUES.ID;
+        return LogicalQueues.LOGICAL_QUEUES.SEQ_ID;
     }
 
     @Override
     public Field<Integer> field2() {
-        return LogicalQueues.LOGICAL_QUEUES.SYSTEM_ID;
+        return LogicalQueues.LOGICAL_QUEUES.SYSTEM_SEQ_ID;
     }
 
     @Override
@@ -257,12 +257,12 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public Integer component1() {
-        return getId();
+        return getSeqId();
     }
 
     @Override
     public Integer component2() {
-        return getSystemId();
+        return getSystemSeqId();
     }
 
     @Override
@@ -312,12 +312,12 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public Integer value1() {
-        return getId();
+        return getSeqId();
     }
 
     @Override
     public Integer value2() {
-        return getSystemId();
+        return getSystemSeqId();
     }
 
     @Override
@@ -367,13 +367,13 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public LogicalQueuesRecord value1(Integer value) {
-        setId(value);
+        setSeqId(value);
         return this;
     }
 
     @Override
     public LogicalQueuesRecord value2(Integer value) {
-        setSystemId(value);
+        setSystemSeqId(value);
         return this;
     }
 
@@ -461,11 +461,11 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
     /**
      * Create a detached, initialised LogicalQueuesRecord
      */
-    public LogicalQueuesRecord(Integer id, Integer systemId, String name, Integer maxJobs, Integer maxJobsPerUser, Integer maxNodeCount, Integer maxCoresPerNode, Integer maxMemoryMb, Integer maxMinutes, LocalDateTime created, LocalDateTime updated) {
+    public LogicalQueuesRecord(Integer seqId, Integer systemSeqId, String name, Integer maxJobs, Integer maxJobsPerUser, Integer maxNodeCount, Integer maxCoresPerNode, Integer maxMemoryMb, Integer maxMinutes, LocalDateTime created, LocalDateTime updated) {
         super(LogicalQueues.LOGICAL_QUEUES);
 
-        set(0, id);
-        set(1, systemId);
+        set(0, seqId);
+        set(1, systemSeqId);
         set(2, name);
         set(3, maxJobs);
         set(4, maxJobsPerUser);

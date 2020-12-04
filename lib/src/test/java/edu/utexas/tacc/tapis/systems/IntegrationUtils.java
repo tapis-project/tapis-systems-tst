@@ -28,6 +28,9 @@ public final class IntegrationUtils
   public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
   public static final boolean isEnabled = true;
   public static final boolean canExec = true;
+  public static final String dtnSystemId = null;
+  public static final String dtnMountPoint = null;
+  public static final String dtnSubDir = null;
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
   public static final boolean jobIsBatch = true;
   public static final int jobMaxJobs = -1;
@@ -93,6 +96,7 @@ public final class IntegrationUtils
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser,
               "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
+              dtnSystemId, dtnMountPoint, dtnSubDir,
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
               "batchScheduler"+suffix, "batchDefaultLogicalQueue"+suffix,
               tags, notes, importRefId , isDeleted, created, updated);

@@ -17,7 +17,7 @@ public final class PatchSystem
   // *********************** Fields *****************************************
   // ************************************************************************
   private String tenant;     // Name of the tenant for which the system is defined
-  private String name;       // Name of the system
+  private String id;       // Name of the system
   private final String description; // Full description of the system
   private final String host;       // Host name or IP address
   private final Boolean enabled; // Indicates if systems is currently enabled
@@ -65,8 +65,8 @@ public final class PatchSystem
   public String getTenant() { return tenant; }
   public void setTenant(String s) { tenant = s; }
 
-  public String getName() { return name; }
-  public void setName(String s) { name = s; }
+  public String getId() { return id; }
+  public void setId(String s) { id = s; }
 
   public String getDescription() { return description; }
 

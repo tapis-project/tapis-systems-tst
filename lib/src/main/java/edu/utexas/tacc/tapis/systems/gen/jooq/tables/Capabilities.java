@@ -35,7 +35,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = 34077695;
+    private static final long serialVersionUID = -955355299;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -51,14 +51,14 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     }
 
     /**
-     * The column <code>tapis_sys.capabilities.id</code>. Capability id
+     * The column <code>tapis_sys.capabilities.seq_id</code>. Capability sequence id
      */
-    public final TableField<CapabilitiesRecord, Integer> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('capabilities_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Capability id");
+    public final TableField<CapabilitiesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('capabilities_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Capability sequence id");
 
     /**
-     * The column <code>tapis_sys.capabilities.system_id</code>. Id of system supporting the capability
+     * The column <code>tapis_sys.capabilities.system_seq_id</code>. Sequenc id of system supporting the capability
      */
-    public final TableField<CapabilitiesRecord, Integer> SYSTEM_ID = createField(DSL.name("system_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('capabilities_system_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Id of system supporting the capability");
+    public final TableField<CapabilitiesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('capabilities_system_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Sequenc id of system supporting the capability");
 
     /**
      * The column <code>tapis_sys.capabilities.category</code>. Category for grouping of capabilities
@@ -150,16 +150,16 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
     @Override
     public List<UniqueKey<CapabilitiesRecord>> getKeys() {
-        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_ID_CATEGORY_SUBCATEGORY_NAME_KEY);
+        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY);
     }
 
     @Override
     public List<ForeignKey<CapabilitiesRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<CapabilitiesRecord, ?>>asList(Keys.CAPABILITIES__CAPABILITIES_SYSTEM_ID_FKEY);
+        return Arrays.<ForeignKey<CapabilitiesRecord, ?>>asList(Keys.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY);
     }
 
     public Systems systems() {
-        return new Systems(this, Keys.CAPABILITIES__CAPABILITIES_SYSTEM_ID_FKEY);
+        return new Systems(this, Keys.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY);
     }
 
     @Override
