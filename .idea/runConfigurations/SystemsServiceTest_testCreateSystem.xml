@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SystemsServiceTest.testCreateSystem" type="TestNG" nameIsGenerated="true">
-    <module name="lib" />
+    <module name="tapis-systemslib" />
     <useClassPathOnly />
     <extension name="coverage">
       <pattern>

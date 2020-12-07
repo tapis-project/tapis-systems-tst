@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   
-  <artifactId>lib</artifactId>
+  <artifactId>tapis-systemslib</artifactId>
   
   <name>Tapis Systems Library</name>
   <description>Backend library for Tapis Systems Service</description>

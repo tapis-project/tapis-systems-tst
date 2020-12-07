@@ -1,8 +1,6 @@
 package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 
@@ -38,8 +36,8 @@ public final class Capability
   /* ********************************************************************** */
   /*                                 Fields                                 */
   /* ********************************************************************** */
-  private final int id;           // Unique database sequence number
-  private final int systemid;
+  private final int seqId;           // Unique database sequence number
+  private final int systemId;
 
   private final Category category; // Type or category of capability
   private final String subcategory;   // Name of the capability
@@ -58,8 +56,8 @@ public final class Capability
   public Capability(int id1, int systemid1, Category category1, String subcategory1, String name1,
                     Datatype datatype1, int precedence1, String value1, Instant created1, Instant updated1)
   {
-    id = id1;
-    systemid = systemid1;
+    seqId = id1;
+    systemId = systemid1;
     created = created1;
     updated = updated1;
     category = category1;
@@ -73,8 +71,8 @@ public final class Capability
   // Constructor initializing minimal number of fields, useful for testing. Should not be persisted.
   public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
   {
-    id = -1;
-    systemid = -1;
+    seqId = -1;
+    systemId = -1;
     created = null;
     updated = null;
     category = category1;
@@ -88,8 +86,8 @@ public final class Capability
   /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
-  public int getId() { return id; }
-  public int getSystemid() { return systemid; }
+  public int getSeqId() { return seqId; }
+  public int getSystemId() { return systemId; }
   public Instant getCreated() { return created; }
   public Instant getUpdated() { return updated; }
   public Category getCategory() { return category; }

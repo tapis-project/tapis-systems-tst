@@ -24,7 +24,7 @@
     <!-- Local project modules -->
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lib</artifactId>
+      <artifactId>tapis-systemslib</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Tapis shared modules -->
