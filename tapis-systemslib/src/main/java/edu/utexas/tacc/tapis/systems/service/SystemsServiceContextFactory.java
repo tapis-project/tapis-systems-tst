@@ -21,7 +21,7 @@ public class SystemsServiceContextFactory implements Factory<ServiceContext>
   {
     ServiceContext svcContext = ServiceContext.getInstance();
 
-    String svcMasterTenant = null;
+    String svcAdminTenant = null;
     String tokenSvcUrl = null;
     RuntimeParameters runParms = RuntimeParameters.getInstance();
     try {
@@ -29,18 +29,18 @@ public class SystemsServiceContextFactory implements Factory<ServiceContext>
 // TODO remove
 // ???
 //      // TODO: remove hard coded values
-//      // TODO/TBD: Get master tenant from tenant service or from env? Keep hard coded default?
+//      // TODO/TBD: Get admin tenant from tenant service or from env? Keep hard coded default?
 //      RuntimeParameters runParms = RuntimeParameters.getInstance();
-//      // Get service master tenant from the env
-//      svcMasterTenant = runParms.getServiceMasterTenant();
-//      if (StringUtils.isBlank(svcMasterTenant)) svcMasterTenant = SYSTEMS_DEFAULT_MASTER_TENANT;
+//      // Get service admin tenant from the env
+//      svcAdminTenant = runParms.getServiceAdminTenant();
+//      if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
 //      var svcJWTParms = new ServiceJWTParms();
-//      svcJWTParms.setTenant(svcMasterTenant);
+//      svcJWTParms.setTenant(svcAdminTenant);
 //      // TODO: FIX-FOR-ASSOCIATE-SITES
 //      // TODO: How to get full list of sites?
 //      svcJWTParms.setTargetSites(Arrays.asList(runParms.getSiteId()));
 //      // Use TenantManager to get tenant info. Needed for tokens base URLs. E.g. https://dev.develop.tapis.io
-//      Tenant tenant = TenantManager.getInstance().getTenant(svcMasterTenant);
+//      Tenant tenant = TenantManager.getInstance().getTenant(svcAdminTenant);
 //      svcJWTParms.setServiceName(SERVICE_NAME_SYSTEMS);
 //      tokenSvcUrl = tenant.getTokenService();
 //      // TODO remove the strip-off once no longer needed
@@ -51,7 +51,7 @@ public class SystemsServiceContextFactory implements Factory<ServiceContext>
 //      String svcPassword = runParms.getServicePassword();
 //      if (StringUtils.isBlank(svcPassword))
 //      {
-//        String msg = LibUtils.getMsg("SYSLIB_NO_SVC_PASSWD", svcMasterTenant, tokenSvcUrl);
+//        String msg = LibUtils.getMsg("SYSLIB_NO_SVC_PASSWD", svcAdminTenant, tokenSvcUrl);
 //        throw new RuntimeException(msg);
 //      }
 //      return new ServiceJWT(svcJWTParms, svcPassword);
@@ -60,7 +60,7 @@ public class SystemsServiceContextFactory implements Factory<ServiceContext>
     }
     catch (TapisException | TapisClientException te)
     {
-      String msg = LibUtils.getMsg("SYSLIB_SVCJWT_ERROR", svcMasterTenant, tokenSvcUrl);
+      String msg = LibUtils.getMsg("SYSLIB_SVCJWT_ERROR", svcAdminTenant, tokenSvcUrl);
       throw new RuntimeException(msg, te);
     }
   }

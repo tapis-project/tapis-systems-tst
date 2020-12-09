@@ -75,7 +75,7 @@ public class SystemsServiceImpl implements SystemsService
   // ************************************************************************
   public static final String SYSTEMS_ADMIN_ROLE = "SystemsAdmin";
   public static final String SYSTEMS_ADMIN_DESCRIPTION = "Administrative role for Systems service";
-  public static final String SYSTEMS_DEFAULT_MASTER_TENANT = "master";
+  public static final String SYSTEMS_DEFAULT_ADMIN_TENANT = "admin";
 
   // Tracing.
   private static final Logger _log = LoggerFactory.getLogger(SystemsServiceImpl.class);
@@ -602,27 +602,27 @@ public class SystemsServiceImpl implements SystemsService
   public void initService(String svcSiteId) throws TapisException, TapisClientException
   {
     siteId = svcSiteId;
-//    // Get service master tenant
-//    String svcMasterTenant = RuntimeParameters.getInstance().getServiceMasterTenant();
-//    if (StringUtils.isBlank(svcMasterTenant)) svcMasterTenant = SYSTEMS_DEFAULT_MASTER_TENANT;
+//    // Get service admin tenant
+//    String svcAdminTenant = RuntimeParameters.getInstance().getServiceAdminTenant();
+//    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
 //    // Create user for SK client
 //    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
 //    //       that in general this may be the pattern to follow.
 //    String svcJwt = serviceJWT.getAccessJWT(siteId);
 //    AuthenticatedUser svcUser =
-//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcMasterTenant, TapisThreadContext.AccountType.service.name(),
-//                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, svcJwt);
+//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
+//                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
     // TODO: Revisit how to manage skClient instances.
-    // Get service master tenant
-    String svcMasterTenant = TenantManager.getInstance().getSiteMasterTenantId(siteId);
-    if (StringUtils.isBlank(svcMasterTenant)) svcMasterTenant = SYSTEMS_DEFAULT_MASTER_TENANT;
+    // Get service admin tenant
+    String svcAdminTenant = TenantManager.getInstance().getSiteAdminTenantId(siteId);
+    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
     // Create user for SK client
     // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
     //       that in general this may be the pattern to follow.
-    String svcJwt = serviceContext.getAccessJWT(svcMasterTenant, SERVICE_NAME_SYSTEMS);
+    String svcJwt = serviceContext.getAccessJWT(svcAdminTenant, SERVICE_NAME_SYSTEMS);
     AuthenticatedUser svcUser =
-        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcMasterTenant, TapisThreadContext.AccountType.service.name(),
-                              null, SERVICE_NAME_SYSTEMS, svcMasterTenant, null, siteId, svcJwt);
+        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
+                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
     // Use SK client to check for admin role and create it if necessary
     var skClient = getSKClient(svcUser);
     // Check for admin role, continue if error getting role.
@@ -631,7 +631,7 @@ public class SystemsServiceImpl implements SystemsService
     SkRole adminRole = null;
     try
     {
-      adminRole = skClient.getRoleByName(svcMasterTenant, SYSTEMS_ADMIN_ROLE);
+      adminRole = skClient.getRoleByName(svcAdminTenant, SYSTEMS_ADMIN_ROLE);
     }
     catch (TapisClientException e)
     {
@@ -645,7 +645,7 @@ public class SystemsServiceImpl implements SystemsService
     if (adminRole == null)
     {
       _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
-      skClient.createRole(svcMasterTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
+      skClient.createRole(svcAdminTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
       _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
     }
     else

@@ -159,7 +159,7 @@ NOTE: Here is one way that works fairly well for 7 and 8:
          Then to build and install locally: cd tapis-client-java; mvn clean install
          Start tapis-java systems service from IDE Run SystemsClientTest
            and run SystemsClientTest using env var TAPIS_SVC_URL_SYSTEMS=http://localhost:8080
-9. Push tapis-client-java to master branch.
+9. Push tapis-client-java to main branch.
 10. Updates should be reflected in live-docs (https://tapis-project.github.io/live-docs/)
       within a few minutes.
 

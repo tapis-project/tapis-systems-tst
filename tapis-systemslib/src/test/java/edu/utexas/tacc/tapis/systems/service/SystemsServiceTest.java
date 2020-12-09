@@ -63,7 +63,7 @@ public class SystemsServiceTest
   private static final String siteId = "tacc";
   // TODO: Currently admin user for a tenant is hard coded to be 'testuser9'
   private static final String adminUser9 = "testuser9";
-  private static final String masterTenantName = "master";
+  private static final String adminTenantName = "admin";
   private static final String filesSvcName = "files";
   private static final String testUser2 = "testuser2";
   private static final String testUser3 = "testuser3";
@@ -126,7 +126,7 @@ public class SystemsServiceTest
     authenticatedTestUser2 = new AuthenticatedUser(testUser2, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser2, tenantName, null, null, null);
     authenticatedTestUser3 = new AuthenticatedUser(testUser3, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser3, tenantName, null, null, null);
     authenticatedTestUser4 = new AuthenticatedUser(testUser4, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser4, tenantName, null, null, null);
-    authenticatedFilesSvc = new AuthenticatedUser(filesSvcName, masterTenantName, TapisThreadContext.AccountType.service.name(), null, ownerUser1, tenantName, null, null, null);
+    authenticatedFilesSvc = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(), null, ownerUser1, tenantName, null, null, null);
 
     // Cleanup anything leftover from previous failed run
     tearDown();
