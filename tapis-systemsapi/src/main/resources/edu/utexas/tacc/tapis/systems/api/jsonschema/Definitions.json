@@ -11,6 +11,14 @@
   "SystemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "TransferMethodEnum": { "type": "string", "enum": ["SFTP","S3"] },
   "AuthnMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
+  "KeyValueString": {
+    "type": "object",
+    "required": [ "key" ],
+    "properties": {
+      "key": { "type": "string", "minLength": 1 },
+      "value": { "type": "string" }
+    }
+  },
   "LogicalQueue": {
     "type": "object",
     "required": [ "name" ],
@@ -22,6 +30,14 @@
       "maxCoresPerNode": { "type": "integer" },
       "maxMemoryMB": { "type": "integer" },
       "maxMinutes": { "type": "integer" }
+    }
+  },
+  "JobRuntime": {
+    "type": "object",
+    "required": [ "runtimeType" ],
+    "properties": {
+      "runtimeType": { "type": "string", "enum": ["DOCKER","SINGULARTIY"] },
+      "version": { "type": "string" },
     }
   },
   "CapabilityCategoryEnum": { "type": "string", "enum": ["SCHEDULER", "OS", "HARDWARE", "SOFTWARE", "JOB", "CONTAINER", "MISC", "CUSTOM"] },

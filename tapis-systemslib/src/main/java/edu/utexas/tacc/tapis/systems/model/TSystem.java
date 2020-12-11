@@ -45,13 +45,14 @@ public final class TSystem
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
+//  public static final String[] DEFAULT_JOBENV_VARIABLES = Collections.emptyList();
   public static final String[] DEFAULT_JOBENV_VARIABLES = new String[0];
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
   public static final String DEFAULT_TAGS_STR = "{}";
   public static final String[] DEFAULT_TAGS = new String[0];
   public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
   public static final String EMPTY_TRANSFER_METHODS_STR = "{}";
-  public static final String[] EMPTY_TRANSFER_METHODS_STR_ARRAY = {};
+  public static final String[] EMPTY_STR_ARRAY = {};
   public static final String DEFAULT_TRANSFER_METHODS_STR = EMPTY_TRANSFER_METHODS_STR;
   public static final int DEFAULT_PORT = -1;
   public static final boolean DEFAULT_USEPROXY = false;
@@ -97,7 +98,9 @@ public final class TSystem
   private String dtnMountPoint;
   private String dtnSubDir;
   private boolean canExec; // Indicates if system will be used to execute jobs
+  private List<JobRuntime> jobRuntimes;
   private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
+//  private String[] jobEnvVariables;
   private String[] jobEnvVariables;
   private int jobMaxJobs;
   private int jobMaxJobsPerUser;
@@ -194,7 +197,7 @@ public final class TSystem
     dtnSubDir = dtnSubDir1;
     canExec = canExec1;
     jobWorkingDir = jobWorkingDir1;
-    jobEnvVariables = (jobEnvVariables1 == null) ? null : jobEnvVariables1.clone();
+//    jobEnvVariables = (jobEnvVariables1 == null) ? null : new ArrayList<>(jobEnvVariables1);
     jobMaxJobs = jobMaxJobs1;
     jobMaxJobsPerUser = jobMaxJobsPerUser1;
     jobIsBatch = jobIsBatch1;
@@ -239,8 +242,9 @@ public final class TSystem
     dtnMountPoint = t.getDtnMountPoint();
     dtnSubDir = t.dtnSubDir;
     canExec = t.getCanExec();
+    jobRuntimes = (t.getJobRuntimes() == null) ? null :  new ArrayList<>(t.getJobRuntimes());
     jobWorkingDir = t.getJobWorkingDir();
-    jobEnvVariables = (t.getJobEnvVariables() == null) ? null : t.getJobEnvVariables().clone();
+//    jobEnvVariables = (t.getJobEnvVariables() == null) ? null : new ArrayList<>(t.getJobEnvVariables());
     jobMaxJobs = t.getJobMaxJobs();
     jobMaxJobsPerUser = t.getJobMaxJobsPerUser();
     jobIsBatch = t.getJobIsBatch();
@@ -262,7 +266,6 @@ public final class TSystem
     if (system==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     if (StringUtils.isBlank(system.getOwner())) system.setOwner(DEFAULT_OWNER);
     if (StringUtils.isBlank(system.getEffectiveUserId())) system.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
-    if (system.getJobEnvVariables() == null) system.setJobEnvVariables(DEFAULT_JOBENV_VARIABLES);
     if (system.getTags() == null) system.setTags(DEFAULT_TAGS);
     if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
     if (system.getTransferMethods() == null) system.setTransferMethods(DEFAULT_TRANSFER_METHODS);
@@ -347,14 +350,24 @@ public final class TSystem
 
   public boolean getCanExec() { return canExec; }
 
+  public List<JobRuntime> getJobRuntimes() {
+    return (jobRuntimes == null) ? null : new ArrayList<>(jobRuntimes);
+  }
+  public TSystem setJobRuntimes(List<JobRuntime> jrs) {
+    jobRuntimes = (jrs == null) ? null : new ArrayList<>(jrs);
+    return this;
+  }
+
   public String getJobWorkingDir() { return jobWorkingDir; }
   public TSystem setJobWorkingDir(String s) { jobWorkingDir = s; return this; }
 
   public String[] getJobEnvVariables() {
+//    return (jobEnvVariables == null) ? null : new ArrayList<>(jobEnvVariables);
     return (jobEnvVariables == null) ? null : jobEnvVariables.clone();
   }
-  public TSystem setJobEnvVariables(String[] t) {
-    jobEnvVariables = (t == null) ? null : t.clone();
+  public TSystem setJobEnvVariables(String[] jev) {
+//    jobEnvVariables = (jev == null) ? null : new ArrayList<>(jev);
+    jobEnvVariables = (jev == null) ? null : jev.clone();
     return this;
   }
 

@@ -37,8 +37,8 @@ public final class LogicalQueue
   // Logging
   private static final Logger _log = LoggerFactory.getLogger(LogicalQueue.class);
 
-  private final int id;           // Unique database sequence number
-  private final int systemid;
+  private final int seqId;           // Unique database sequence number
+  private final int systemSeqId;
 
   private final String name;   // Name for the logical queue
   private final int maxJobs;
@@ -47,19 +47,15 @@ public final class LogicalQueue
   private final int maxCoresPerNode;
   private final int maxMemoryMB;
   private final int maxMinutes;
-  private final Instant created; // UTC time for when record was created
-  private final Instant updated; // UTC time for when record was last updated
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
   /* ********************************************************************** */
   public LogicalQueue(int id1, int systemid1, String name1, int maxJobs1, int maxJobsPerUser1, int maxNodeCount1,
-                      int maxCoresPerNode1, int maxMemoryMB1, int maxMinutes1, Instant created1, Instant updated1)
+                      int maxCoresPerNode1, int maxMemoryMB1, int maxMinutes1)
   {
-    id = id1;
-    systemid = systemid1;
-    created = created1;
-    updated = updated1;
+    seqId = id1;
+    systemSeqId = systemid1;
     name = name1;
     maxJobs = maxJobs1;
     maxJobsPerUser = maxJobsPerUser1;
@@ -72,10 +68,8 @@ public final class LogicalQueue
   public LogicalQueue(String name1, int maxJobs1, int maxJobsPerUser1, int maxNodeCount1, int maxCoresPerNode1,
                       int maxMemoryMB1, int maxMinutes1)
   {
-    id = -1;
-    systemid = -1;
-    created = null;
-    updated = null;
+    seqId = -1;
+    systemSeqId = -1;
     name = name1;
     maxJobs = maxJobs1;
     maxJobsPerUser = maxJobsPerUser1;
@@ -88,6 +82,8 @@ public final class LogicalQueue
   /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
+  public int getSeqId() { return seqId; }
+  public int getSystemSeqId() { return systemSeqId; }
   public String getName() { return name; }
   public int getMaxJobs() { return maxJobs; }
   public int getMaxJobsPerUser() { return maxJobsPerUser; }

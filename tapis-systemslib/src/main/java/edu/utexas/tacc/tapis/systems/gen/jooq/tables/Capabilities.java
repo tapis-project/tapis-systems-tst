@@ -10,7 +10,6 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.model.Capability.Category;
 import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +18,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row10;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -35,7 +34,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = -955355299;
+    private static final long serialVersionUID = -1813873587;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -89,16 +88,6 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
      * The column <code>tapis_sys.capabilities.value</code>. Value for the capability
      */
     public final TableField<CapabilitiesRecord, String> VALUE = createField(DSL.name("value"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Value for the capability");
-
-    /**
-     * The column <code>tapis_sys.capabilities.created</code>. UTC time for when record was created
-     */
-    public final TableField<CapabilitiesRecord, LocalDateTime> CREATED = createField(DSL.name("created"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("timezone('utc'::text, now())", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "UTC time for when record was created");
-
-    /**
-     * The column <code>tapis_sys.capabilities.updated</code>. UTC time for when record was last updated
-     */
-    public final TableField<CapabilitiesRecord, LocalDateTime> UPDATED = createField(DSL.name("updated"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("timezone('utc'::text, now())", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "UTC time for when record was last updated");
 
     /**
      * Create a <code>tapis_sys.capabilities</code> table reference
@@ -189,11 +178,11 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<Integer, Integer, Category, String, String, Datatype, Integer, String, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row8<Integer, Integer, Category, String, String, Datatype, Integer, String> fieldsRow() {
+        return (Row8) super.fieldsRow();
     }
 }

@@ -17,9 +17,6 @@ import java.time.Instant;
  *
  * Tenant + system + category + subcategory + name must be unique.
  *
- * NOTE: In the database a capability also includes tenant, system_id, created and updated.
- *       Currently tenant and system_id should be known in the context in which this class is used
- *         and the created, updated timestamps are not being used.
  */
 public final class Capability
 {
@@ -37,7 +34,7 @@ public final class Capability
   /*                                 Fields                                 */
   /* ********************************************************************** */
   private final int seqId;           // Unique database sequence number
-  private final int systemId;
+  private final int systemSeqId;
 
   private final Category category; // Type or category of capability
   private final String subcategory;   // Name of the capability
@@ -46,20 +43,15 @@ public final class Capability
   private final int precedence;  // Precedence. Higher number has higher precedence.
   private final String value;  // Value or range of values
 
-  private final Instant created; // UTC time for when record was created
-  private final Instant updated; // UTC time for when record was last updated
-
   /* ********************************************************************** */
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Constructor initializing all fields.
   public Capability(int id1, int systemid1, Category category1, String subcategory1, String name1,
-                    Datatype datatype1, int precedence1, String value1, Instant created1, Instant updated1)
+                    Datatype datatype1, int precedence1, String value1)
   {
     seqId = id1;
-    systemId = systemid1;
-    created = created1;
-    updated = updated1;
+    systemSeqId = systemid1;
     category = category1;
     subcategory = subcategory1;
     name = name1;
@@ -72,9 +64,7 @@ public final class Capability
   public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
   {
     seqId = -1;
-    systemId = -1;
-    created = null;
-    updated = null;
+    systemSeqId = -1;
     category = category1;
     subcategory = subcategory1;
     name = name1;
@@ -87,9 +77,7 @@ public final class Capability
   /*                               Accessors                                */
   /* ********************************************************************** */
   public int getSeqId() { return seqId; }
-  public int getSystemId() { return systemId; }
-  public Instant getCreated() { return created; }
-  public Instant getUpdated() { return updated; }
+  public int getSystemSeqId() { return systemSeqId; }
   public Category getCategory() { return category; }
   public String getSubCategory() { return subcategory; }
   public String getName() { return name; }

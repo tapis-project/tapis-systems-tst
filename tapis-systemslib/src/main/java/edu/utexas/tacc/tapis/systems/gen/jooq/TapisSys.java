@@ -6,6 +6,7 @@ package edu.utexas.tacc.tapis.systems.gen.jooq;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Capabilities;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.FlywaySchemaHistory;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.JobRuntimes;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.LogicalQueues;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.SystemUpdates;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Systems;
@@ -25,7 +26,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TapisSys extends SchemaImpl {
 
-    private static final long serialVersionUID = 1599477736;
+    private static final long serialVersionUID = -855341256;
 
     /**
      * The reference instance of <code>tapis_sys</code>
@@ -41,6 +42,11 @@ public class TapisSys extends SchemaImpl {
      * The table <code>tapis_sys.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
+     * The table <code>tapis_sys.job_runtimes</code>.
+     */
+    public final JobRuntimes JOB_RUNTIMES = JobRuntimes.JOB_RUNTIMES;
 
     /**
      * The table <code>tapis_sys.logical_queues</code>.
@@ -75,6 +81,8 @@ public class TapisSys extends SchemaImpl {
         return Arrays.<Sequence<?>>asList(
             Sequences.CAPABILITIES_SEQ_ID_SEQ,
             Sequences.CAPABILITIES_SYSTEM_SEQ_ID_SEQ,
+            Sequences.JOB_RUNTIMES_SEQ_ID_SEQ,
+            Sequences.JOB_RUNTIMES_SYSTEM_SEQ_ID_SEQ,
             Sequences.LOGICAL_QUEUES_SEQ_ID_SEQ,
             Sequences.LOGICAL_QUEUES_SYSTEM_SEQ_ID_SEQ,
             Sequences.SYSTEM_UPDATES_SEQ_ID_SEQ,
@@ -87,6 +95,7 @@ public class TapisSys extends SchemaImpl {
         return Arrays.<Table<?>>asList(
             Capabilities.CAPABILITIES,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
+            JobRuntimes.JOB_RUNTIMES,
             LogicalQueues.LOGICAL_QUEUES,
             SystemUpdates.SYSTEM_UPDATES,
             Systems.SYSTEMS);

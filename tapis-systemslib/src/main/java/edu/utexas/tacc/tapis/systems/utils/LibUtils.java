@@ -3,6 +3,7 @@ package edu.utexas.tacc.tapis.systems.utils;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
+import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import org.slf4j.Logger;
@@ -137,11 +138,20 @@ public class LibUtils
   }
 
   /**
+   * Return String[] array of jobEnvVariables
+   */
+  public static String[] getJobEnvVariablesAsStringArray(List<KeyValueString> jobEnvVariables)
+  {
+    if (jobEnvVariables == null || jobEnvVariables.size() == 0) return TSystem.EMPTY_STR_ARRAY;
+    return jobEnvVariables.stream().map(KeyValueString::toString).toArray(String[]::new);
+  }
+
+  /**
    * Return String[] array of transfer methods
    */
   public static String[] getTransferMethodsAsStringArray(List<TransferMethod> txfrMethods)
   {
-    if (txfrMethods == null || txfrMethods.size() == 0) return TSystem.EMPTY_TRANSFER_METHODS_STR_ARRAY;
+    if (txfrMethods == null || txfrMethods.size() == 0) return TSystem.EMPTY_STR_ARRAY;
     return txfrMethods.stream().map(TransferMethod::name).toArray(String[]::new);
   }
 

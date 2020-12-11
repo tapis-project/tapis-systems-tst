@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
@@ -35,6 +36,10 @@ public final class IntegrationUtils
   public static final String jobWorkingDir = null;
   public static final String batchScheduler = null;
   public static final String batchDefaultLogicalQueue = null;
+  public static final KeyValueString kv1 = new KeyValueString("a","b");
+  public static final KeyValueString kv2 = new KeyValueString("HOME","/home/testuser2");
+  public static final KeyValueString kv3 = new KeyValueString("TMP","/tmp");
+//  public static final List<KeyValueString> jobEnvVariables = new ArrayList<>(List.of(kv1,kv2,kv3));
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
   public static final boolean jobIsBatch = true;
   public static final int jobMaxJobs = -1;

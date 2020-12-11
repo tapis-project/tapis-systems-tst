@@ -6,11 +6,13 @@ package edu.utexas.tacc.tapis.systems.gen.jooq;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Capabilities;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.FlywaySchemaHistory;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.JobRuntimes;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.LogicalQueues;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.SystemUpdates;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Systems;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.FlywaySchemaHistoryRecord;
+import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.JobRuntimesRecord;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.LogicalQueuesRecord;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemUpdatesRecord;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
@@ -34,6 +36,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final Identity<CapabilitiesRecord, Integer> IDENTITY_CAPABILITIES = Identities0.IDENTITY_CAPABILITIES;
+    public static final Identity<JobRuntimesRecord, Integer> IDENTITY_JOB_RUNTIMES = Identities0.IDENTITY_JOB_RUNTIMES;
     public static final Identity<LogicalQueuesRecord, Integer> IDENTITY_LOGICAL_QUEUES = Identities0.IDENTITY_LOGICAL_QUEUES;
     public static final Identity<SystemUpdatesRecord, Integer> IDENTITY_SYSTEM_UPDATES = Identities0.IDENTITY_SYSTEM_UPDATES;
     public static final Identity<SystemsRecord, Integer> IDENTITY_SYSTEMS = Identities0.IDENTITY_SYSTEMS;
@@ -45,6 +48,7 @@ public class Keys {
     public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = UniqueKeys0.CAPABILITIES_PKEY;
     public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY = UniqueKeys0.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY;
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = UniqueKeys0.FLYWAY_SCHEMA_HISTORY_PK;
+    public static final UniqueKey<JobRuntimesRecord> JOB_RUNTIMES_PKEY = UniqueKeys0.JOB_RUNTIMES_PKEY;
     public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_PKEY = UniqueKeys0.LOGICAL_QUEUES_PKEY;
     public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_SYSTEM_SEQ_ID_NAME_KEY = UniqueKeys0.LOGICAL_QUEUES_SYSTEM_SEQ_ID_NAME_KEY;
     public static final UniqueKey<SystemUpdatesRecord> SYSTEM_UPDATES_PKEY = UniqueKeys0.SYSTEM_UPDATES_PKEY;
@@ -56,6 +60,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final ForeignKey<CapabilitiesRecord, SystemsRecord> CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY = ForeignKeys0.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY;
+    public static final ForeignKey<JobRuntimesRecord, SystemsRecord> JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY = ForeignKeys0.JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY;
     public static final ForeignKey<LogicalQueuesRecord, SystemsRecord> LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY = ForeignKeys0.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY;
     public static final ForeignKey<SystemUpdatesRecord, SystemsRecord> SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY = ForeignKeys0.SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY;
 
@@ -65,6 +70,7 @@ public class Keys {
 
     private static class Identities0 {
         public static Identity<CapabilitiesRecord, Integer> IDENTITY_CAPABILITIES = Internal.createIdentity(Capabilities.CAPABILITIES, Capabilities.CAPABILITIES.SEQ_ID);
+        public static Identity<JobRuntimesRecord, Integer> IDENTITY_JOB_RUNTIMES = Internal.createIdentity(JobRuntimes.JOB_RUNTIMES, JobRuntimes.JOB_RUNTIMES.SEQ_ID);
         public static Identity<LogicalQueuesRecord, Integer> IDENTITY_LOGICAL_QUEUES = Internal.createIdentity(LogicalQueues.LOGICAL_QUEUES, LogicalQueues.LOGICAL_QUEUES.SEQ_ID);
         public static Identity<SystemUpdatesRecord, Integer> IDENTITY_SYSTEM_UPDATES = Internal.createIdentity(SystemUpdates.SYSTEM_UPDATES, SystemUpdates.SYSTEM_UPDATES.SEQ_ID);
         public static Identity<SystemsRecord, Integer> IDENTITY_SYSTEMS = Internal.createIdentity(Systems.SYSTEMS, Systems.SYSTEMS.SEQ_ID);
@@ -74,6 +80,7 @@ public class Keys {
         public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_pkey", new TableField[] { Capabilities.CAPABILITIES.SEQ_ID }, true);
         public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_system_seq_id_category_subcategory_name_key", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_SEQ_ID, Capabilities.CAPABILITIES.CATEGORY, Capabilities.CAPABILITIES.SUBCATEGORY, Capabilities.CAPABILITIES.NAME }, true);
         public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "flyway_schema_history_pk", new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
+        public static final UniqueKey<JobRuntimesRecord> JOB_RUNTIMES_PKEY = Internal.createUniqueKey(JobRuntimes.JOB_RUNTIMES, "job_runtimes_pkey", new TableField[] { JobRuntimes.JOB_RUNTIMES.SEQ_ID }, true);
         public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_PKEY = Internal.createUniqueKey(LogicalQueues.LOGICAL_QUEUES, "logical_queues_pkey", new TableField[] { LogicalQueues.LOGICAL_QUEUES.SEQ_ID }, true);
         public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_SYSTEM_SEQ_ID_NAME_KEY = Internal.createUniqueKey(LogicalQueues.LOGICAL_QUEUES, "logical_queues_system_seq_id_name_key", new TableField[] { LogicalQueues.LOGICAL_QUEUES.SYSTEM_SEQ_ID, LogicalQueues.LOGICAL_QUEUES.NAME }, true);
         public static final UniqueKey<SystemUpdatesRecord> SYSTEM_UPDATES_PKEY = Internal.createUniqueKey(SystemUpdates.SYSTEM_UPDATES, "system_updates_pkey", new TableField[] { SystemUpdates.SYSTEM_UPDATES.SEQ_ID }, true);
@@ -83,6 +90,7 @@ public class Keys {
 
     private static class ForeignKeys0 {
         public static final ForeignKey<CapabilitiesRecord, SystemsRecord> CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY = Internal.createForeignKey(Keys.SYSTEMS_PKEY, Capabilities.CAPABILITIES, "capabilities_system_seq_id_fkey", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_SEQ_ID }, true);
+        public static final ForeignKey<JobRuntimesRecord, SystemsRecord> JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY = Internal.createForeignKey(Keys.SYSTEMS_PKEY, JobRuntimes.JOB_RUNTIMES, "job_runtimes_system_seq_id_fkey", new TableField[] { JobRuntimes.JOB_RUNTIMES.SYSTEM_SEQ_ID }, true);
         public static final ForeignKey<LogicalQueuesRecord, SystemsRecord> LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY = Internal.createForeignKey(Keys.SYSTEMS_PKEY, LogicalQueues.LOGICAL_QUEUES, "logical_queues_system_seq_id_fkey", new TableField[] { LogicalQueues.LOGICAL_QUEUES.SYSTEM_SEQ_ID }, true);
         public static final ForeignKey<SystemUpdatesRecord, SystemsRecord> SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY = Internal.createForeignKey(Keys.SYSTEMS_PKEY, SystemUpdates.SYSTEM_UPDATES, "system_updates_system_seq_id_fkey", new TableField[] { SystemUpdates.SYSTEM_UPDATES.SYSTEM_SEQ_ID }, true);
     }

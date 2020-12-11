@@ -219,6 +219,13 @@
                      Excludes match before includes, i.e. excludes have a higher priority -->
 <!--                  <excludes></excludes>-->
                   <!-- Register custom types -->
+<!--                <customTypes>-->
+<!--                  <customType>-->
+<!--                    <name>KeyValueStringArrayType</name>-->
+<!--                    <type>edu.utexas.tacc.tapis.systems.model.KeyValueString[]</type>-->
+<!--                    <converter>edu.utexas.tacc.tapis.systems.dao.KeyValueStringConverter</converter>-->
+<!--                  </customType>-->
+<!--                </customTypes>-->
 <!--                  <customTypes>-->
 <!--                    <customType>-->
 <!--                      <name>TransferMethodArrayType</name>-->
@@ -269,11 +276,23 @@
                     <includeTypes>.*</includeTypes>
                   </forcedType>
                   <forcedType>
+                    <userType>edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType</userType>
+                    <enumConverter>true</enumConverter>
+                    <includeExpression>job_runtimes\.runtime_type</includeExpression>
+                    <includeTypes>.*</includeTypes>
+                  </forcedType>
+                  <forcedType>
                     <userType>edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod</userType>
                     <enumConverter>true</enumConverter>
                     <includeExpression>systems\.default_authn_method</includeExpression>
                     <includeTypes>.*</includeTypes>
                   </forcedType>
+<!--                  <forcedType>-->
+<!--                    <name>KeyValueStringArrayType</name>-->
+<!--                    <converter>edu.utexas.tacc.tapis.systems.dao.KeyValueStringConverter</converter>-->
+<!--                    <includeExpression>systems\.job_env_variables</includeExpression>-->
+<!--                    <includeTypes>.*</includeTypes>-->
+<!--                  </forcedType>-->
 <!--                  <forcedType>-->
 <!--                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod</userType>-->
 <!--                      <enumConverter>true</enumConverter>-->

@@ -40,6 +40,7 @@ SET search_path TO tapis_sys;
 CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
 CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
                                     'grantPerms', 'revokePerms', 'setCred', 'removeCred');
+CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
 CREATE TYPE authn_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
 CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');
 CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'NUMBER', 'TIMESTAMP');
@@ -165,8 +166,6 @@ CREATE TABLE logical_queues
     max_cores_per_node INTEGER NOT NULL DEFAULT -1,
     max_memory_mb INTEGER NOT NULL DEFAULT -1,
     max_minutes INTEGER NOT NULL DEFAULT -1,
-    created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     UNIQUE (system_seq_id, name)
 );
 ALTER TABLE logical_queues OWNER TO tapis_sys;
@@ -179,8 +178,20 @@ COMMENT ON COLUMN logical_queues.max_node_count IS 'Maximum number of nodes that
 COMMENT ON COLUMN logical_queues.max_cores_per_node IS 'Maximum number of cores per node that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_memory_mb IS 'Maximum memory in megabytes that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_minutes IS 'Maximum run time in minutes that can be requested when submitting a job to the queue.';
-COMMENT ON COLUMN logical_queues.created IS 'UTC time for when record was created';
-COMMENT ON COLUMN logical_queues.updated IS 'UTC time for when record was last updated';
+
+-- ----------------------------------------------------------------------------------------
+--                               JOB RUNTIMES
+-- ----------------------------------------------------------------------------------------
+-- Job runtimes table
+-- Runtimes associated with a system
+CREATE TABLE job_runtimes
+(
+    seq_id SERIAL PRIMARY KEY,
+    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
+    runtime_type job_runtime_type NOT NULL,
+    version VARCHAR(128) NOT NULL DEFAULT ''
+);
+ALTER TABLE job_runtimes OWNER TO tapis_sys;
 
 -- ----------------------------------------------------------------------------------------
 --                               CAPABILITIES
@@ -198,8 +209,6 @@ CREATE TABLE capabilities
     datatype capability_datatype_type NOT NULL,
     precedence INTEGER NOT NULL DEFAULT 100,
     value  VARCHAR(128) NOT NULL DEFAULT '',
-    created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     UNIQUE (system_seq_id, category, subcategory, name)
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;
@@ -211,8 +220,6 @@ COMMENT ON COLUMN capabilities.name IS 'Name of capability';
 COMMENT ON COLUMN capabilities.datatype IS 'Datatype associated with the value';
 COMMENT ON COLUMN capabilities.precedence IS 'Precedence where higher number has higher precedence';
 COMMENT ON COLUMN capabilities.value IS 'Value for the capability';
-COMMENT ON COLUMN capabilities.created IS 'UTC time for when record was created';
-COMMENT ON COLUMN capabilities.updated IS 'UTC time for when record was last updated';
 
 -- ******************************************************************************
 --                         PROCEDURES and TRIGGERS
@@ -229,9 +236,3 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER system_updated
   BEFORE UPDATE ON systems
   EXECUTE PROCEDURE trigger_set_updated();
-CREATE TRIGGER logical_queues_updated
-    BEFORE UPDATE ON logical_queues
-    EXECUTE PROCEDURE trigger_set_updated();
-CREATE TRIGGER capability_updated
-    BEFORE UPDATE ON capabilities
-    EXECUTE PROCEDURE trigger_set_updated();

@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -81,9 +82,25 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Convert transferMethods into array of strings
     String[] transferMethodsStrArray = LibUtils.getTransferMethodsAsStringArray(system.getTransferMethods());
 
+    // Convert jobEnvVariables into array of strings
+//    List<KeyValueString> jobEnvVariables = TSystem.DEFAULT_JOBENV_VARIABLES;
+//    if (system.getJobEnvVariables() != null) jobEnvVariables = system.getJobEnvVariables();
+//    String[] jobEnvVariablesStrArray = LibUtils.getJobEnvVariablesAsStringArray(jobEnvVariables);
+    String[] jobEnvVariablesStrArray = TSystem.DEFAULT_JOBENV_VARIABLES;
+
     // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
     String proxyHost = TSystem.DEFAULT_PROXYHOST;
     if (system.getProxyHost() != null) proxyHost = system.getProxyHost();
+
+    // Make sure owner, effectiveUserId, notes and tags are all set
+    String owner = TSystem.DEFAULT_OWNER;
+    if (StringUtils.isNotBlank(system.getOwner())) owner = system.getOwner();
+    String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
+    if (StringUtils.isNotBlank(system.getEffectiveUserId())) effectiveUserId = system.getEffectiveUserId();
+    String[] tagsStrArray = TSystem.DEFAULT_TAGS;
+    if (system.getTags() != null) tagsStrArray = system.getTags();
+    JsonObject notesObj = TSystem.DEFAULT_NOTES;
+    if (system.getNotes() != null) notesObj = (JsonObject) system.getNotes();
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -96,18 +113,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Check to see if system exists or has been soft deleted. If yes then throw IllegalStateException
       boolean doesExist = checkForSystem(db, system.getTenant(), system.getId(), true);
       if (doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", authenticatedUser, system.getId()));
-
-      // Make sure owner, effectiveUserId, notes and tags are all set
-      String owner = TSystem.DEFAULT_OWNER;
-      if (StringUtils.isNotBlank(system.getOwner())) owner = system.getOwner();
-      String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
-      if (StringUtils.isNotBlank(system.getEffectiveUserId())) effectiveUserId = system.getEffectiveUserId();
-      String[] tagsStrArray = TSystem.DEFAULT_TAGS;
-      if (system.getTags() != null) tagsStrArray = system.getTags();
-      String[] jobEnvVariablesStrArray = TSystem.DEFAULT_JOBENV_VARIABLES;
-      if (system.getJobEnvVariables() != null) jobEnvVariablesStrArray = system.getJobEnvVariables();
-      JsonObject notesObj = TSystem.DEFAULT_NOTES;
-      if (system.getNotes() != null) notesObj = (JsonObject) system.getNotes();
 
       Record record = db.insertInto(SYSTEMS)
               .set(SYSTEMS.TENANT, system.getTenant())
@@ -128,6 +133,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.PROXY_PORT, system.getProxyPort())
               .set(SYSTEMS.CAN_EXEC, system.getCanExec())
               .set(SYSTEMS.JOB_WORKING_DIR, system.getJobWorkingDir())
+//              .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariables)
               .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariablesStrArray)
               .set(SYSTEMS.JOB_MAX_JOBS, system.getJobMaxJobs())
               .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, system.getJobMaxJobsPerUser())

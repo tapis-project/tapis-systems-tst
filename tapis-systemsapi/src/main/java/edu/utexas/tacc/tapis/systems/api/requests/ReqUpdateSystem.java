@@ -1,6 +1,7 @@
 package edu.utexas.tacc.tapis.systems.api.requests;
 
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
@@ -29,7 +30,7 @@ public final class ReqUpdateSystem
   public String dtnMountPoint;
   public String dtnSubDir;
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
-  public String[] jobEnvVariables;
+  public List<KeyValueString> jobEnvVariables;
   public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
   public int jobMaxJobsPerUser = DEFAULT_JOBMAXJOBSPERUSER;
   public boolean jobIsBatch;

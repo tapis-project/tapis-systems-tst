@@ -8,7 +8,6 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.LogicalQueuesRecord;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row11;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -33,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = -1630139163;
+    private static final long serialVersionUID = -928377969;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -92,16 +91,6 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
      * The column <code>tapis_sys.logical_queues.max_minutes</code>. Maximum run time in minutes that can be requested when submitting a job to the queue.
      */
     public final TableField<LogicalQueuesRecord, Integer> MAX_MINUTES = createField(DSL.name("max_minutes"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum run time in minutes that can be requested when submitting a job to the queue.");
-
-    /**
-     * The column <code>tapis_sys.logical_queues.created</code>. UTC time for when record was created
-     */
-    public final TableField<LogicalQueuesRecord, LocalDateTime> CREATED = createField(DSL.name("created"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("timezone('utc'::text, now())", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "UTC time for when record was created");
-
-    /**
-     * The column <code>tapis_sys.logical_queues.updated</code>. UTC time for when record was last updated
-     */
-    public final TableField<LogicalQueuesRecord, LocalDateTime> UPDATED = createField(DSL.name("updated"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("timezone('utc'::text, now())", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "UTC time for when record was last updated");
 
     /**
      * Create a <code>tapis_sys.logical_queues</code> table reference
@@ -192,11 +181,11 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row11 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row11<Integer, Integer, String, Integer, Integer, Integer, Integer, Integer, Integer, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row11) super.fieldsRow();
+    public Row9<Integer, Integer, String, Integer, Integer, Integer, Integer, Integer, Integer> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 }
