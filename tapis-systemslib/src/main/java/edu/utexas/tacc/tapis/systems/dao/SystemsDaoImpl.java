@@ -8,7 +8,6 @@ import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -794,8 +793,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     //       as a first pass we can simply iterate through all systems to find matches.
     //       For performance might need to later do matching with DB queries.
 
-    // Get all desired capabilities (category, subcategory, name) from AST
-    // TODO: Need changes to support subcategory?
+    // Get all desired capabilities (category, name) from AST
     List<Capability> capabilitiesInAST = new ArrayList<>();
     getCapabilitiesFromAST(matchAST, capabilitiesInAST);
 
@@ -1293,15 +1291,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (jobCapabilities == null || jobCapabilities.isEmpty()) return;
 
     for (Capability cap : jobCapabilities) {
-      String subcategory = Capability.DEFAULT_SUBCATEGORY;
       int precedence = Capability.DEFAULT_PRECEDENCE;
       String valStr = Capability.DEFAULT_VALUE;
-      if (!StringUtils.isBlank(cap.getSubCategory())) subcategory = cap.getSubCategory();
       if (cap.getPrecedence() > 0) precedence = cap.getPrecedence();
       if (cap.getValue() != null ) valStr = cap.getValue();
       db.insertInto(CAPABILITIES).set(CAPABILITIES.SYSTEM_SEQ_ID, seqId)
               .set(CAPABILITIES.CATEGORY, cap.getCategory())
-              .set(CAPABILITIES.SUBCATEGORY, subcategory)
               .set(CAPABILITIES.NAME, cap.getName())
               .set(CAPABILITIES.DATATYPE, cap.getDatatype())
               .set(CAPABILITIES.PRECEDENCE, precedence)
@@ -1641,8 +1636,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     if (astNode == null || astNode instanceof ASTLeaf)
     {
-      // A leaf node is "category$subcategory$name" or value. Nothing to process since we only process a complete condition
-      //   having the form category$subcategory$name op value. We should never make it to here
+      // A leaf node is "category$name" or value. Nothing to process since we only process a complete condition
+      //   having the form category$name op value. We should never make it to here
       String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST1", (astNode == null ? "null" : astNode.toString()));
       throw new TapisException(msg);
     }
@@ -1705,7 +1700,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       // End of recursion. Extract the capability and return
       // Since operator is not an AND or an OR we should have 2 unary nodes or a unary and leaf node
-      // lValue should be in the form category-subcategory-name or category$name
+      // lValue should be in the form category-name or category$name
       // rValue should be the Capability value.
       String lValue;
       String rValue;
@@ -1731,9 +1726,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
   /**
    * Construct a Capability based on lValue, rValue from a binary ASTNode containing a constraint matching condition
-   * Validate and extract capability attributes: category, subcategory, name and value.
-   *   lValue must be in the form category$name or category$subcategory$name
-   * @param lValue - left string value from the condition in the form category-subcategory-name or category-name
+   * Validate and extract capability attributes: category, name and value.
+   *   lValue must be in the form category$name or category$name
+   * @param lValue - left string value from the condition in the form category-name or category-name
    * @param rValue - right string value from the condition
    * @return - capability
    * @throws TapisException on error
@@ -1748,9 +1743,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       throw new TapisException(msg);
     }
     // Validate and extract components from lValue
-    // Parse lValue into category, subcategory and name
+    // Parse lValue into category, and name
     // Format must be column_name.op.value
-    String[] parsedStrArray = lValue.split("\\$", 3);
+    String[] parsedStrArray = lValue.split("\\$", 2);
     // Must have at least two items
     if (parsedStrArray.length < 2)
     {
@@ -1765,30 +1760,19 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
       throw new TapisException(msg);
     }
-    // If 2 items then we have category$name, else we have category$subcategory$name
-    String subcategory = null;
-    String name = null;
-    if (parsedStrArray.length == 2)
-    {
-      name = parsedStrArray[1];
-    }
-    else
-    {
-      subcategory = parsedStrArray[1];
-      name = parsedStrArray[2];
-    }
+    String name = parsedStrArray[1];
     Capability.Datatype datatype = null;
     int precedence = -1;
-    Capability cap = new Capability(category, subcategory, name, datatype, precedence, rValue);
+    Capability cap = new Capability(category, name, datatype, precedence, rValue);
     return cap;
   }
 
   /**
    * Given an sql connection, a tenant, a list of Category names and a list of system IDs to consider,
-   *   fetch all systems that have a Capability matching a category, subcategory, name.
+   *   fetch all systems that have a Capability matching a category, name.
    * @param db - jooq context
    * @param tenant - name of tenant
-   * @param capabilityList - list of Capabilities from AST (category, subcategory, name)
+   * @param capabilityList - list of Capabilities from AST (category, name)
    * @param allowedSeqIDs - list of system IDs to consider.
    * @return - true if system exists, else false
    */
@@ -1802,7 +1786,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
 
     Field catCol = CAPABILITIES.CATEGORY;
-    Field subcatCol = CAPABILITIES.SUBCATEGORY;
     Field nameCol = CAPABILITIES.NAME;
 
     // For each capability add a condition joined by OR
@@ -1810,7 +1793,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     for (Capability cap : capabilityList)
     {
       Condition newCondition2 = catCol.eq(cap.getCategory().name());
-      newCondition2 = newCondition2.and(subcatCol.eq(cap.getSubCategory()));
       newCondition2 = newCondition2.and(nameCol.eq(cap.getName()));
       if (newCondition1 == null) newCondition1 = newCondition2;
       else newCondition1 = newCondition1.or(newCondition2);
@@ -1819,16 +1801,16 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     // TODO: Work out raw SQL, copy it here and translate it into jOOQ.
     /*
-     * --  select S.id,S.name as s_name, C.id as c_id, C.category,C.subcategory,C.name,C.value from systems as S
+     * --  select S.id,S.name as s_name, C.id as c_id, C.category,C.name,C.value from systems as S
      * select S.* from systems as S
      *   join capabilities as C on (S.id = C.system_id)
-     *   where c.category = 'SCHEDULER' and c.subcategory = 'test1' and c.name = 'Type'
+     *   where c.category = 'SCHEDULER' and c.name = 'Type'
      *   and S.id in (222, 230, 245);
      *
      * select S.* from systems as S
      *   inner join capabilities as C on (S.id = C.system_id)
-     *   where (c.category = 'SCHEDULER' and c.subcategory = 'test1' and c.name = 'Type') OR
-     *   (c.category = 'SCHEDULER' and c.subcategory = 'test2' and c.name = 'Type')
+     *   where (c.category = 'SCHEDULER' and c.name = 'Type') OR
+     *   (c.category = 'SCHEDULER' and c.name = 'Type')
      *   AND S.id in (222, 230, 245);
      */
 

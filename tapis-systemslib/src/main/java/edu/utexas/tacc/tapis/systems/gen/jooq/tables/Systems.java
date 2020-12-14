@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 298547547;
+    private static final long serialVersionUID = -425795994;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -264,7 +264,7 @@ public class Systems extends TableImpl<SystemsRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SYS_HOST_IDX, Indexes.SYS_OWNER_IDX, Indexes.SYS_TENANT_NAME_IDX);
+        return Arrays.<Index>asList(Indexes.SYS_HOST_IDX, Indexes.SYS_OWNER_IDX, Indexes.SYS_TAGS_IDX, Indexes.SYS_TENANT_NAME_IDX);
     }
 
     @Override

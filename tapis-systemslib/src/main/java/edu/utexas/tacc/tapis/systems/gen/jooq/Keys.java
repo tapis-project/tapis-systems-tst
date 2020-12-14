@@ -46,7 +46,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = UniqueKeys0.CAPABILITIES_PKEY;
-    public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY = UniqueKeys0.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY;
+    public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_NAME_KEY = UniqueKeys0.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_NAME_KEY;
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = UniqueKeys0.FLYWAY_SCHEMA_HISTORY_PK;
     public static final UniqueKey<JobRuntimesRecord> JOB_RUNTIMES_PKEY = UniqueKeys0.JOB_RUNTIMES_PKEY;
     public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_PKEY = UniqueKeys0.LOGICAL_QUEUES_PKEY;
@@ -78,7 +78,7 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_PKEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_pkey", new TableField[] { Capabilities.CAPABILITIES.SEQ_ID }, true);
-        public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_system_seq_id_category_subcategory_name_key", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_SEQ_ID, Capabilities.CAPABILITIES.CATEGORY, Capabilities.CAPABILITIES.SUBCATEGORY, Capabilities.CAPABILITIES.NAME }, true);
+        public static final UniqueKey<CapabilitiesRecord> CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_NAME_KEY = Internal.createUniqueKey(Capabilities.CAPABILITIES, "capabilities_system_seq_id_category_name_key", new TableField[] { Capabilities.CAPABILITIES.SYSTEM_SEQ_ID, Capabilities.CAPABILITIES.CATEGORY, Capabilities.CAPABILITIES.NAME }, true);
         public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "flyway_schema_history_pk", new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
         public static final UniqueKey<JobRuntimesRecord> JOB_RUNTIMES_PKEY = Internal.createUniqueKey(JobRuntimes.JOB_RUNTIMES, "job_runtimes_pkey", new TableField[] { JobRuntimes.JOB_RUNTIMES.SEQ_ID }, true);
         public static final UniqueKey<LogicalQueuesRecord> LOGICAL_QUEUES_PKEY = Internal.createUniqueKey(LogicalQueues.LOGICAL_QUEUES, "logical_queues_pkey", new TableField[] { LogicalQueues.LOGICAL_QUEUES.SEQ_ID }, true);

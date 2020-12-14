@@ -188,26 +188,26 @@ public class SystemResource
     }
 
     // Create a TSystem from the request
-    TSystem system = createTSystemFromRequest(req);
+    TSystem tSystem = createTSystemFromRequest(req);
     // Fill in defaults and check constraints on TSystem attributes
-    resp = validateTSystem(system, authenticatedUser, prettyPrint);
+    resp = validateTSystem(tSystem, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
 
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
-    system.setNotes(notes);
+    tSystem.setNotes(notes);
 
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
-    if (system.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
+    if (tSystem.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
 
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience
-    system.setTenant(authenticatedUser.getTenantId());
-    String systemId = system.getId();
+    tSystem.setTenant(authenticatedUser.getTenantId());
+    String systemId = tSystem.getId();
     try
     {
-      systemsService.createSystem(authenticatedUser, system, scrubbedJson);
+      systemsService.createSystem(authenticatedUser, tSystem, scrubbedJson);
     }
     catch (IllegalStateException e)
     {
@@ -772,10 +772,10 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
 
-    TSystem system;
+    TSystem tSystem;
     try
     {
-      system = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
+      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
     }
     catch (Exception e)
     {
@@ -785,7 +785,7 @@ public class SystemResource
     }
 
     // Resource was not found.
-    if (system == null)
+    if (tSystem == null)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
       _log.warn(msg);
@@ -794,7 +794,7 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the system information.
-    RespSystem resp1 = new RespSystem(system);
+    RespSystem resp1 = new RespSystem(tSystem);
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "System", systemId), resp1);
   }
 
@@ -1199,32 +1199,37 @@ public class SystemResource
 
   /**
    * Create a TSystem from a ReqCreateSystem
+   * TODO add jobRuntimes
    */
   private static TSystem createTSystemFromRequest(ReqCreateSystem req)
   {
-    String[] jobEnvVars = null;
-    var system = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
+    // Convert jobEnvVariables to array of strings
+    String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
+    var tSystem = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir, req.canExec, req.jobWorkingDir,
-                       jobEnvVars, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
+                       jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
-    system.setAuthnCredential(req.authnCredential);
-    system.setBatchLogicalQueues(req.batchLogicalQueues);
-    system.setJobCapabilities(req.jobCapabilities);
-    return system;
+    tSystem.setAuthnCredential(req.authnCredential);
+    tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
+//TODO    tSystem.setJobRuntimes(req.jobRuntimes);
+    tSystem.setJobCapabilities(req.jobCapabilities);
+    return tSystem;
   }
 
   /**
    * Create a PatchSystem from a ReqUpdateSystem
+   * TODO allow for patch of jobRuntimes, others?
    */
   private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId)
   {
-    String[] jobEnvVars = null;
+    // Convert jobEnvVariables to array of strings
+    String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir,
-                           req.jobWorkingDir, jobEnvVars, req.jobMaxJobs, req.jobMaxJobsPerUser,
+                           req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
                            req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
                            req.jobCapabilities, req.tags, req.notes);
     // Update tenant name and system name
@@ -1242,37 +1247,37 @@ public class SystemResource
    *
    * @return null if OK or error Response
    */
-  private static Response validateTSystem(TSystem system, AuthenticatedUser authenticatedUser, boolean prettyPrint)
+  private static Response validateTSystem(TSystem tSystem, AuthenticatedUser authenticatedUser, boolean prettyPrint)
   {
     // Make sure owner, effectiveUserId, transferMethods, notes and tags are all set
-    TSystem system1 = TSystem.checkAndSetDefaults(system);
+    TSystem tSystem1 = TSystem.checkAndSetDefaults(tSystem);
 
-    String effectiveUserId = system1.getEffectiveUserId();
-    String owner  = system1.getOwner();
-    String id = system1.getId();
+    String effectiveUserId = tSystem1.getEffectiveUserId();
+    String owner  = tSystem1.getOwner();
+    String id = tSystem1.getId();
     String msg;
     var errMessages = new ArrayList<String>();
-    if (StringUtils.isBlank(system1.getId()))
+    if (StringUtils.isBlank(tSystem1.getId()))
     {
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", ID_FIELD);
       errMessages.add(msg);
     }
-    if (system1.getSystemType() == null)
+    if (tSystem1.getSystemType() == null)
     {
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", SYSTEM_TYPE_FIELD);
       errMessages.add(msg);
     }
-    if (StringUtils.isBlank(system1.getHost()))
+    if (StringUtils.isBlank(tSystem1.getHost()))
     {
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", HOST_FIELD);
       errMessages.add(msg);
     }
-    if (system1.getDefaultAuthnMethod() == null)
+    if (tSystem1.getDefaultAuthnMethod() == null)
     {
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", DEFAULT_AUTHN_METHOD_FIELD);
       errMessages.add(msg);
     }
-    if (system1.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
+    if (tSystem1.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
             !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
             !effectiveUserId.equals(TSystem.OWNER_VAR) &&
             !StringUtils.isBlank(owner) &&
@@ -1282,14 +1287,14 @@ public class SystemResource
       msg = ApiUtils.getMsg("SYSAPI_INVALID_EFFECTIVEUSERID_INPUT");
       errMessages.add(msg);
     }
-    if (system1.getTransferMethods() != null &&
-            system1.getTransferMethods().contains(TransferMethod.S3) && StringUtils.isBlank(system1.getBucketName()))
+    if (tSystem1.getTransferMethods() != null &&
+            tSystem1.getTransferMethods().contains(TransferMethod.S3) && StringUtils.isBlank(tSystem1.getBucketName()))
     {
       // For S3 support bucketName must be set
       msg = ApiUtils.getMsg("SYSAPI_S3_NOBUCKET_INPUT");
       errMessages.add(msg);
     }
-    if (system1.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
+    if (tSystem1.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
     {
       // If effectiveUserId is dynamic then providing credentials is disallowed
       msg = ApiUtils.getMsg("SYSAPI_CRED_DISALLOWED_INPUT");

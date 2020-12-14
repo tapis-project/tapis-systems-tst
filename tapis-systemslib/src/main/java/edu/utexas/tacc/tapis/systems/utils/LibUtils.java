@@ -3,7 +3,6 @@ package edu.utexas.tacc.tapis.systems.utils;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
-import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import org.slf4j.Logger;
@@ -135,15 +134,6 @@ public class LibUtils
     sb.append(txfrMethods.get(txfrMethods.size()-1).name());
     sb.append("}");
     return sb.toString();
-  }
-
-  /**
-   * Return String[] array of jobEnvVariables
-   */
-  public static String[] getJobEnvVariablesAsStringArray(List<KeyValueString> jobEnvVariables)
-  {
-    if (jobEnvVariables == null || jobEnvVariables.size() == 0) return TSystem.EMPTY_STR_ARRAY;
-    return jobEnvVariables.stream().map(KeyValueString::toString).toArray(String[]::new);
   }
 
   /**

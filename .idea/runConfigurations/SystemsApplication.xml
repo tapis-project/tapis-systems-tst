@@ -3,7 +3,7 @@
     <envs>
       <env name="TAPIS_REQUEST_LOGGING_FILTER_PREFIXES" value="/v3/systems" />
       <env name="TAPIS_TENANT_SVC_BASEURL" value="https://admin.develop.tapis.io" />
-      <env name="TAPIS_SERVICE_PASSWORD" value="lwVkonzPnVgURqS4zge7mA" />
+      <env name="TAPIS_SERVICE_PASSWORD" value="zEaDwYdEtAFVP2TTEph27A" />
       <env name="TAPIS_DB_JDBC_URL" value="jdbc:postgresql://localhost:5432/tapissysdb" />
       <env name="TAPIS_DB_USER" value="tapis_sys" />
       <env name="TAPIS_DB_PASSWORD" value="password" />
@@ -11,7 +11,6 @@
       <env name="LOCAL_TAPIS_DB_JDBC_URL" value="jdbc:postgresql://localhost:5432/tapissysdb" />
       <env name="TAPIS_SITE_ID" value="tacc" />
     </envs>
-    <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
     <option name="MAIN_CLASS_NAME" value="edu.utexas.tacc.tapis.systems.api.SystemsApplication" />
     <module name="tapis-systemsapi" />
     <option name="VM_PARAMETERS" value="-Dp6spy.config.modulelist=" />

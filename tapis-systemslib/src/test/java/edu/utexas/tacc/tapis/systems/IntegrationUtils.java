@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
-import edu.utexas.tacc.tapis.systems.model.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
@@ -36,9 +35,9 @@ public final class IntegrationUtils
   public static final String jobWorkingDir = null;
   public static final String batchScheduler = null;
   public static final String batchDefaultLogicalQueue = null;
-  public static final KeyValueString kv1 = new KeyValueString("a","b");
-  public static final KeyValueString kv2 = new KeyValueString("HOME","/home/testuser2");
-  public static final KeyValueString kv3 = new KeyValueString("TMP","/tmp");
+//  public static final KeyValuePair kv1 = new KeyValuePair("a","b");
+//  public static final KeyValuePair kv2 = new KeyValuePair("HOME","/home/testuser2");
+//  public static final KeyValuePair kv3 = new KeyValuePair("TMP","/tmp");
 //  public static final List<KeyValueString> jobEnvVariables = new ArrayList<>(List.of(kv1,kv2,kv3));
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
   public static final boolean jobIsBatch = true;
@@ -52,9 +51,6 @@ public final class IntegrationUtils
   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
-  private static final String subcategory1 = "test1";
-  private static final String subcategory2 = "test2";
-
   public static final LogicalQueue queueA1 = new LogicalQueue("qA1", 1, 1, 1, 1, 1, 1);
   public static final LogicalQueue queueB1 = new LogicalQueue("qB1", 2, 2, 2, 2, 2, 2);
   public static final LogicalQueue queueC1 = new LogicalQueue("qC1", 3, 3, 3, 3, 3, 3);
@@ -63,22 +59,22 @@ public final class IntegrationUtils
   public static final LogicalQueue queueB2 = new LogicalQueue("qB2", 20, 20, 20, 20,20, 20);
   public static final List<LogicalQueue> queueList2 = new ArrayList<>(List.of(queueA2, queueB2));
 
-  public static final Capability capA = new Capability(Capability.Category.SCHEDULER, subcategory1, "Type",
+  public static final Capability capA = new Capability(Capability.Category.SCHEDULER, "Type",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "Slurm");
-  public static final Capability capB = new Capability(Capability.Category.HARDWARE, subcategory1, "CoresPerNode",
+  public static final Capability capB = new Capability(Capability.Category.HARDWARE, "CoresPerNode",
                                                        Capability.Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "4");
-  public static final Capability capC = new Capability(Capability.Category.SOFTWARE, subcategory1, "OpenMP",
+  public static final Capability capC = new Capability(Capability.Category.SOFTWARE, "OpenMP",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "4.5");
-  public static final Capability capD = new Capability(Capability.Category.CONTAINER, subcategory1, "Singularity",
+  public static final Capability capD = new Capability(Capability.Category.CONTAINER, "Singularity",
                                                        Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList1 = new ArrayList<>(List.of(capA, capB, capC, capD));
-  public static final Capability capA1 = new Capability(Capability.Category.SCHEDULER, subcategory2, "Type",
+  public static final Capability capA1 = new Capability(Capability.Category.SCHEDULER, "Type",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "PBS");
-  public static final Capability capB1 = new Capability(Capability.Category.HARDWARE, subcategory2, "CoresPerNode",
+  public static final Capability capB1 = new Capability(Capability.Category.HARDWARE, "CoresPerNode",
           Capability.Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "8");
-  public static final Capability capC1 = new Capability(Capability.Category.SOFTWARE, subcategory2, "OpenMP",
+  public static final Capability capC1 = new Capability(Capability.Category.SOFTWARE, "MPI",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
-  public static final Capability capD1 = new Capability(Capability.Category.CONTAINER, subcategory2, "Docker",
+  public static final Capability capD1 = new Capability(Capability.Category.CONTAINER, "Docker",
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList2 = new ArrayList<>(List.of(capA1, capB1, capC1, capD1));
 

@@ -19,7 +19,9 @@ public enum SystemTypeType implements EnumType {
 
     LINUX("LINUX"),
 
-    OBJECT_STORE("OBJECT_STORE");
+    OBJECT_STORE("OBJECT_STORE"),
+
+    DTN("DTN");
 
     private final String literal;
 

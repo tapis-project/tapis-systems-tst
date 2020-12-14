@@ -126,12 +126,12 @@ public class MatchConstraintsDaoTest
     //      use ~ instead? No, parser also barfs with ~. check parser details. Looks like $ should work
 // TODO    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler.Type = Slurm"));
 
-    // TODO: Comparison with values not yet implemented, but call does consider category$subcategory$name such
+    // TODO: Comparison with values not yet implemented, but call does consider category$name such
     //       that only systems that might possibly match are returned
-    //       So, for example, for case 1 only half the systems have Scheduler$test1$Type
-    //       and for case 2 all systems have either Scheduler$test1$Type or Scheduler$test2$Type
-    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler$test1$Type = Slurm"));
-    validCaseInputs.put( 2,new CaseData(numSystems, "Scheduler$test1$Type = Slurm OR Scheduler$test2$Type = Slurm"));
+    //       So, for example, for case 1 only half the systems have Scheduler$Type
+    //       and for case 2 all systems have either Scheduler$Type or Scheduler$Type
+    validCaseInputs.put( 1,new CaseData(numSystems/2, "Software$OpenMP = 4.5"));
+    validCaseInputs.put( 2,new CaseData(numSystems, "Software$MPI = 3.1 OR Software$OpenMP = 4.5"));
 //    validCaseInputs.put( 1,new CaseData(numSystems/2, "Scheduler_Type = Slurm"));
 //    validCaseInputs.put( 11,new CaseData(numSystems/2, "Scheduler~Type = Slurm"));
 //    validCaseInputs.put( 12,new CaseData(numSystems/2, "Scheduler~Type = PBS"));

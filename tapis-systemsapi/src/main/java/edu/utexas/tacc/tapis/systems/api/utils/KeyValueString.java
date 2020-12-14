@@ -1,11 +1,12 @@
-package edu.utexas.tacc.tapis.systems.model;
+package edu.utexas.tacc.tapis.systems.api.utils;
 
+import org.jooq.tools.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
  * A simple general purpose key-value pair class to make it easier to process json with the same structure.
- * Used for TSystem.jobEnvVariables
+ * Key may not contain the character "="
  */
 public final class KeyValueString
 {
@@ -40,7 +41,12 @@ public final class KeyValueString
 
   public static KeyValueString fromString(String s)
   {
-    // TODO
-    return new KeyValueString("KVS", "TODO");
+    if (StringUtils.isBlank(s)) return new KeyValueString("","");
+    int e1 = s.indexOf('=');
+    String k = s.substring(0, e1);
+    String v = "";
+    // Everything after "=" is the value
+    if (e1 > 0) v = s.substring(e1+1, s.length()-1);
+    return new KeyValueString(k, v);
   }
 }

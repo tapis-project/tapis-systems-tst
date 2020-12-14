@@ -37,7 +37,7 @@ SET search_path TO tapis_sys;
 -- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA tapis_sys TO tapis_sys;
 
 -- Types
-CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
+CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE', 'DTN');
 CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
                                     'grantPerms', 'revokePerms', 'setCred', 'removeCred');
 CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
@@ -74,7 +74,7 @@ CREATE TABLE systems
   dtn_sub_dir VARCHAR(4096),
   can_exec   BOOLEAN NOT NULL DEFAULT false,
   job_working_dir VARCHAR(4096),
-  job_env_variables TEXT[],
+  job_env_variables TEXT[] NOT NULL,
   job_max_jobs INTEGER NOT NULL DEFAULT -1,
   job_max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
   job_is_batch BOOLEAN NOT NULL DEFAULT false,
@@ -92,6 +92,7 @@ ALTER TABLE systems OWNER TO tapis_sys;
 CREATE INDEX sys_tenant_name_idx ON systems (tenant, id);
 CREATE INDEX sys_host_idx ON systems (host);
 CREATE INDEX sys_owner_idx ON systems (owner);
+CREATE INDEX sys_tags_idx ON systems using GIN(tags);
 COMMENT ON COLUMN systems.seq_id IS 'System sequence id';
 COMMENT ON COLUMN systems.tenant IS 'Tenant name associated with system';
 COMMENT ON COLUMN systems.id IS 'Unique name for the system';
@@ -204,18 +205,16 @@ CREATE TABLE capabilities
     seq_id SERIAL PRIMARY KEY,
     system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
     category capability_category_type NOT NULL,
-    subcategory VARCHAR(128),
     name VARCHAR(128) NOT NULL DEFAULT '',
     datatype capability_datatype_type NOT NULL,
     precedence INTEGER NOT NULL DEFAULT 100,
     value  VARCHAR(128) NOT NULL DEFAULT '',
-    UNIQUE (system_seq_id, category, subcategory, name)
+    UNIQUE (system_seq_id, category, name)
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;
 COMMENT ON COLUMN capabilities.seq_id IS 'Capability sequence id';
 COMMENT ON COLUMN capabilities.system_seq_id IS 'Sequenc id of system supporting the capability';
 COMMENT ON COLUMN capabilities.category IS 'Category for grouping of capabilities';
-COMMENT ON COLUMN capabilities.subcategory IS 'Subcategory for grouping of capabilities';
 COMMENT ON COLUMN capabilities.name IS 'Name of capability';
 COMMENT ON COLUMN capabilities.datatype IS 'Datatype associated with the value';
 COMMENT ON COLUMN capabilities.precedence IS 'Precedence where higher number has higher precedence';

@@ -1,7 +1,7 @@
 package edu.utexas.tacc.tapis.systems.api.requests;
 
 import edu.utexas.tacc.tapis.systems.model.Capability;
-import edu.utexas.tacc.tapis.systems.model.KeyValueString;
+import edu.utexas.tacc.tapis.systems.api.utils.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;

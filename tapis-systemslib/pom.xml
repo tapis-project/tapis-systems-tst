@@ -222,7 +222,7 @@
 <!--                <customTypes>-->
 <!--                  <customType>-->
 <!--                    <name>KeyValueStringArrayType</name>-->
-<!--                    <type>edu.utexas.tacc.tapis.systems.model.KeyValueString[]</type>-->
+<!--                    <type>edu.utexas.tacc.tapis.systems.model.KeyValuePair[]</type>-->
 <!--                    <converter>edu.utexas.tacc.tapis.systems.dao.KeyValueStringConverter</converter>-->
 <!--                  </customType>-->
 <!--                </customTypes>-->

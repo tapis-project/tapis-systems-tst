@@ -15,7 +15,7 @@ import java.time.Instant;
  * This class is intended to represent an immutable object.
  * Please keep it immutable.
  *
- * Tenant + system + category + subcategory + name must be unique.
+ * Tenant + system + category + name must be unique.
  *
  */
 public final class Capability
@@ -27,7 +27,6 @@ public final class Capability
   /*                               Constants                                */
   /* ********************************************************************** */
   public static final String DEFAULT_VALUE = "";
-  public static final String DEFAULT_SUBCATEGORY = "";
   public static final int DEFAULT_PRECEDENCE = 100;
 
   /* ********************************************************************** */
@@ -37,7 +36,6 @@ public final class Capability
   private final int systemSeqId;
 
   private final Category category; // Type or category of capability
-  private final String subcategory;   // Name of the capability
   private final String name;   // Name of the capability
   private final Datatype datatype; // Datatype associated with the value
   private final int precedence;  // Precedence. Higher number has higher precedence.
@@ -47,13 +45,12 @@ public final class Capability
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Constructor initializing all fields.
-  public Capability(int id1, int systemid1, Category category1, String subcategory1, String name1,
+  public Capability(int id1, int systemid1, Category category1, String name1,
                     Datatype datatype1, int precedence1, String value1)
   {
     seqId = id1;
     systemSeqId = systemid1;
     category = category1;
-    subcategory = subcategory1;
     name = name1;
     datatype = datatype1;
     precedence = precedence1;
@@ -61,12 +58,11 @@ public final class Capability
   }
 
   // Constructor initializing minimal number of fields, useful for testing. Should not be persisted.
-  public Capability(Category category1, String subcategory1, String name1, Datatype datatype1, int precedence1, String value1)
+  public Capability(Category category1, String name1, Datatype datatype1, int precedence1, String value1)
   {
     seqId = -1;
     systemSeqId = -1;
     category = category1;
-    subcategory = subcategory1;
     name = name1;
     datatype = datatype1;
     precedence = precedence1;
@@ -79,7 +75,6 @@ public final class Capability
   public int getSeqId() { return seqId; }
   public int getSystemSeqId() { return systemSeqId; }
   public Category getCategory() { return category; }
-  public String getSubCategory() { return subcategory; }
   public String getName() { return name; }
   public Datatype getDatatype() { return datatype; }
   public int getPrecedence() { return precedence; }

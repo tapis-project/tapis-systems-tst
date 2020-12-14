@@ -18,7 +18,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row8;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -34,7 +34,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = -1813873587;
+    private static final long serialVersionUID = 875104985;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -63,11 +63,6 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
      * The column <code>tapis_sys.capabilities.category</code>. Category for grouping of capabilities
      */
     public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class), this, "Category for grouping of capabilities", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType, edu.utexas.tacc.tapis.systems.model.Capability.Category>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class, edu.utexas.tacc.tapis.systems.model.Capability.Category.class));
-
-    /**
-     * The column <code>tapis_sys.capabilities.subcategory</code>. Subcategory for grouping of capabilities
-     */
-    public final TableField<CapabilitiesRecord, String> SUBCATEGORY = createField(DSL.name("subcategory"), org.jooq.impl.SQLDataType.VARCHAR(128), this, "Subcategory for grouping of capabilities");
 
     /**
      * The column <code>tapis_sys.capabilities.name</code>. Name of capability
@@ -139,7 +134,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
     @Override
     public List<UniqueKey<CapabilitiesRecord>> getKeys() {
-        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_SUBCATEGORY_NAME_KEY);
+        return Arrays.<UniqueKey<CapabilitiesRecord>>asList(Keys.CAPABILITIES_PKEY, Keys.CAPABILITIES_SYSTEM_SEQ_ID_CATEGORY_NAME_KEY);
     }
 
     @Override
@@ -178,11 +173,11 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row8 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<Integer, Integer, Category, String, String, Datatype, Integer, String> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row7<Integer, Integer, Category, String, Datatype, Integer, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 }

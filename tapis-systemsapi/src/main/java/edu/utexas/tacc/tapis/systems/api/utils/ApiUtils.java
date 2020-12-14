@@ -5,6 +5,7 @@ import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils;
+import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,8 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /*
    Utility class containing general use static methods.
@@ -193,4 +198,22 @@ public class ApiUtils
     return null;
   }
 
+  /**
+   * Return String[] array of jobEnvVariables given list of KeyValueString
+   */
+  public static String[] getKeyValuesAsArray(List<KeyValueString> kvList)
+  {
+    if (kvList == null || kvList.size() == 0) return TSystem.EMPTY_STR_ARRAY;
+    return kvList.stream().map(KeyValueString::toString).toArray(String[]::new);
+  }
+
+  /**
+   * Return list of KeyValueString given String[] array of jobEnvVariables given
+   */
+  public static List<KeyValueString> getKeyValuesAsList(String[] kvArray)
+  {
+    if (kvArray == null || kvArray.length == 0) return Collections.emptyList();
+    List<KeyValueString> kvList = Arrays.stream(kvArray).map(KeyValueString::fromString).collect(Collectors.toList());
+    return kvList;
+  }
 }
