@@ -28,7 +28,8 @@
     "proxyPort": { "type": "integer" },
     "dtnSystemId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/SystemId" },
     "dtnMountPoint": { "type": "string" },
-    "dtnSubDir": { "type": "string" },
+    "dtnMountSourcePath": { "type": "string" },
+    "isDtn": { "type": "boolean" },
     "canExec": { "type": "boolean" },
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
     "jobEnvVariables": {

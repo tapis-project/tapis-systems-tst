@@ -48,7 +48,8 @@ public final class ReqCreateSystem
   public int proxyPort = DEFAULT_PROXYPORT;     // Port number for proxy host
   public String dtnSystemId;
   public String dtnMountPoint;
-  public String dtnSubDir;
+  public String dtnMountSourcePath;
+  public boolean isDtn;
   public boolean canExec; // Indicates if system will be used to execute jobs
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
   public List<KeyValueString> jobEnvVariables = ApiUtils.getKeyValuesAsList(DEFAULT_JOBENV_VARIABLES);

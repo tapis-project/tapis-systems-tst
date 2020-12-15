@@ -28,7 +28,7 @@ public final class ReqUpdateSystem
   public Integer proxyPort;     // Port number for proxy host
   public String dtnSystemId;
   public String dtnMountPoint;
-  public String dtnSubDir;
+  public String dtnMountSourcePath;
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
   public List<KeyValueString> jobEnvVariables;
   public int jobMaxJobs = DEFAULT_JOBMAXJOBS;

@@ -83,14 +83,10 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
     Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
+    Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
-    Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
-    Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
-    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
-    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
-    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
+
     // Verify txfr methods
     List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
     Assert.assertNotNull(tMethodsList);
@@ -100,6 +96,35 @@ public class SystemsDaoTest
     {
       Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
     }
+
+    Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
+    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
+    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
+    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
+    Assert.assertEquals(tmpSys.getDtnSystemId(), sys0.getDtnSystemId());
+    Assert.assertEquals(tmpSys.getDtnMountSourcePath(), sys0.getDtnMountSourcePath());
+    Assert.assertEquals(tmpSys.getDtnMountPoint(), sys0.getDtnMountPoint());
+    Assert.assertEquals(tmpSys.getIsDtn(), sys0.getIsDtn());
+    Assert.assertEquals(tmpSys.getCanExec(), sys0.getCanExec());
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
+
+    // Verify jogEnvVariables
+    String[] tmpVars = tmpSys.getJobEnvVariables();
+    Assert.assertNotNull(tmpVars, "jobEnvVariables value was null");
+    var varsList = Arrays.asList(tmpVars);
+    Assert.assertEquals(tmpVars.length, jobEnvVariables.length, "Wrong number of jobEnvVariables");
+    for (String varStr : jobEnvVariables)
+    {
+      Assert.assertTrue(varsList.contains(varStr));
+      System.out.println("Found jobEnvVarialbe: " + varStr);
+    }
+
+    Assert.assertEquals(tmpSys.getJobMaxJobs(), sys0.getJobMaxJobs());
+    Assert.assertEquals(tmpSys.getJobMaxJobsPerUser(), sys0.getJobMaxJobsPerUser());
+    Assert.assertEquals(tmpSys.getJobIsBatch(), sys0.getJobIsBatch());
+    Assert.assertEquals(tmpSys.getBatchScheduler(), sys0.getBatchScheduler());
+    Assert.assertEquals(tmpSys.getBatchDefaultLogicalQueue(), sys0.getBatchDefaultLogicalQueue());
+
     // Verify tags
     String[] tmpTags = tmpSys.getTags();
     Assert.assertNotNull(tmpTags, "Tags value was null");
@@ -117,6 +142,7 @@ public class SystemsDaoTest
     Assert.assertEquals(obj.get("project").getAsString(), notesObj.get("project").getAsString());
     Assert.assertTrue(obj.has("testdata"));
     Assert.assertEquals(obj.get("testdata").getAsString(), notesObj.get("testdata").getAsString());
+
     // Verify capabilities
     List<Capability> origCaps = sys0.getJobCapabilities();
     List<Capability> jobCaps = tmpSys.getJobCapabilities();
@@ -130,6 +156,19 @@ public class SystemsDaoTest
       Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
               "List of capabilities did not contain a capability named: " + capSeedItem.getName());
     }
+// TODO   // Verify jobRuntimes
+//    List<Capability> origCaps = sys0.getJobCapabilities();
+//    List<Capability> jobCaps = tmpSys.getJobCapabilities();
+//    Assert.assertNotNull(origCaps, "Orig Caps was null");
+//    Assert.assertNotNull(jobCaps, "Fetched Caps was null");
+//    Assert.assertEquals(jobCaps.size(), origCaps.size());
+//    var capNamesFound = new ArrayList<String>();
+//    for (Capability capFound : jobCaps) {capNamesFound.add(capFound.getName());}
+//    for (Capability capSeedItem : origCaps)
+//    {
+//      Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
+//              "List of capabilities did not contain a capability named: " + capSeedItem.getName());
+//    }
   }
 
   // Test retrieving all system names
@@ -267,7 +306,7 @@ public class SystemsDaoTest
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList1, tags, notes);
     patchSys.setTenant(tenantName);
@@ -275,7 +314,7 @@ public class SystemsDaoTest
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,
             "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemId, dtnMountPoint, dtnSubDir, canExec, "jobWorkDir",
+            dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtn, canExec, "jobWorkDir",
             jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch, "batchScheduler", "batchDefaultLogicalQueue",
             tags, notes, null, isDeleted, created, updated);
     // Make sure system does not exist

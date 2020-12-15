@@ -30,7 +30,7 @@ public final class PatchSystem
   private final Integer proxyPort;     // Port number for proxy host
   private final String dtnSystemId;
   private final String dtnMountPoint;
-  private final String dtnSubDir;
+  private final String dtnMountSourcePath;
   private final String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
   private final String[] jobEnvVariables;
   private final int jobMaxJobs;
@@ -53,7 +53,7 @@ public final class PatchSystem
   public PatchSystem(String description1, String host1, Boolean enabled1, String effectiveUserId1,
                      AuthnMethod defaultAuthnMethod1, List<TransferMethod> transferMethods1,
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1,
-                     String dtnSystemId1, String dtnMountPoint1, String dtnSubDir1, String jobWorkingDir1,
+                     String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, String jobWorkingDir1,
                      String[] jobEnvVariables1, int jobMaxJobs1, int jobMaxJobsPerUser1, boolean jobIsBatch1,
                      String batchScheduler1, List<LogicalQueue> batchLogicalQueues1, String batchDefaultLogicalQueue1,
                      List<Capability> jobCapabilities1, String[] tags1, Object notes1)
@@ -70,7 +70,7 @@ public final class PatchSystem
     proxyPort = proxyPort1;
     dtnSystemId = dtnSystemId1;
     dtnMountPoint = dtnMountPoint1;
-    dtnSubDir = dtnSubDir1;
+    dtnMountSourcePath = dtnMountSourcePath1;
     jobWorkingDir = jobWorkingDir1;
     jobEnvVariables = (jobEnvVariables1 == null) ? null : jobEnvVariables1.clone();
     jobMaxJobs = jobMaxJobs1;
@@ -119,7 +119,7 @@ public final class PatchSystem
 
   public String getDtnMountPoint() { return dtnMountPoint; }
 
-  public String getDtnSubDir() { return dtnSubDir; }
+  public String getDtnMountSourcePath() { return dtnMountSourcePath; }
 
   public String getJobWorkingDir() { return jobWorkingDir; }
 

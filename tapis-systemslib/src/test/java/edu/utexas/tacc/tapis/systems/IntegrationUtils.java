@@ -28,13 +28,14 @@ public final class IntegrationUtils
   public static final List<TransferMethod> txfrMethodsList = new ArrayList<>(List.of(TransferMethod.SFTP, TransferMethod.S3));
   public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
   public static final boolean isEnabled = true;
+  public static final boolean isDtn = false;
   public static final boolean canExec = true;
-  public static final String dtnSystemId = null;
-  public static final String dtnMountPoint = null;
-  public static final String dtnSubDir = null;
-  public static final String jobWorkingDir = null;
-  public static final String batchScheduler = null;
-  public static final String batchDefaultLogicalQueue = null;
+  public static final String dtnSystemId = "fakeDTNSystem";
+  public static final String dtnMountPoint = "/fake/mountpoint";
+  public static final String dtnMountSourcePath = "/fake/mountsourcepath";
+  public static final String jobWorkingDir = "/fake/job/working_dir";
+  public static final String batchScheduler = "SLURM";
+  public static final String batchDefaultLogicalQueue = "fakeLogicalQueue";
 //  public static final KeyValuePair kv1 = new KeyValuePair("a","b");
 //  public static final KeyValuePair kv2 = new KeyValuePair("HOME","/home/testuser2");
 //  public static final KeyValuePair kv3 = new KeyValuePair("TMP","/tmp");
@@ -109,7 +110,7 @@ public final class IntegrationUtils
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, ownerUser1,
               "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
-              dtnSystemId, dtnMountPoint, dtnSubDir,
+              dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtn,
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
               "batchScheduler"+suffix, queueA1.getName(), tags, notes, importRefId , isDeleted, created, updated);
       systems[i].setBatchLogicalQueues(queueList1);

@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -425795994;
+    private static final long serialVersionUID = 265947185;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -150,9 +150,14 @@ public class Systems extends TableImpl<SystemsRecord> {
     public final TableField<SystemsRecord, String> DTN_MOUNT_POINT = createField(DSL.name("dtn_mount_point"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Mount point on local system for the DTN");
 
     /**
-     * The column <code>tapis_sys.systems.dtn_sub_dir</code>. Optional subdirectory relative to dtnMountPoint
+     * The column <code>tapis_sys.systems.dtn_mount_source_path</code>.
      */
-    public final TableField<SystemsRecord, String> DTN_SUB_DIR = createField(DSL.name("dtn_sub_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Optional subdirectory relative to dtnMountPoint");
+    public final TableField<SystemsRecord, String> DTN_MOUNT_SOURCE_PATH = createField(DSL.name("dtn_mount_source_path"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "");
+
+    /**
+     * The column <code>tapis_sys.systems.is_dtn</code>. Indicates if system is to serve as a data transfer node
+     */
+    public final TableField<SystemsRecord, Boolean> IS_DTN = createField(DSL.name("is_dtn"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "Indicates if system is to serve as a data transfer node");
 
     /**
      * The column <code>tapis_sys.systems.can_exec</code>. Indicates if system can be used to execute jobs

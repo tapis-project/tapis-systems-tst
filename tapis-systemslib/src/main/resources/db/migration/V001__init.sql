@@ -37,7 +37,7 @@ SET search_path TO tapis_sys;
 -- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA tapis_sys TO tapis_sys;
 
 -- Types
-CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE', 'DTN');
+CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
 CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
                                     'grantPerms', 'revokePerms', 'setCred', 'removeCred');
 CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
@@ -71,7 +71,8 @@ CREATE TABLE systems
   proxy_port INTEGER NOT NULL DEFAULT -1,
   dtn_system_id VARCHAR(80),
   dtn_mount_point VARCHAR(4096),
-  dtn_sub_dir VARCHAR(4096),
+  dtn_mount_source_path VARCHAR(4096),
+  is_dtn   BOOLEAN NOT NULL DEFAULT false,
   can_exec   BOOLEAN NOT NULL DEFAULT false,
   job_working_dir VARCHAR(4096),
   job_env_variables TEXT[] NOT NULL,
@@ -112,7 +113,7 @@ COMMENT ON COLUMN systems.proxy_host IS 'Proxy host name or ip address';
 COMMENT ON COLUMN systems.proxy_port IS 'Proxy port number';
 COMMENT ON COLUMN systems.dtn_system_id IS 'Alternate system to use as a Data Transfer Node (DTN)';
 COMMENT ON COLUMN systems.dtn_mount_point IS 'Mount point on local system for the DTN';
-COMMENT ON COLUMN systems.dtn_sub_dir IS 'Optional subdirectory relative to dtnMountPoint';
+COMMENT ON COLUMN systems.is_dtn IS 'Indicates if system is to serve as a data transfer node';
 COMMENT ON COLUMN systems.can_exec IS 'Indicates if system can be used to execute jobs';
 COMMENT ON COLUMN systems.job_working_dir IS 'Parent directory from which a job is run. Relative to effective root directory.';
 COMMENT ON COLUMN systems.job_env_variables IS 'Environment variables added to shell environment';

@@ -1208,7 +1208,7 @@ public class SystemResource
     var tSystem = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
-                       req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir, req.canExec, req.jobWorkingDir,
+                       req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
     tSystem.setAuthnCredential(req.authnCredential);
@@ -1228,7 +1228,7 @@ public class SystemResource
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
-                           req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnSubDir,
+                           req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
                            req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
                            req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
                            req.jobCapabilities, req.tags, req.notes);

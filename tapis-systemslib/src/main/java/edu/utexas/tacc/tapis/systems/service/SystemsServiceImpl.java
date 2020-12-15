@@ -2146,7 +2146,7 @@ public class SystemsServiceImpl implements SystemsService
     if (p.getProxyPort() != null) p1.setProxyPort(p.getProxyPort());
     if (p.getDtnSystemId() != null) p1.setDtnSystemId(p.getDtnSystemId());
     if (p.getDtnMountPoint() != null) p1.setDtnMountPoint(p.getDtnMountPoint());
-    if (p.getDtnSubDir() != null) p1.setDtnSubDir(p.getDtnSubDir());
+    if (p.getDtnMountSourcePath() != null) p1.setDtnMountSourcePath(p.getDtnMountSourcePath());
     if (p.getJobCapabilities() != null) p1.setJobCapabilities(p.getJobCapabilities());
     if (p.getTags() != null) p1.setTags(p.getTags());
     if (p.getNotes() != null) p1.setNotes(p.getNotes());

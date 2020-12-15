@@ -93,7 +93,8 @@ public final class TSystem
   private int proxyPort;     // Port number for proxy host
   private String dtnSystemId;
   private String dtnMountPoint;
-  private String dtnSubDir;
+  private String dtnMountSourcePath;
+  private boolean isDtn;
   private boolean canExec; // Indicates if system will be used to execute jobs
   private List<JobRuntime> jobRuntimes;
   private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
@@ -144,7 +145,7 @@ public final class TSystem
                  String owner1, String host1, boolean enabled1, String effectiveUserId1, AuthnMethod defaultAuthnMethod1,
                  String bucketName1, String rootDir1,
                  List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
-                 String dtnSystemId1, String dtnMountPoint1, String dtnSubDir1,
+                 String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, boolean isDtn1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
                  int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
                  String[] tags1, Object notes1, String importRefId1, boolean deleted1, Instant created1, Instant updated1)
@@ -186,7 +187,8 @@ public final class TSystem
     proxyPort = proxyPort1;
     dtnSystemId = dtnSystemId1;
     dtnMountPoint = dtnMountPoint1;
-    dtnSubDir = dtnSubDir1;
+    dtnMountSourcePath = dtnMountSourcePath1;
+    isDtn = isDtn1;
     canExec = canExec1;
     jobWorkingDir = jobWorkingDir1;
     jobEnvVariables = (jobEnvVariables1 == null) ? DEFAULT_JOBENV_VARIABLES : jobEnvVariables1.clone();
@@ -232,7 +234,8 @@ public final class TSystem
     proxyPort = t.getProxyPort();
     dtnSystemId = t.getDtnSystemId();
     dtnMountPoint = t.getDtnMountPoint();
-    dtnSubDir = t.dtnSubDir;
+    dtnMountSourcePath = t.dtnMountSourcePath;
+    isDtn = t.getIsDtn();
     canExec = t.getCanExec();
     jobRuntimes = (t.getJobRuntimes() == null) ? null :  new ArrayList<>(t.getJobRuntimes());
     jobWorkingDir = t.getJobWorkingDir();
@@ -337,8 +340,10 @@ public final class TSystem
   public String getDtnMountPoint() { return dtnMountPoint; }
   public TSystem setDtnMountPoint(String s) { dtnMountPoint = s; return this; }
 
-  public String getDtnSubDir() { return dtnSubDir; }
-  public TSystem setDtnSubDir(String s) { dtnSubDir = s; return this; }
+  public String getDtnMountSourcePath() { return dtnMountSourcePath; }
+  public TSystem setDtnMountSourcePath(String s) { dtnMountSourcePath = s; return this; }
+
+  public boolean getIsDtn() { return isDtn; }
 
   public boolean getCanExec() { return canExec; }
 

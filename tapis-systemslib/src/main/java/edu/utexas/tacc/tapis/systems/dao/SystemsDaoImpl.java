@@ -124,6 +124,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.USE_PROXY, system.isUseProxy())
               .set(SYSTEMS.PROXY_HOST, proxyHost)
               .set(SYSTEMS.PROXY_PORT, system.getProxyPort())
+              .set(SYSTEMS.DTN_SYSTEM_ID, system.getDtnSystemId())
+              .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, system.getDtnMountSourcePath())
+              .set(SYSTEMS.DTN_MOUNT_POINT, system.getDtnMountPoint())
+              .set(SYSTEMS.IS_DTN, system.getIsDtn())
               .set(SYSTEMS.CAN_EXEC, system.getCanExec())
               .set(SYSTEMS.JOB_WORKING_DIR, system.getJobWorkingDir())
               .set(SYSTEMS.JOB_ENV_VARIABLES, system.getJobEnvVariables())
@@ -137,6 +141,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne();
       seqId = record.getValue(SYSTEMS.SEQ_ID);
+
+      //TODO Persist batch logical queues
+//      persistJobRuntimes(db, system, seqId);
 
       // Persist batch logical queues
       persistLogicalQueues(db, system, seqId);
@@ -489,6 +496,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
       //       in one call which should improve performance.
 
+      // TODO: Retrieve and set jobRuntimes
+//      result.setJobRuntimes(retrieveJobRuntimes(db, result.getSeqId()));
+
       // Retrieve and set batch logical queues
       result.setBatchLogicalQueues(retrieveLogicalQueues(db, result.getSeqId()));
 
@@ -740,6 +750,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       for (SystemsRecord r : results)
       {
         TSystem s = r.into(TSystem.class);
+        // TODO s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
         s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getSeqId()));
         s.setJobCapabilities(retrieveJobCaps(db, s.getSeqId()));
         retList.add(s);
@@ -1826,6 +1837,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     for (SystemsRecord r : results)
     {
       TSystem s = r.into(TSystem.class);
+      // TODO s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
       s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getSeqId()));
       s.setJobCapabilities(retrieveJobCaps(db, s.getSeqId()));
       retList.add(s);

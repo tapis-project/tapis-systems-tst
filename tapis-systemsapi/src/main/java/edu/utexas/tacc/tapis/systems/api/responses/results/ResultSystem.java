@@ -36,7 +36,8 @@ public final class ResultSystem
   public int proxyPort;
   public String dtnSystemId;
   public String dtnMountPoint;
-  public String dtnSubDir;
+  public String dtnMountSourcePath;
+  public boolean isDtn;
   public boolean canExec;
   public String jobWorkingDir;
   public List<KeyValueString> jobEnvVariables;
@@ -81,7 +82,8 @@ public final class ResultSystem
     proxyPort = s.getProxyPort();
     dtnSystemId = s.getDtnSystemId();
     dtnMountPoint = s.getDtnMountPoint();
-    dtnSubDir = s.getDtnSubDir();
+    dtnMountSourcePath = s.getDtnMountSourcePath();
+    isDtn = s.getIsDtn();
     canExec = s.getCanExec();
     jobWorkingDir = s.getJobWorkingDir();
     jobMaxJobs = s.getJobMaxJobs();

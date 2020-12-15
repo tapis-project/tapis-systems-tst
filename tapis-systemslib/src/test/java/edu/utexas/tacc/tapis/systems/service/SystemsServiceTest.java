@@ -222,7 +222,7 @@ public class SystemsServiceTest
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
     PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
             cap2List, tags2, notes2);
     patchSystem.setId(sys0.getId());
@@ -614,7 +614,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[12];
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnSubDir, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
             cap2List, tags2, notes2);
     patchSys.setId(sys0.getId());
@@ -892,16 +892,12 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
     Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
+    Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
     Assert.assertEquals(tmpSys.getDefaultAuthnMethod().name(), sys0.getDefaultAuthnMethod().name());
-    Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
-    Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
-    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
-    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
-    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
+
     // Verify transfer methods
     List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
     Assert.assertNotNull(tMethodsList);
@@ -910,6 +906,35 @@ public class SystemsServiceTest
     {
       Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
     }
+
+    Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
+    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
+    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
+    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
+    Assert.assertEquals(tmpSys.getDtnSystemId(), sys0.getDtnSystemId());
+    Assert.assertEquals(tmpSys.getDtnMountSourcePath(), sys0.getDtnMountSourcePath());
+    Assert.assertEquals(tmpSys.getDtnMountPoint(), sys0.getDtnMountPoint());
+    Assert.assertEquals(tmpSys.getIsDtn(), sys0.getIsDtn());
+    Assert.assertEquals(tmpSys.getCanExec(), sys0.getCanExec());
+    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
+
+    // Verify jogEnvVariables
+    String[] tmpVars = tmpSys.getJobEnvVariables();
+    Assert.assertNotNull(tmpVars, "jobEnvVariables value was null");
+    var varsList = Arrays.asList(tmpVars);
+    Assert.assertEquals(tmpVars.length, jobEnvVariables.length, "Wrong number of jobEnvVariables");
+    for (String varStr : jobEnvVariables)
+    {
+      Assert.assertTrue(varsList.contains(varStr));
+      System.out.println("Found jobEnvVarialbe: " + varStr);
+    }
+
+    Assert.assertEquals(tmpSys.getJobMaxJobs(), sys0.getJobMaxJobs());
+    Assert.assertEquals(tmpSys.getJobMaxJobsPerUser(), sys0.getJobMaxJobsPerUser());
+    Assert.assertEquals(tmpSys.getJobIsBatch(), sys0.getJobIsBatch());
+    Assert.assertEquals(tmpSys.getBatchScheduler(), sys0.getBatchScheduler());
+    Assert.assertEquals(tmpSys.getBatchDefaultLogicalQueue(), sys0.getBatchDefaultLogicalQueue());
+
     // Verify tags
     String[] origTags = sys0.getTags();
     String[] tmpTags = tmpSys.getTags();
