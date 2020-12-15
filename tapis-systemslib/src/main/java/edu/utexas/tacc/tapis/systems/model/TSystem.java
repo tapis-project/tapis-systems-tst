@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,7 +43,6 @@ public final class TSystem
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
-//  public static final String[] DEFAULT_JOBENV_VARIABLES = Collections.emptyList();
   public static final String[] DEFAULT_JOBENV_VARIABLES = new String[0];
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
   public static final String DEFAULT_TAGS_STR = "{}";
@@ -100,7 +97,6 @@ public final class TSystem
   private boolean canExec; // Indicates if system will be used to execute jobs
   private List<JobRuntime> jobRuntimes;
   private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
-//  private String[] jobEnvVariables;
   private String[] jobEnvVariables;
   private int jobMaxJobs;
   private int jobMaxJobsPerUser;
@@ -110,11 +106,7 @@ public final class TSystem
   private String batchDefaultLogicalQueue;
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   private String[] tags; // List of arbitrary tags as strings
-
-  // Json objects require special serializer for Jackson to handle properly in outgoing response.
-  @JsonSerialize(using = JsonObjectSerializer.class)
   private Object notes;   // Simple metadata as json.
-
   private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;
 
@@ -197,13 +189,13 @@ public final class TSystem
     dtnSubDir = dtnSubDir1;
     canExec = canExec1;
     jobWorkingDir = jobWorkingDir1;
-//    jobEnvVariables = (jobEnvVariables1 == null) ? null : new ArrayList<>(jobEnvVariables1);
+    jobEnvVariables = (jobEnvVariables1 == null) ? DEFAULT_JOBENV_VARIABLES : jobEnvVariables1.clone();
     jobMaxJobs = jobMaxJobs1;
     jobMaxJobsPerUser = jobMaxJobsPerUser1;
     jobIsBatch = jobIsBatch1;
     batchScheduler = batchScheduler1;
     batchDefaultLogicalQueue = batchDefaultLogicalQueue1;
-    tags = (tags1 == null) ? null : tags1.clone();
+    tags = (tags1 == null) ? DEFAULT_TAGS : tags1.clone();
     notes = notes1;
     importRefId = importRefId1;
     deleted = deleted1;
@@ -244,7 +236,7 @@ public final class TSystem
     canExec = t.getCanExec();
     jobRuntimes = (t.getJobRuntimes() == null) ? null :  new ArrayList<>(t.getJobRuntimes());
     jobWorkingDir = t.getJobWorkingDir();
-//    jobEnvVariables = (t.getJobEnvVariables() == null) ? null : new ArrayList<>(t.getJobEnvVariables());
+    jobEnvVariables = (t.getJobEnvVariables() == null) ? DEFAULT_JOBENV_VARIABLES : t.getJobEnvVariables().clone();
     jobMaxJobs = t.getJobMaxJobs();
     jobMaxJobsPerUser = t.getJobMaxJobsPerUser();
     jobIsBatch = t.getJobIsBatch();
@@ -252,7 +244,7 @@ public final class TSystem
     batchLogicalQueues = (t.getBatchLogicalQueues() == null) ? null :  new ArrayList<>(t.getBatchLogicalQueues());
     batchDefaultLogicalQueue = t.getBatchDefaultLogicalQueue();
     jobCapabilities = (t.getJobCapabilities() == null) ? null :  new ArrayList<>(t.getJobCapabilities());
-    tags = (t.getTags() == null) ? null : t.getTags().clone();
+    tags = (t.getTags() == null) ? DEFAULT_TAGS : t.getTags().clone();
     notes = t.getNotes();
     importRefId = t.getImportRefId();
     deleted = t.isDeleted();
@@ -362,12 +354,10 @@ public final class TSystem
   public TSystem setJobWorkingDir(String s) { jobWorkingDir = s; return this; }
 
   public String[] getJobEnvVariables() {
-//    return (jobEnvVariables == null) ? null : new ArrayList<>(jobEnvVariables);
-    return (jobEnvVariables == null) ? null : jobEnvVariables.clone();
+    return (jobEnvVariables == null) ? DEFAULT_JOBENV_VARIABLES : jobEnvVariables.clone();
   }
   public TSystem setJobEnvVariables(String[] jev) {
-//    jobEnvVariables = (jev == null) ? null : new ArrayList<>(jev);
-    jobEnvVariables = (jev == null) ? null : jev.clone();
+    jobEnvVariables = (jev == null) ? DEFAULT_JOBENV_VARIABLES : jev.clone();
     return this;
   }
 
@@ -402,10 +392,10 @@ public final class TSystem
   }
 
   public String[] getTags() {
-    return (tags == null) ? null : tags.clone();
+    return (tags == null) ? DEFAULT_TAGS : tags.clone();
   }
   public TSystem setTags(String[] t) {
-    tags = (t == null) ? null : t.clone();
+    tags = (t == null) ? DEFAULT_TAGS : t.clone();
     return this;
   }
 

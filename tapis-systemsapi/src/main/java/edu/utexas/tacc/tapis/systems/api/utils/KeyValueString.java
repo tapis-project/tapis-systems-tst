@@ -18,7 +18,7 @@ public final class KeyValueString
 
   private final String key;   // Name for the logical queue
   private final String value;   // Name for the logical queue
-  private final String keyValueStr;
+  private String keyValueStr;
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
@@ -37,7 +37,11 @@ public final class KeyValueString
   public String getValue() { return value; }
 
   @Override
-  public String toString() {return keyValueStr;}
+  public String toString()
+  {
+    if (keyValueStr == null) keyValueStr = key + "=" + value;
+    return keyValueStr;
+  }
 
   public static KeyValueString fromString(String s)
   {

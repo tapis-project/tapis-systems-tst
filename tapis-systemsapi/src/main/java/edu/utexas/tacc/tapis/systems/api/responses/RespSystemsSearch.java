@@ -3,8 +3,10 @@ package edu.utexas.tacc.tapis.systems.api.responses;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespSearch;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultMetadata;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultSearch;
+import edu.utexas.tacc.tapis.systems.api.responses.results.ResultSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -20,8 +22,11 @@ public final class RespSystemsSearch extends RespSearch
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
   public RespSystemsSearch() { }
 
-  public RespSystemsSearch(List<TSystem> tmpResults, int limit, String sortBy, int skip, String startAfter, int totalCount)
+  public RespSystemsSearch(List<TSystem> sList, int limit, String sortBy, int skip, String startAfter, int totalCount)
   {
+    List<ResultSystem> tmpResults;
+    tmpResults = new ArrayList<>();
+    for (TSystem sys : sList) { tmpResults.add(new ResultSystem(sys)); }
     result = new ResultSearch();
     result.search = tmpResults;
     ResultMetadata tmpMeta = new ResultMetadata();

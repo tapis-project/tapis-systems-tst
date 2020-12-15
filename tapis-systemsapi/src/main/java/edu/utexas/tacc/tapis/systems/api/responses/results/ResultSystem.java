@@ -1,5 +1,7 @@
 package edu.utexas.tacc.tapis.systems.api.responses.results;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValueString;
 import edu.utexas.tacc.tapis.systems.model.Capability;
@@ -46,6 +48,8 @@ public final class ResultSystem
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities;
   public String[] tags;
+  // Json objects require special serializer for Jackson to handle properly in outgoing response.
+  @JsonSerialize(using = JsonObjectSerializer.class)
   public Object notes;
   public String refImportId;
 
@@ -63,6 +67,7 @@ public final class ResultSystem
     description = s.getDescription();
     systemType = s.getSystemType();
     owner = s.getOwner();
+    host = s.getHost();
     enabled = s.isEnabled();
     effectiveUserId = s.getEffectiveUserId();
     defaultAuthnMethod = s.getDefaultAuthnMethod();
