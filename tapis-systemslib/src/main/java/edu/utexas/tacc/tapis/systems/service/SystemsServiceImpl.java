@@ -301,7 +301,7 @@ public class SystemsServiceImpl implements SystemsService
    *   description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
    *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
    * Attributes that cannot be updated:
-   *   tenant, name, systemType, owner, authnCredential, bucketName, rootDir, canExec
+   *   tenant, id, systemType, owner, authnCredential, bucketName, rootDir, canExec
    * @param authenticatedUser - principal user containing tenant and user info
    * @param patchSystem - Pre-populated PatchSystem object
    * @param scrubbedText - Text used to create the PatchSystem object - secrets should be scrubbed. Saved in update record.
