@@ -8,7 +8,7 @@
   "HostName": { "type": "string", "minLength": 1, "maxLength": 256 },
   "UserName": { "type": "string", "minLength": 1, "maxLength": 60 },
   "DirPath": { "type": "string", "minLength": 1, "maxLength": 4096 },
-  "SystemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE","DTN"] },
+  "SystemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "TransferMethodEnum": { "type": "string", "enum": ["SFTP","S3"] },
   "AuthnMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
 
