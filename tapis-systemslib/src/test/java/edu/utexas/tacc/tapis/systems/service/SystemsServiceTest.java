@@ -56,15 +56,15 @@ public class SystemsServiceTest
 {
   private SystemsService svc;
   private SystemsServiceImpl svcImpl;
+  private SKClient skClient;
   private AuthenticatedUser authenticatedOwnerUser1, authenticatedTestUser2, authenticatedTestUser3,
-          authenticatedTestUser4, authenticatedAdminUser9, authenticatedFilesSvc;
+                   authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc, authenticatedSystemsSvc;
   // Test data
   private static final String svcName = "systems";
-  private static final String siteId = "tacc";
-  // TODO: Currently admin user for a tenant is hard coded to be 'testuser9'
-  private static final String adminUser9 = "testuser9";
-  private static final String adminTenantName = "admin";
   private static final String filesSvcName = "files";
+  private static final String siteId = "tacc";
+  private static final String adminUser = "admin";
+  private static final String adminTenantName = "admin";
   private static final String testUser2 = "testuser2";
   private static final String testUser3 = "testuser3";
   private static final String testUser4 = "testuser4";
@@ -82,7 +82,7 @@ public class SystemsServiceTest
                                                          Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
   private static final List<Capability> cap2List = new ArrayList<>(List.of(capA2, capB2, capC2));
 
-  // TODO
+  List<String> searchListNull = null;
   int limit = -1;
   String sortBy = "";
   String sortDirection = "";
@@ -120,13 +120,23 @@ public class SystemsServiceTest
     svcImpl.initService(siteId);
 
     // Initialize authenticated user and service
-    // TODO: Need to get JWTs. SK now verifies that site is set in the JWT.
-    authenticatedOwnerUser1 = new AuthenticatedUser(ownerUser1, tenantName, TapisThreadContext.AccountType.user.name(), null, ownerUser1, tenantName, null, null, null);
-    authenticatedAdminUser9 = new AuthenticatedUser(adminUser9, tenantName, TapisThreadContext.AccountType.user.name(), null, adminUser9, tenantName, null, null, null);
-    authenticatedTestUser2 = new AuthenticatedUser(testUser2, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser2, tenantName, null, null, null);
-    authenticatedTestUser3 = new AuthenticatedUser(testUser3, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser3, tenantName, null, null, null);
-    authenticatedTestUser4 = new AuthenticatedUser(testUser4, tenantName, TapisThreadContext.AccountType.user.name(), null, testUser4, tenantName, null, null, null);
-    authenticatedFilesSvc = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(), null, ownerUser1, tenantName, null, null, null);
+    authenticatedOwnerUser1 = new AuthenticatedUser(ownerUser1, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                    null, ownerUser1, tenantName, null, null, null);
+    authenticatedAdminUser = new AuthenticatedUser(adminUser, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                    null, adminUser, tenantName, null, null, null);
+    authenticatedTestUser2 = new AuthenticatedUser(testUser2, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                   null, testUser2, tenantName, null, null, null);
+    authenticatedTestUser3 = new AuthenticatedUser(testUser3, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                   null, testUser3, tenantName, null, null, null);
+    authenticatedTestUser4 = new AuthenticatedUser(testUser4, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                   null, testUser4, tenantName, null, null, null);
+    authenticatedSystemsSvc = new AuthenticatedUser(svcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+                                                    null, svcName, adminTenantName, null, null, null);
+    authenticatedFilesSvc = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+                                                  null, ownerUser1, tenantName, null, null, null);
+
+    // Initialize skClient for calls acting as the Systems service.
+    skClient = svcImpl.getSKClient(authenticatedSystemsSvc);
 
     // Cleanup anything leftover from previous failed run
     tearDown();
@@ -140,17 +150,16 @@ public class SystemsServiceTest
     svc.revokeUserPermissions(authenticatedOwnerUser1, systems[9].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
     svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
     svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser2, testPermsREADMODIFY, scrubbedJson);
-// TODO why is following revoke causing an exception?
     svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
     svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser2, testPermsREADMODIFY, scrubbedJson);
 
     //Remove all objects created by tests
     for (int i = 0; i < numSystems; i++)
     {
-      svcImpl.hardDeleteSystem(authenticatedAdminUser9, systems[i].getId());
+      svcImpl.hardDeleteSystem(authenticatedAdminUser, systems[i].getId());
     }
 
-    TSystem tmpSys = svc.getSystem(authenticatedAdminUser9, systems[0].getId(), false, null, false);
+    TSystem tmpSys = svc.getSystem(authenticatedAdminUser, systems[0].getId(), false, null, false);
     Assert.assertNull(tmpSys, "System not deleted. System name: " + systems[0].getId());
   }
 
@@ -275,14 +284,18 @@ public class SystemsServiceTest
     svc.changeSystemOwner(authenticatedOwnerUser1, sys0.getId(), newOwnerName);
     TSystem tmpSys = svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false);
     Assert.assertEquals(tmpSys.getOwner(), newOwnerName);
-    // Check expected auxillary updates have happened
-    // New owner should be able to retrieve permissions and have the ALL permission
+    // Check expected auxiliary updates have happened
+    // New owner should be able to retrieve permissions and have the all permissions
     Set<Permission> userPerms = svc.getUserPermissions(authenticatedTestUser2, sys0.getId(), newOwnerName);
     Assert.assertNotNull(userPerms, "Null returned when retrieving perms.");
-    Assert.assertTrue(userPerms.contains(Permission.ALL));
-    // Original owner should no longer have the ALL permission
+    for (Permission perm : Permission.values())
+    {
+      Assert.assertTrue(userPerms.contains(perm));
+    }
+    // Original owner should no longer have the modify permission
+    // TODO/TBD: what about EXECUTE?
     userPerms = svc.getUserPermissions(authenticatedTestUser2, sys0.getId(), ownerUser1);
-    Assert.assertFalse(userPerms.contains(Permission.ALL));
+    Assert.assertFalse(userPerms.contains(Permission.MODIFY));
     // Original owner should not be able to modify system
     try {
       svc.softDeleteSystem(authenticatedOwnerUser1, sys0.getId());
@@ -374,7 +387,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[4];
     int itemId = svc.createSystem(authenticatedOwnerUser1, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    List<TSystem> systems = svc.getSystems(authenticatedOwnerUser1, null, limit, sortBy, sortDirection, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedOwnerUser1, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -399,7 +412,7 @@ public class SystemsServiceTest
     itemId = svc.createSystem(authenticatedOwnerUser1, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
     // When retrieving systems as testUser4 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, null, limit, sortBy, sortDirection, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
     for (TSystem system : systems)
     {

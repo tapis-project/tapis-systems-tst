@@ -1,6 +1,5 @@
 package edu.utexas.tacc.tapis.systems.service;
 
-import static edu.utexas.tacc.tapis.shared.TapisConstants.SERVICE_NAME_SYSTEMS;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_ACCESS_KEY;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_ACCESS_SECRET;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_PASSWORD;
@@ -73,15 +72,12 @@ public class SystemsServiceImpl implements SystemsService
   // ************************************************************************
   // *********************** Constants **************************************
   // ************************************************************************
-  public static final String SYSTEMS_ADMIN_ROLE = "SystemsAdmin";
-  public static final String SYSTEMS_ADMIN_DESCRIPTION = "Administrative role for Systems service";
-  public static final String SYSTEMS_DEFAULT_ADMIN_TENANT = "admin";
 
   // Tracing.
   private static final Logger _log = LoggerFactory.getLogger(SystemsServiceImpl.class);
 
   private static final String[] ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
-  private static final Set<Permission> ALL_PERMS = new HashSet<>(Set.of(Permission.ALL));
+  private static final Set<Permission> ALL_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY, Permission.EXECUTE));
   private static final Set<Permission> READMODIFY_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
   private static final String PERM_SPEC_PREFIX = "system:";
 
@@ -191,7 +187,7 @@ public class SystemsServiceImpl implements SystemsService
     int itemId = -1;
     String roleNameR = null;
     String systemsPermSpecR = getPermSpecStr(systemTenantName, systemId, Permission.READ);
-    String systemsPermSpecALL = getPermSpecStr(systemTenantName, systemId, Permission.ALL);
+    String systemsPermSpecALL = getPermSpecAllStr(systemTenantName, systemId);
     // TODO remove filesPermSpec related code
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
 
@@ -410,7 +406,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use try/catch to rollback any changes in case of failure.
     // Get SK client now. If we cannot get this rollback not needed.
     var skClient = getSKClient(authenticatedUser);
-    String systemsPermSpec = getPermSpecStr(systemTenantName, systemId, Permission.ALL);
+    String systemsPermSpec = getPermSpecAllStr(systemTenantName, systemId);
     String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
     // TODO remove addition of files related permSpec
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
@@ -508,6 +504,7 @@ public class SystemsServiceImpl implements SystemsService
   /**
    * Hard delete a system record given the system name.
    * Also remove permissions and credentials from the Security Kernel
+   * NOTE: This is public so test code can use it but it is not part of the public interface.
    *
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemId - name of system
@@ -612,46 +609,46 @@ public class SystemsServiceImpl implements SystemsService
 //    AuthenticatedUser svcUser =
 //        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
 //                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
-    // TODO: Revisit how to manage skClient instances.
-    // Get service admin tenant
-    String svcAdminTenant = TenantManager.getInstance().getSiteAdminTenantId(siteId);
-    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
-    // Create user for SK client
-    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
-    //       that in general this may be the pattern to follow.
-    String svcJwt = serviceContext.getAccessJWT(svcAdminTenant, SERVICE_NAME_SYSTEMS);
-    AuthenticatedUser svcUser =
-        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
-                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
-    // Use SK client to check for admin role and create it if necessary
-    var skClient = getSKClient(svcUser);
-    // Check for admin role, continue if error getting role.
-    // TODO: Move msgs to properties file
-    // TODO/TBD: Do we still need the special service admin role "SystemsAdmin" or should be use the tenant admin role?
-    SkRole adminRole = null;
-    try
-    {
-      adminRole = skClient.getRoleByName(svcAdminTenant, SYSTEMS_ADMIN_ROLE);
-    }
-    catch (TapisClientException e)
-    {
-      String msg = e.getTapisMessage();
-      // If we have a special message then log it
-      if (!StringUtils.isBlank(msg)) _log.error("Unable to get Admin Role. Caught TapisClientException: " + msg);
-      // If there is no message or the message is something other than "role does not exist" then log the exception.
-      // There may be a problem with SK but do not throw (i.e. fail) just because we cannot get the role at this point.
-      if (msg == null || !msg.startsWith("TAPIS_NOT_FOUND")) _log.error("Unable to get Admin Role. Caught Exception: " + e);
-    }
-    if (adminRole == null)
-    {
-      _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
-      skClient.createRole(svcAdminTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
-      _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
-    }
-    else
-    {
-      _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
-    }
+//    // TODO: Revisit how to manage skClient instances.
+//    // Get service admin tenant
+//    String svcAdminTenant = TenantManager.getInstance().getSiteAdminTenantId(siteId);
+//    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
+//    // Create user for SK client
+//    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
+//    //       that in general this may be the pattern to follow.
+//    String svcJwt = serviceContext.getAccessJWT(svcAdminTenant, SERVICE_NAME_SYSTEMS);
+//    AuthenticatedUser svcUser =
+//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
+//                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
+//    // Use SK client to check for admin role and create it if necessary
+//    var skClient = getSKClient(svcUser);
+//    // Check for admin role, continue if error getting role.
+//    // TODO: Move msgs to properties file
+//    // TODO/TBD: Do we still need the special service admin role "SystemsAdmin" or should be use the tenant admin role?
+//    SkRole adminRole = null;
+//    try
+//    {
+//      adminRole = skClient.getRoleByName(svcAdminTenant, SYSTEMS_ADMIN_ROLE);
+//    }
+//    catch (TapisClientException e)
+//    {
+//      String msg = e.getTapisMessage();
+//      // If we have a special message then log it
+//      if (!StringUtils.isBlank(msg)) _log.error("Unable to get Admin Role. Caught TapisClientException: " + msg);
+//      // If there is no message or the message is something other than "role does not exist" then log the exception.
+//      // There may be a problem with SK but do not throw (i.e. fail) just because we cannot get the role at this point.
+//      if (msg == null || !msg.startsWith("TAPIS_NOT_FOUND")) _log.error("Unable to get Admin Role. Caught Exception: " + e);
+//    }
+//    if (adminRole == null)
+//    {
+//      _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
+//      skClient.createRole(svcAdminTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
+//      _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
+//    }
+//    else
+//    {
+//      _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
+//    }
     // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
   }
@@ -1236,10 +1233,6 @@ public class SystemsServiceImpl implements SystemsService
       for (Permission perm : permissions)
       {
         if (perm.equals(Permission.READ)) skClient.grantUserRole(systemTenantName, userName, roleNameR);
-        else if (perm.equals(Permission.ALL))
-        {
-          skClient.grantUserRole(systemTenantName, userName, roleNameR);
-        }
       }
       // Assign perms to user. SK creates a default role for the user
       for (String permSpec : permSpecSet)
@@ -1313,9 +1306,6 @@ public class SystemsServiceImpl implements SystemsService
       String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
       for (Permission perm : permissions) {
         if (perm.equals(Permission.READ)) skClient.revokeUserRole(systemTenantName, userName, roleNameR);
-        else if (perm.equals(Permission.ALL)) {
-          skClient.revokeUserRole(systemTenantName, userName, roleNameR);
-        }
       }
       changeCount = revokePermissions(skClient, systemTenantName, systemId, userName, permissions);
     }
@@ -1598,11 +1588,12 @@ public class SystemsServiceImpl implements SystemsService
   /**
    *  TODO: revisit this. There is now ServiceContext which will probably help.
    * Get Security Kernel client associated with specified tenant
+   * NOTE: This is public so test code can use it but it is not part of the public interface.
    * @param authenticatedUser - name of tenant
    * @return SK client
    * @throws TapisException - for Tapis related exceptions
    */
-  private SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
+  public SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
   {
     // Use TenantManager to get tenant info. Needed for tokens and SK base URLs.
     Tenant userTenant = TenantManager.getInstance().getTenant(authenticatedUser.getTenantId());
@@ -1726,12 +1717,7 @@ public class SystemsServiceImpl implements SystemsService
   private static Set<String> getPermSpecSet(String tenantName, String systemId, Set<Permission> permList)
   {
     var permSet = new HashSet<String>();
-    if (permList.contains(Permission.ALL)) permSet.add(getPermSpecStr(tenantName, systemId, Permission.ALL));
-    else {
-      for (Permission perm : permList) {
-        permSet.add(getPermSpecStr(tenantName, systemId, perm));
-      }
-    }
+    for (Permission perm : permList) { permSet.add(getPermSpecStr(tenantName, systemId, perm)); }
     return permSet;
   }
 
@@ -1742,8 +1728,16 @@ public class SystemsServiceImpl implements SystemsService
    */
   private static String getPermSpecStr(String tenantName, String systemId, Permission perm)
   {
-    if (perm.equals(Permission.ALL)) return PERM_SPEC_PREFIX + tenantName + ":*:" + systemId;
-    else return PERM_SPEC_PREFIX + tenantName + ":" + perm.name().toUpperCase() + ":" + systemId;
+    return PERM_SPEC_PREFIX + tenantName + ":" + perm.name().toUpperCase() + ":" + systemId;
+  }
+
+  /**
+   * Create a permSpec for all permissions
+   * @return - permSpec entry for all permissions
+   */
+  private static String getPermSpecAllStr(String tenantName, String systemId)
+  {
+    return PERM_SPEC_PREFIX + tenantName + ":*:" + systemId;
   }
 
   /**
@@ -1920,20 +1914,14 @@ public class SystemsServiceImpl implements SystemsService
    * Check to see if a user has the service admin role
    * By default use tenant and user from authenticatedUser, allow for optional tenant or user.
    */
-  private boolean hasAdminRole(AuthenticatedUser authenticatedUser, String tenantToCheck, String userToCheck) throws TapisException
+  private boolean hasAdminRole(AuthenticatedUser authenticatedUser, String tenantToCheck, String userToCheck)
+          throws TapisException, TapisClientException
   {
-    // TODO NOTE that tenantName is not yet used but will be once we make the SK call.
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    // TODO Temporarily just require that user has SystemsAdmin in the name.
-    // TODO: Use sk isAdmin method ot require that user have the tenant admin role
-//    var skClient = getSKClient(authenticatedUser);
-//    return skClient.hasRole(tenantName, userName, SYSTEMS_ADMIN_ROLE);
-    if (userName.contains("SystemsAdmin") ||
-        userName.contains("admin") ||
-        userName.equalsIgnoreCase("testuser9")) return true;
-    else return false;
+    var skClient = getSKClient(authenticatedUser);
+    return skClient.isAdmin(tenantName, userName);
   }
 
   /**
@@ -1984,7 +1972,6 @@ public class SystemsServiceImpl implements SystemsService
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
     if (perms.contains(Permission.MODIFY)) return isPermitted(authenticatedUser, tenantName, userName, systemId, Permission.MODIFY);
     if (perms.contains(Permission.READ)) return isPermittedAny(authenticatedUser, tenantName, userName, systemId, READMODIFY_PERMS);
-    // TODO what if perms contains ALL?
     return false;
   }
 

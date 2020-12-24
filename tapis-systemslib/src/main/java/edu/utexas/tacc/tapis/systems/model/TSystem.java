@@ -62,7 +62,7 @@ public final class TSystem
   // *********************** Enums ******************************************
   // ************************************************************************
   public enum SystemType {LINUX, OBJECT_STORE}
-  public enum Permission {ALL, READ, MODIFY, EXECUTE}
+  public enum Permission {READ, MODIFY, EXECUTE}
   public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
   public enum TransferMethod {SFTP, S3}
   public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, getPerms,
