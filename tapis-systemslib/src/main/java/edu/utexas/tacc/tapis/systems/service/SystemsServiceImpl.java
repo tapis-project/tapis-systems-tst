@@ -448,7 +448,7 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Soft delete a system record given the system name.
-   * Also remove credentials from the Security Kernel
+   * Also remove artifacts from the Security Kernel
    *
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemId - name of system
@@ -457,53 +457,33 @@ public class SystemsServiceImpl implements SystemsService
    * @throws NotAuthorizedException - unauthorized
    */
   @Override
-  public int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId) throws TapisException, NotAuthorizedException, TapisClientException
+  public int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.softDelete;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (StringUtils.isBlank(systemId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
-    // Extract various names for convenience
-    String tenantName = authenticatedUser.getTenantId();
-    String systemTenantName = authenticatedUser.getTenantId();
-    String apiUserId = authenticatedUser.getName();
     // For service request use oboTenant for tenant associated with the system
+    String systemTenantName = authenticatedUser.getTenantId();
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
-    // If system does not exist or has been soft deleted then 0 changes
+    // If system does not exist or has already been soft deleted then 0 changes
     if (!dao.checkForTSystem(systemTenantName, systemId, false)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
-    TSystem system = dao.getTSystem(systemTenantName, systemId);
-    String owner = system.getOwner();
-    String effectiveUserId = system.getEffectiveUserId();
-    // Resolve effectiveUserId if necessary
-    effectiveUserId = resolveEffectiveUserId(effectiveUserId, owner, apiUserId);
+    // Remove SK artifacts
+    removeSKArtifacts(authenticatedUser, systemId, op);
 
-    var skClient = getSKClient(authenticatedUser);
-    // TODO: Remove all credentials associated with the system.
-    // TODO: Have SK do this in one operation?
-    // Remove credentials in Security Kernel if cred provided and effectiveUser is static
-    if (!effectiveUserId.equals(APIUSERID_VAR)) {
-      // Use private internal method instead of public API to skip auth and other checks not needed here.
-      try {
-        deleteCredential(skClient, tenantName, apiUserId, systemTenantName, systemId, effectiveUserId);
-      }
-      // If tapis client exception then log error and convert to TapisException
-      catch (TapisClientException tce)
-      {
-        _log.error(tce.toString());
-        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_CRED_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
-      }
-    }
     // Delete the system
-    return dao.softDeleteTSystem(authenticatedUser, system.getSeqId());
+    int systemSeqId = dao.getTSystemSeqId(systemTenantName, systemId);
+    return dao.softDeleteTSystem(authenticatedUser, systemSeqId);
   }
 
   /**
    * Hard delete a system record given the system name.
-   * Also remove permissions and credentials from the Security Kernel
+   * Also remove artifacts from the Security Kernel
    * NOTE: This is public so test code can use it but it is not part of the public interface.
    *
    * @param authenticatedUser - principal user containing tenant and user info
@@ -531,62 +511,8 @@ public class SystemsServiceImpl implements SystemsService
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
-    int seqId = dao.getTSystemSeqId(systemTenantName, systemId);
-
-    String owner = dao.getTSystemOwner(systemTenantName, systemId);
-    String effectiveUserId = dao.getTSystemEffectiveUserId(systemTenantName, systemId);
-    // Resolve effectiveUserId if necessary
-    effectiveUserId = resolveEffectiveUserId(effectiveUserId, owner, apiUserId);
-
-    var skClient = getSKClient(authenticatedUser);
-    // TODO: Remove all credentials associated with the system.
-    // TODO: Have SK do this in one operation?
-    // Remove credentials in Security Kernel if cred provided and effectiveUser is static
-    if (!effectiveUserId.equals(APIUSERID_VAR)) {
-      // Use private internal method instead of public API to skip auth and other checks not needed here.
-      try {
-        deleteCredential(skClient, tenantName, apiUserId, systemTenantName, systemId, effectiveUserId);
-      }
-      // If tapis client exception then log error and convert to TapisException
-      catch (TapisClientException tce)
-      {
-        _log.error(tce.toString());
-        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_CRED_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
-      }
-    }
-
-    // TODO/TBD: How to make sure all perms for a system are removed?
-    // TODO: See if it makes sense to have a SK method to do this in one operation
-    // Use Security Kernel client to find all users with perms associated with the system.
-    String permSpec = PERM_SPEC_PREFIX + systemTenantName + ":%:" + systemId;
-    var userNames = skClient.getUsersWithPermission(systemTenantName, permSpec);
-    // Revoke all perms for all users
-    for (String userName : userNames) {
-      revokePermissions(skClient, systemTenantName, systemId, userName, ALL_PERMS);
-    }
-    // If role is present then remove role assignments and roles
-    // TODO: Ask SK to either provide checkForRole() or return null if role does not exist.
-    String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
-    SkRole role = null;
-    try
-    {
-      role = skClient.getRoleByName(systemTenantName, roleNameR);
-    }
-    catch (TapisClientException tce)
-    {
-      if (!tce.getTapisMessage().startsWith("TAPIS_NOT_FOUND")) throw tce;
-    }
-    if (role != null)
-    {
-      // Remove role assignments for owner and effective user
-      skClient.revokeUserRole(systemTenantName, owner, roleNameR);
-      skClient.revokeUserRole(systemTenantName, effectiveUserId, roleNameR);
-      // Remove role assignments for other users
-      userNames = skClient.getUsersWithRole(systemTenantName, roleNameR);
-      for (String userName : userNames) skClient.revokeUserRole(systemTenantName, userName, roleNameR);
-      // Remove the role
-      skClient.deleteRoleByName(systemTenantName, roleNameR);
-    }
+    // Remove SK artifacts
+    removeSKArtifacts(authenticatedUser, systemId, op);
 
     // Delete the system
     return dao.hardDeleteTSystem(systemTenantName, systemId);
@@ -2085,6 +2011,81 @@ public class SystemsServiceImpl implements SystemsService
     // TODO/TBD If anything destroyed we consider it the removal of a single credential
     if (changeCount > 0) changeCount = 1;
     return changeCount;
+  }
+
+  /**
+   * Remove all SK artifacts associated with a System: user credentials, user permissions, System role
+   * No checks are done for incoming arguments and the system must exist
+   */
+  private void removeSKArtifacts(AuthenticatedUser authenticatedUser, String systemId, SystemOperation op)
+          throws TapisException, TapisClientException
+  {
+    // Extract various names for convenience
+    String tenantName = authenticatedUser.getTenantId();
+    String apiUserId = authenticatedUser.getName();
+    // For service request use oboTenant for tenant associated with the system
+    String systemTenantName = authenticatedUser.getTenantId();
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
+
+    // Fetch the system. If system not found then return
+    TSystem system = dao.getTSystem(systemTenantName, systemId, true);
+
+    // Resolve effectiveUserId if necessary
+    String effectiveUserId = system.getEffectiveUserId();
+    effectiveUserId = resolveEffectiveUserId(effectiveUserId, system.getOwner(), apiUserId);
+
+    var skClient = getSKClient(authenticatedUser);
+    // TODO: Remove all credentials associated with the system.
+    // TODO: Have SK do this in one operation?
+    // TODO: How to remove for users other than effectiveUserId?
+    // Remove credentials in Security Kernel if cred provided and effectiveUser is static
+    if (!effectiveUserId.equals(APIUSERID_VAR)) {
+      // Use private internal method instead of public API to skip auth and other checks not needed here.
+// TODO/TBD: Do we need to convert this from TCE to TE?
+//      try {
+//        deleteCredential(skClient, tenantName, apiUserId, systemTenantName, system.getId(), effectiveUserId);
+//      }
+//      // If tapis client exception then log error and convert to TapisException
+//      catch (TapisClientException tce)
+//      {
+//        _log.error(tce.toString());
+//        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_CRED_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
+//      }
+      deleteCredential(skClient, tenantName, apiUserId, systemTenantName, system.getId(), effectiveUserId);
+    }
+
+    // TODO/TBD: How to make sure all perms for a system are removed?
+    // TODO: See if it makes sense to have a SK method to do this in one operation
+    // Use Security Kernel client to find all users with perms associated with the system.
+    String permSpec = PERM_SPEC_PREFIX + systemTenantName + ":%:" + systemId;
+    var userNames = skClient.getUsersWithPermission(systemTenantName, permSpec);
+    // Revoke all perms for all users
+    for (String userName : userNames) {
+      revokePermissions(skClient, systemTenantName, systemId, userName, ALL_PERMS);
+    }
+    // If role is present then remove role assignments and roles
+    // TODO: Ask SK to either provide checkForRole() or return null if role does not exist.
+    String roleNameR = TSystem.ROLE_READ_PREFIX + system.getSeqId();
+    SkRole role = null;
+    try
+    {
+      role = skClient.getRoleByName(systemTenantName, roleNameR);
+    }
+    catch (TapisClientException tce)
+    {
+      if (!tce.getTapisMessage().startsWith("TAPIS_NOT_FOUND")) throw tce;
+    }
+    if (role != null)
+    {
+      // Remove role assignments for owner and effective user
+      skClient.revokeUserRole(systemTenantName, system.getOwner(), roleNameR);
+      skClient.revokeUserRole(systemTenantName, effectiveUserId, roleNameR);
+      // Remove role assignments for other users
+      userNames = skClient.getUsersWithRole(systemTenantName, roleNameR);
+      for (String userName : userNames) skClient.revokeUserRole(systemTenantName, userName, roleNameR);
+      // Remove the role
+      skClient.deleteRoleByName(systemTenantName, roleNameR);
+    }
   }
 
   /**

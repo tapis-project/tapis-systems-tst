@@ -55,7 +55,7 @@ public class SystemsDaoTest
       dao.hardDeleteTSystem(tenantName, systems[i].getId());
     }
 
-    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId(), true);
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
   }
 
@@ -230,10 +230,10 @@ public class SystemsDaoTest
   @Test
   public void testChangeSystemOwner() throws Exception {
     TSystem sys0 = systems[7];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    System.out.println("Created item with id: " + itemId);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    dao.updateSystemOwner(authenticatedUser, itemId, "newOwner");
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
+    dao.updateSystemOwner(authenticatedUser, itemSeqId, "newOwner");
     TSystem tmpSystem = dao.getTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
@@ -242,12 +242,12 @@ public class SystemsDaoTest
   @Test
   public void testSoftDelete() throws Exception {
     TSystem sys0 = systems[8];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    System.out.println("Created item with id: " + itemId);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    int numDeleted = dao.softDeleteTSystem(authenticatedUser, itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
+    int numDeleted = dao.softDeleteTSystem(authenticatedUser, itemSeqId);
     Assert.assertEquals(numDeleted, 1);
-    numDeleted = dao.softDeleteTSystem(authenticatedUser, itemId);
+    numDeleted = dao.softDeleteTSystem(authenticatedUser, itemSeqId);
     Assert.assertEquals(numDeleted, 0);
     Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getId(), false ),
             "System not deleted. System name: " + sys0.getId());
@@ -257,9 +257,9 @@ public class SystemsDaoTest
   @Test
   public void testHardDelete() throws Exception {
     TSystem sys0 = systems[9];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    System.out.println("Created item with id: " + itemId);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
     dao.hardDeleteTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getId(), true),"System not deleted. System name: " + sys0.getId());
   }

@@ -24,7 +24,7 @@
     <envs>
       <env name="TAPIS_REQUEST_LOGGING_FILTER_PREFIXES" value="/v3/systems" />
       <env name="TAPIS_TENANT_SVC_BASEURL" value="https://admin.develop.tapis.io" />
-      <env name="TAPIS_SERVICE_PASSWORD" value="lwVkonzPnVgURqS4zge7mA" />
+      <env name="TAPIS_SERVICE_PASSWORD" value="zEaDwYdEtAFVP2TTEph27A" />
       <env name="TAPIS_DB_JDBC_URL" value="jdbc:postgresql://localhost:5432/tapissysdb" />
       <env name="TAPIS_DB_USER" value="tapis_sys" />
       <env name="TAPIS_DB_PASSWORD" value="password" />

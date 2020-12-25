@@ -147,11 +147,16 @@ public class SystemsServiceTest
   {
     System.out.println("Executing AfterSuite teardown for " + SystemsServiceTest.class.getSimpleName());
     // Remove non-owner permissions granted during the tests
-    svc.revokeUserPermissions(authenticatedOwnerUser1, systems[9].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
-    svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
-    svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser2, testPermsREADMODIFY, scrubbedJson);
-    svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
-    svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser2, testPermsREADMODIFY, scrubbedJson);
+    try { svc.revokeUserPermissions(authenticatedOwnerUser1, systems[9].getId(), testUser3, testPermsREADMODIFY, scrubbedJson); }
+    catch (Exception e) { }
+    try { svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser3, testPermsREADMODIFY, scrubbedJson); }
+    catch (Exception e) { }
+    try { svc.revokeUserPermissions(authenticatedOwnerUser1, systems[12].getId(), testUser2, testPermsREADMODIFY, scrubbedJson); }
+    catch (Exception e) { }
+    try { svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser3, testPermsREADMODIFY, scrubbedJson); }
+    catch (Exception e) { }
+    try { svc.revokeUserPermissions(authenticatedOwnerUser1, systems[14].getId(), testUser2, testPermsREADMODIFY, scrubbedJson); }
+    catch (Exception e) { }
 
     //Remove all objects created by tests
     for (int i = 0; i < numSystems; i++)

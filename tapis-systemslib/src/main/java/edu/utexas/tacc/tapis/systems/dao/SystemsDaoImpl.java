@@ -476,7 +476,19 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getTSystem(String tenant, String id) throws TapisException {
+  public TSystem getTSystem(String tenant, String id) throws TapisException
+  {
+    return getTSystem(tenant, id, false);
+  }
+
+  /**
+   * getSystem
+   * @param id - system name
+   * @return System object if found, null if not found
+   * @throws TapisException - on error
+   */
+  @Override
+  public TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
     // Initialize result.
     TSystem result = null;
 
@@ -487,9 +499,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      SystemsRecord r = db.selectFrom(SYSTEMS)
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false))
-              .fetchOne();
+      SystemsRecord r;
+      if (includeDeleted)
+        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne();
+      else
+        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false)).fetchOne();
       if (r == null) return null;
       else result = r.into(TSystem.class);
 

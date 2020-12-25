@@ -35,6 +35,8 @@ public interface SystemsDao
 
   TSystem getTSystem(String tenant, String id) throws TapisException;
 
+  TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
+
   int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs,
                        String sortBy, String sortDirection, String startAfter) throws TapisException;
 

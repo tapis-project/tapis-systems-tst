@@ -103,7 +103,7 @@ public class MatchConstraintsDaoTest
       dao.hardDeleteTSystem(tenantName, sys.getId());
     }
 
-    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId());
+    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId(), true);
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
   }
 
