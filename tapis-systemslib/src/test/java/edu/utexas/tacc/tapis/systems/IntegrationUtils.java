@@ -52,12 +52,12 @@ public final class IntegrationUtils
   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
-  public static final LogicalQueue queueA1 = new LogicalQueue("qA1", 1, 1, 1, 1, 1, 1);
-  public static final LogicalQueue queueB1 = new LogicalQueue("qB1", 2, 2, 2, 2, 2, 2);
-  public static final LogicalQueue queueC1 = new LogicalQueue("qC1", 3, 3, 3, 3, 3, 3);
+  public static final LogicalQueue queueA1 = new LogicalQueue("lqA1","hqA1", 1, 1, 1, 1, 1, 1);
+  public static final LogicalQueue queueB1 = new LogicalQueue("lqB1","hqB1", 2, 2, 2, 2, 2, 2);
+  public static final LogicalQueue queueC1 = new LogicalQueue("lqC1","hqC1", 3, 3, 3, 3, 3, 3);
   public static final List<LogicalQueue> queueList1 = new ArrayList<>(List.of(queueA1, queueB1, queueC1));
-  public static final LogicalQueue queueA2 = new LogicalQueue("qA2", 10, 10, 10, 10,10, 10);
-  public static final LogicalQueue queueB2 = new LogicalQueue("qB2", 20, 20, 20, 20,20, 20);
+  public static final LogicalQueue queueA2 = new LogicalQueue("lqA2","hqA2", 10, 10, 10, 10,10, 10);
+  public static final LogicalQueue queueB2 = new LogicalQueue("lqB2","hqB1", 20, 20, 20, 20,20, 20);
   public static final List<LogicalQueue> queueList2 = new ArrayList<>(List.of(queueA2, queueB2));
 
   public static final Capability capA = new Capability(Capability.Category.SCHEDULER, "Type",

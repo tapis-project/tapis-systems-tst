@@ -290,7 +290,7 @@ public class SystemsServiceTest
     TSystem tmpSys = svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false);
     Assert.assertEquals(tmpSys.getOwner(), newOwnerName);
     // Check expected auxiliary updates have happened
-    // New owner should be able to retrieve permissions and have the all permissions
+    // New owner should be able to retrieve permissions and have all permissions
     Set<Permission> userPerms = svc.getUserPermissions(authenticatedTestUser2, sys0.getId(), newOwnerName);
     Assert.assertNotNull(userPerms, "Null returned when retrieving perms.");
     for (Permission perm : Permission.values())

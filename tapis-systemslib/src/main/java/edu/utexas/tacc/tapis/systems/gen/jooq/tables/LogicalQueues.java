@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row9;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = -928377969;
+    private static final long serialVersionUID = -1222875122;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -61,6 +61,11 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
      * The column <code>tapis_sys.logical_queues.name</code>. Name of logical queue
      */
     public final TableField<LogicalQueuesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Name of logical queue");
+
+    /**
+     * The column <code>tapis_sys.logical_queues.hpc_name</code>. Name of the associated hpc queue
+     */
+    public final TableField<LogicalQueuesRecord, String> HPC_NAME = createField(DSL.name("hpc_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Name of the associated hpc queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_jobs</code>. Maximum total number of jobs that can be queued or running in this queue at a given time.
@@ -181,11 +186,11 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row9 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<Integer, Integer, String, Integer, Integer, Integer, Integer, Integer, Integer> fieldsRow() {
-        return (Row9) super.fieldsRow();
+    public Row10<Integer, Integer, String, String, Integer, Integer, Integer, Integer, Integer, Integer> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 }

@@ -22,9 +22,10 @@
   },
   "LogicalQueue": {
     "type": "object",
-    "required": [ "name" ],
+    "required": [ "name", "hpcName" ],
     "properties": {
       "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+      "hpcName": { "type": "string", "minLength": 1, "maxLength": 128 },
       "maxJobs": { "type": "integer" },
       "maxJobsPerUser": { "type": "integer" },
       "maxNodeCount": { "type": "integer" },

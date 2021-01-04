@@ -142,7 +142,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .fetchOne();
       seqId = record.getValue(SYSTEMS.SEQ_ID);
 
-      //TODO Persist batch logical queues
+      //TODO Persist job runtimes
 //      persistJobRuntimes(db, system, seqId);
 
       // Persist batch logical queues
@@ -1290,6 +1290,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     for (LogicalQueue queue : logicalQueues) {
       db.insertInto(LOGICAL_QUEUES).set(LOGICAL_QUEUES.SYSTEM_SEQ_ID, seqId)
               .set(LOGICAL_QUEUES.NAME, queue.getName())
+              .set(LOGICAL_QUEUES.HPC_NAME, queue.getHpcName())
               .set(LOGICAL_QUEUES.MAX_JOBS, queue.getMaxJobs())
               .set(LOGICAL_QUEUES.MAX_JOBS_PER_USER, queue.getMaxJobsPerUser())
               .set(LOGICAL_QUEUES.MAX_NODE_COUNT, queue.getMaxNodeCount())
