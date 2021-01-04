@@ -162,7 +162,7 @@ CREATE TABLE logical_queues
     seq_id SERIAL PRIMARY KEY,
     system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
     name     VARCHAR(128) NOT NULL DEFAULT '',
-    hpc_name VARCHAR(128) NOT NULL DEFAULT '',
+    hpc_queue_name VARCHAR(128) NOT NULL DEFAULT '',
     max_jobs INTEGER NOT NULL DEFAULT -1,
     max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
     max_node_count INTEGER NOT NULL DEFAULT -1,
@@ -175,7 +175,7 @@ ALTER TABLE logical_queues OWNER TO tapis_sys;
 COMMENT ON COLUMN logical_queues.seq_id IS 'Logical queue sequence id';
 COMMENT ON COLUMN logical_queues.system_seq_id IS 'Sequence id of system associated with the logical queue';
 COMMENT ON COLUMN logical_queues.name IS 'Name of logical queue';
-COMMENT ON COLUMN logical_queues.hpc_name IS 'Name of the associated hpc queue';
+COMMENT ON COLUMN logical_queues.hpc_queue_name IS 'Name of the associated hpc queue';
 COMMENT ON COLUMN logical_queues.max_jobs IS 'Maximum total number of jobs that can be queued or running in this queue at a given time.';
 COMMENT ON COLUMN logical_queues.max_jobs_per_user IS 'Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.';
 COMMENT ON COLUMN logical_queues.max_node_count IS 'Maximum number of nodes that can be requested when submitting a job to the queue.';

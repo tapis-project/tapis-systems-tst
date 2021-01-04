@@ -19,7 +19,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord> implements Record10<Integer, Integer, String, String, Integer, Integer, Integer, Integer, Integer, Integer> {
 
-    private static final long serialVersionUID = 488257409;
+    private static final long serialVersionUID = 1217893000;
 
     /**
      * Setter for <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
@@ -64,16 +64,16 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
     }
 
     /**
-     * Setter for <code>tapis_sys.logical_queues.hpc_name</code>. Name of the associated hpc queue
+     * Setter for <code>tapis_sys.logical_queues.hpc_queue_name</code>. Name of the associated hpc queue
      */
-    public void setHpcName(String value) {
+    public void setHpcQueueName(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>tapis_sys.logical_queues.hpc_name</code>. Name of the associated hpc queue
+     * Getter for <code>tapis_sys.logical_queues.hpc_queue_name</code>. Name of the associated hpc queue
      */
-    public String getHpcName() {
+    public String getHpcQueueName() {
         return (String) get(3);
     }
 
@@ -201,7 +201,7 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public Field<String> field4() {
-        return LogicalQueues.LOGICAL_QUEUES.HPC_NAME;
+        return LogicalQueues.LOGICAL_QUEUES.HPC_QUEUE_NAME;
     }
 
     @Override
@@ -251,7 +251,7 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public String component4() {
-        return getHpcName();
+        return getHpcQueueName();
     }
 
     @Override
@@ -301,7 +301,7 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public String value4() {
-        return getHpcName();
+        return getHpcQueueName();
     }
 
     @Override
@@ -354,7 +354,7 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
 
     @Override
     public LogicalQueuesRecord value4(String value) {
-        setHpcName(value);
+        setHpcQueueName(value);
         return this;
     }
 
@@ -423,13 +423,13 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
     /**
      * Create a detached, initialised LogicalQueuesRecord
      */
-    public LogicalQueuesRecord(Integer seqId, Integer systemSeqId, String name, String hpcName, Integer maxJobs, Integer maxJobsPerUser, Integer maxNodeCount, Integer maxCoresPerNode, Integer maxMemoryMb, Integer maxMinutes) {
+    public LogicalQueuesRecord(Integer seqId, Integer systemSeqId, String name, String hpcQueueName, Integer maxJobs, Integer maxJobsPerUser, Integer maxNodeCount, Integer maxCoresPerNode, Integer maxMemoryMb, Integer maxMinutes) {
         super(LogicalQueues.LOGICAL_QUEUES);
 
         set(0, seqId);
         set(1, systemSeqId);
         set(2, name);
-        set(3, hpcName);
+        set(3, hpcQueueName);
         set(4, maxJobs);
         set(5, maxJobsPerUser);
         set(6, maxNodeCount);
