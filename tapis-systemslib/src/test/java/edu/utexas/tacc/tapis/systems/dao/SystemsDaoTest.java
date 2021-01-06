@@ -64,16 +64,16 @@ public class SystemsDaoTest
   public void testCreate() throws Exception
   {
     TSystem sys0 = systems[0];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
   }
 
   // Test retrieving a single item
   @Test
   public void testGet() throws Exception {
     TSystem sys0 = systems[1];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
@@ -176,11 +176,11 @@ public class SystemsDaoTest
   public void testGetSystemNames() throws Exception {
     // Create 2 systems
     TSystem sys0 = systems[2];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     sys0 = systems[3];
-    itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     // Get all systems
     List<String> systemNames = dao.getTSystemNames(tenantName);
     for (String name : systemNames) {
@@ -194,8 +194,8 @@ public class SystemsDaoTest
   @Test
   public void testGetSystems() throws Exception {
     TSystem sys0 = systems[4];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     List<TSystem> systems = dao.getTSystems(tenantName, null, null, null, DEFAULT_LIMIT, DEFAULT_SORTBY,
                                             DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
@@ -206,24 +206,24 @@ public class SystemsDaoTest
   // Test retrieving all systems in a list of IDs
   @Test
   public void testGetSystemsInIDList() throws Exception {
-    var idList = new ArrayList<Integer>();
+    var seqIdList = new ArrayList<Integer>();
     // Create 2 systems
     TSystem sys0 = systems[5];
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    idList.add(itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
+    seqIdList.add(itemSeqId);
     sys0 = systems[6];
-    itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    idList.add(itemId);
-    // Get all systems in list of IDs
-    List<TSystem> systems = dao.getTSystems(tenantName, null, null, idList, DEFAULT_LIMIT, DEFAULT_SORTBY,
+    itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
+    seqIdList.add(itemSeqId);
+    // Get all systems in list of seqIDs
+    List<TSystem> systems = dao.getTSystems(tenantName, null, null, seqIdList, DEFAULT_LIMIT, DEFAULT_SORTBY,
                                             DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
-      Assert.assertTrue(idList.contains(system.getSeqId()));
+      Assert.assertTrue(seqIdList.contains(system.getSeqId()));
     }
-    Assert.assertEquals(idList.size(), systems.size());
+    Assert.assertEquals(seqIdList.size(), systems.size());
   }
 
   // Test change system owner
@@ -232,7 +232,7 @@ public class SystemsDaoTest
     TSystem sys0 = systems[7];
     int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
-    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     dao.updateSystemOwner(authenticatedUser, itemSeqId, "newOwner");
     TSystem tmpSystem = dao.getTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
@@ -244,7 +244,7 @@ public class SystemsDaoTest
     TSystem sys0 = systems[8];
     int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
-    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     int numDeleted = dao.softDeleteTSystem(authenticatedUser, itemSeqId);
     Assert.assertEquals(numDeleted, 1);
     numDeleted = dao.softDeleteTSystem(authenticatedUser, itemSeqId);
@@ -259,7 +259,7 @@ public class SystemsDaoTest
     TSystem sys0 = systems[9];
     int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId() + " seqId: " + itemSeqId);
-    Assert.assertTrue(itemSeqId > 0, "Invalid system id: " + itemSeqId);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     dao.hardDeleteTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(dao.checkForTSystem(sys0.getTenant(), sys0.getId(), true),"System not deleted. System name: " + sys0.getId());
   }
@@ -272,8 +272,8 @@ public class SystemsDaoTest
     sys0.setTransferMethods(txfrMethodsEmpty);
     sys0.setPort(-1);
     sys0.setProxyPort(-1);
-    int itemId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
     TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());

@@ -37,7 +37,6 @@ public final class TSystem
   public static final String OWNER_VAR = "${owner}";
   public static final String TENANT_VAR = "${tenant}";
   public static final String EFFUSERID_VAR = "${effectiveUserId}";
-  public static final String PERMS_WILDCARD = "*";
 
   // Default values
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
@@ -45,12 +44,10 @@ public final class TSystem
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
   public static final String[] DEFAULT_JOBENV_VARIABLES = new String[0];
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
-  public static final String DEFAULT_TAGS_STR = "{}";
   public static final String[] DEFAULT_TAGS = new String[0];
   public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
   public static final String EMPTY_TRANSFER_METHODS_STR = "{}";
   public static final String[] EMPTY_STR_ARRAY = {};
-  public static final String DEFAULT_TRANSFER_METHODS_STR = EMPTY_TRANSFER_METHODS_STR;
   public static final int DEFAULT_PORT = -1;
   public static final boolean DEFAULT_USEPROXY = false;
   public static final String DEFAULT_PROXYHOST = "";
@@ -207,7 +204,7 @@ public final class TSystem
 
   /**
    * Copy constructor. Returns a deep copy of a TSystem object.
-   * Make defensive copies as needed. Note Credential is immutable so no need for copy.
+   * The getters make defensive copies as needed. Note Credential is immutable so no need for copy.
    */
   public TSystem(TSystem t)
   {
@@ -227,7 +224,7 @@ public final class TSystem
     authnCredential = t.getAuthnCredential();
     bucketName = t.getBucketName();
     rootDir = t.getRootDir();
-    transferMethods =  (t.getTransferMethods() == null) ? null : new ArrayList<>(t.getTransferMethods());
+    transferMethods =  t.getTransferMethods();
     port = t.getPort();
     useProxy = t.isUseProxy();
     proxyHost = t.getProxyHost();
@@ -237,16 +234,16 @@ public final class TSystem
     dtnMountSourcePath = t.dtnMountSourcePath;
     isDtn = t.getIsDtn();
     canExec = t.getCanExec();
-    jobRuntimes = (t.getJobRuntimes() == null) ? null :  new ArrayList<>(t.getJobRuntimes());
+    jobRuntimes = t.getJobRuntimes();
     jobWorkingDir = t.getJobWorkingDir();
-    jobEnvVariables = (t.getJobEnvVariables() == null) ? DEFAULT_JOBENV_VARIABLES : t.getJobEnvVariables().clone();
+    jobEnvVariables = t.getJobEnvVariables();
     jobMaxJobs = t.getJobMaxJobs();
     jobMaxJobsPerUser = t.getJobMaxJobsPerUser();
     jobIsBatch = t.getJobIsBatch();
     batchScheduler = t.getBatchScheduler();
-    batchLogicalQueues = (t.getBatchLogicalQueues() == null) ? null :  new ArrayList<>(t.getBatchLogicalQueues());
+    batchLogicalQueues = t.getBatchLogicalQueues();
     batchDefaultLogicalQueue = t.getBatchDefaultLogicalQueue();
-    jobCapabilities = (t.getJobCapabilities() == null) ? null :  new ArrayList<>(t.getJobCapabilities());
+    jobCapabilities = t.getJobCapabilities();
     tags = (t.getTags() == null) ? DEFAULT_TAGS : t.getTags().clone();
     notes = t.getNotes();
     importRefId = t.getImportRefId();

@@ -80,7 +80,7 @@ public class SystemsServiceTest
                                                          Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "128");
   private static final Capability capC2 = new Capability(Category.SOFTWARE, "OpenMP",
                                                          Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
-  private static final List<Capability> cap2List = new ArrayList<>(List.of(capA2, capB2, capC2));
+  private static final List<Capability> capList2 = new ArrayList<>(List.of(capA2, capB2, capC2));
 
   List<String> searchListNull = null;
   int limit = -1;
@@ -177,11 +177,11 @@ public class SystemsServiceTest
   }
 
   // Create a system using minimal attributes:
-  //   name, systemType, host, defaultAuthnMethod, canExec
+  //   id, systemType, host, defaultAuthnMethod, canExec
   @Test
   public void testCreateSystemMinimal() throws Exception
   {
-    TSystem sys0 = systems[11];
+    TSystem sys0 = makeMinimalSystem(systems[11]);
     int itemId = svc.createSystem(authenticatedOwnerUser1, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
   }
@@ -238,7 +238,7 @@ public class SystemsServiceTest
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
-            cap2List, tags2, notes2);
+            capList2, tags2, notes2);
     patchSystem.setId(sys0.getId());
     patchSystem.setTenant(tenantName);
     int itemId = svc.createSystem(authenticatedOwnerUser1, sys0, createText);
@@ -257,7 +257,7 @@ public class SystemsServiceTest
 //          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 //          tags2, notes2, false, null, null);
     // Update original system definition with patched values
-    sys0.setJobCapabilities(cap2List);
+    sys0.setJobCapabilities(capList2);
     sys0.setDescription("description PATCHED");
     sys0.setHost("hostPATCHED");
     sys0.setEnabled(false);
@@ -634,7 +634,7 @@ public class SystemsServiceTest
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
-            cap2List, tags2, notes2);
+            capList2, tags2, notes2);
     patchSys.setId(sys0.getId());
     patchSys.setTenant(tenantName);
     // CREATE - Deny user not owner/admin, deny service

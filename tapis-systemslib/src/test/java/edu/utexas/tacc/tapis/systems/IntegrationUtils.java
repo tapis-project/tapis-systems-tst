@@ -119,6 +119,21 @@ public final class IntegrationUtils
     return systems;
   }
 
+  /**
+   * Create a TSystem in memory with minimal attributes set based on TSystem given
+   *   id, systemType, host, defaultAuthnMethod, canExec
+   * NOTE: many args to contructer are primitives so cannot be set to null.
+   */
+  public static TSystem makeMinimalSystem(TSystem tSys)
+  {
+    return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
+              "hostMinimal", isEnabled, null, tSys.getDefaultAuthnMethod(), null, null,
+              null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
+              null, null, null, isDtn,
+              canExec, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
+              null, null, null, null, null, isDeleted, null, null);
+  }
+
   public static String getSysName(String key, int idx)
   {
     String suffix = key + "_" + String.format("%03d", idx);
