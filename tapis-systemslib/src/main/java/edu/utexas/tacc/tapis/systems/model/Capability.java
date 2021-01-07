@@ -45,11 +45,11 @@ public final class Capability
   /*                           Constructors                                 */
   /* ********************************************************************** */
   // Constructor initializing all fields.
-  public Capability(int id1, int systemid1, Category category1, String name1,
+  public Capability(int seqId1, int systemSeqId1, Category category1, String name1,
                     Datatype datatype1, int precedence1, String value1)
   {
-    seqId = id1;
-    systemSeqId = systemid1;
+    seqId = seqId1;
+    systemSeqId = systemSeqId1;
     category = category1;
     name = name1;
     datatype = datatype1;

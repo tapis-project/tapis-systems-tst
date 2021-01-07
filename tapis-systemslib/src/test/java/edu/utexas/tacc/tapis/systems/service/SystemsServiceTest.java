@@ -16,6 +16,7 @@ import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Capability.Category;
 import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 import edu.utexas.tacc.tapis.systems.model.Credential;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
@@ -205,9 +206,14 @@ public class SystemsServiceTest
     sys0.setAuthnCredential(cred0);
     int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    // Retrieve system as owner, without and with requireExecPerm
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    checkCommonSysAttrs(sys0, tmpSys);
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, true);
+    checkCommonSysAttrs(sys0, tmpSys);
     // Retrieve the system including the credential using the default authn method defined for the system
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    TSystem tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getId(), true, null, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getId(), true, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
     // Verify credentials. Only cred for default authnMethod is returned. In this case PKI_KEYS.
     Credential cred = tmpSys.getAuthnCredential();
@@ -1015,6 +1021,19 @@ public class SystemsServiceTest
     {
       Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
               "List of capabilities did not contain a capability named: " + capSeedItem.getName());
+    }
+    // Verify jobRuntimes
+    List<JobRuntime> origRuntimes = sys0.getJobRuntimes();
+    List<JobRuntime> jobRuntimes = tmpSys.getJobRuntimes();
+    Assert.assertNotNull(origRuntimes, "Orig Runtimes was null");
+    Assert.assertNotNull(jobRuntimes, "Fetched Runtimes was null");
+    Assert.assertEquals(jobRuntimes.size(), origRuntimes.size());
+    var runtimeVersionsFound = new ArrayList<String>();
+    for (JobRuntime runtimeFound : jobRuntimes) {runtimeVersionsFound.add(runtimeFound.getVersion());}
+    for (JobRuntime runtimeSeedItem : origRuntimes)
+    {
+      Assert.assertTrue(runtimeVersionsFound.contains(runtimeSeedItem.getVersion()),
+              "List of jobRuntimes did not contain a runtime with version: " + runtimeSeedItem.getVersion());
     }
   }
 }

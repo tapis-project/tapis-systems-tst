@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -142,8 +143,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .fetchOne();
       seqId = record.getValue(SYSTEMS.SEQ_ID);
 
-      //TODO Persist job runtimes
-//      persistJobRuntimes(db, system, seqId);
+      // Persist job runtimes
+      persistJobRuntimes(db, system, seqId);
 
       // Persist batch logical queues
       persistLogicalQueues(db, system, seqId);
@@ -510,8 +511,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
       //       in one call which should improve performance.
 
-      // TODO: Retrieve and set jobRuntimes
-//      result.setJobRuntimes(retrieveJobRuntimes(db, result.getSeqId()));
+      // Retrieve and set jobRuntimes
+      result.setJobRuntimes(retrieveJobRuntimes(db, result.getSeqId()));
 
       // Retrieve and set batch logical queues
       result.setBatchLogicalQueues(retrieveLogicalQueues(db, result.getSeqId()));
@@ -764,7 +765,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       for (SystemsRecord r : results)
       {
         TSystem s = r.into(TSystem.class);
-        // TODO s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
+        s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
         s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getSeqId()));
         s.setJobCapabilities(retrieveJobCaps(db, s.getSeqId()));
         retList.add(s);
@@ -1325,6 +1326,21 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * Persist job runtimes given an sql connection and a system
+   */
+  private static void persistJobRuntimes(DSLContext db, TSystem tSystem, int seqId)
+  {
+    var jobRuntimes = tSystem.getJobRuntimes();
+    if (jobRuntimes == null || jobRuntimes.isEmpty()) return;
+    for (JobRuntime runtime : jobRuntimes) {
+      db.insertInto(JOB_RUNTIMES).set(JOB_RUNTIMES.SYSTEM_SEQ_ID, seqId)
+            .set(JOB_RUNTIMES.RUNTIME_TYPE, runtime.getRuntimeType())
+            .set(JOB_RUNTIMES.VERSION, runtime.getVersion())
+              .execute();
+    }
+  }
+
+  /**
    * Get batch logical queues for a system from an auxiliary table
    * @param db - DB connection
    * @param seqId - system
@@ -1346,6 +1362,18 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     List<Capability> capRecords = db.selectFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).fetchInto(Capability.class);
     return capRecords;
+  }
+
+  /**
+   * Get jobRuntimes for a system from an auxiliary table
+   * @param db - DB connection
+   * @param seqId - system
+   * @return list of runtimes
+   */
+  private static List<JobRuntime> retrieveJobRuntimes(DSLContext db, int seqId)
+  {
+    List<JobRuntime> jobRuntimes = db.selectFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).fetchInto(JobRuntime.class);
+    return jobRuntimes;
   }
 
   /**
@@ -1852,7 +1880,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     for (SystemsRecord r : results)
     {
       TSystem s = r.into(TSystem.class);
-      // TODO s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
+      s.setJobRuntimes(retrieveJobRuntimes(db, s.getSeqId()));
       s.setBatchLogicalQueues(retrieveLogicalQueues(db, s.getSeqId()));
       s.setJobCapabilities(retrieveJobCaps(db, s.getSeqId()));
       retList.add(s);

@@ -11,44 +11,28 @@
       "type": "object",
       "required": ["id", "name", "resourceType", "resource"],
       "properties": {
+        "schemaVersion": { "type": "string" },
         "id": { "$ref": "#/definitions/resourceId" },
         "name": { "$ref": "#/definitions/resourceName" },
         "description": { "type": "string", "maxLength": 2048 },
-        "resourceType": { "$ref": "#/definitions/resourceTypeDefinition" },
-        "resource": {
-          "oneOf": [
-            { "$ref": "#/definitions/storageDefinition" },
-            { "$ref": "#/definitions/computeDefinition" }
-          ]
-        },
-        "hosts": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/hostDefinition" }
-        },
-        "connections": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/connectionDefinition" }
-        }
-      }
+        "resourceType": { "type": "string", "enum": ["STORAGE","COMPUTE"] }
+      },
+      "resource": {
+        "oneOf": [
+          { "$ref": "#/definitions/storageDefinition" },
+          { "$ref": "#/definitions/computeDefinition" }
+        ]
+      },
+      "host": { "$ref": "#/definitions/hostNameDefinition" },
+      "connection": { "$ref": "#/definitions/connectionDefinition" }
     }
   },
 
   "definitions": {
-    "resourceId": { "type": "string", "minLength": 1, "maxLength": 80 },
-    "resourceName": { "type": "string", "minLength": 1, "maxLength": 80 },
-    "resourceTypeDefinition": { "type": "string", "enum": ["STORAGE","COMPUTE"] },
+    "resourceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "resourceName": { "type": "string", "minLength": 1, "maxLength": 256 },
     "hostNameDefinition": { "type": "string", "minLength": 1, "maxLength": 256 },
-    "dirPath": { "type": "string", "minLength": 1, "maxLength": 4096 },
-    "memorySizeSpec": { "type": "string" },
-    "hostDefinition": {
-      "type": "object",
-      "oneOf": [ { "required": ["hostname"] }, { "required": ["ip"] } ],
-      "properties": {
-        "hostname": { "$ref": "#/definitions/hostNameDefinition" },
-        "ip": { "type":  "string" },
-        "priority": { "type":  "integer" }
-      }
-    },
+    "dirPath": { "type": "string", "minLength": 1, "maxLength": 1024 },
     "connectionDefinition": {
       "type": "object",
       "required": ["connectionProtocol","securityProtocol"],
@@ -62,21 +46,18 @@
     },
     "storageDefinition": {
       "type": "object",
-      "required": ["storageType", "fileSystems"],
+      "required": ["storageType", "fileSystem"],
       "properties": {
         "storageType": { "type": "string", "enum": ["POSIX","S3","OBJECT_STORE"] },
         "connection": { "$ref": "#/definitions/connectionDefinition" },
-        "fileSystems":  {
-          "type": "array",
-          "items": { "$ref": "#/definitions/fileSystemDefinition" }
-        },
+        "fileSystem":  { "$ref": "#/definitions/fileSystemDefinition" },
         "capacity": {
           "type": "object",
           "properties": {
             "totalBytes": { "type":  "integer"}
           }
         },
-        "quota": {
+        "defaultQuota": {
           "type": "object",
           "properties": {
             "bytesPerUser": { "type": "integer" }
@@ -97,11 +78,12 @@
     "computeDefinition": {
       "type": "object",
       "oneOf": [
-        { "required": ["schedulerType","batchSystem"] },
-        { "required": ["schedulerType","forkSystem"] }
+        { "required": ["schedulerType","storageResource","batchSystem"] },
+        { "required": ["schedulerType","storageResource","forkSystem"] }
       ],
       "properties": {
         "schedulerType": { "type": "string", "enum": ["FORK", "BATCH", "ON_DEMAND"] },
+        "storageResource": { "$ref": "#/definitions/storageDefinition" },
         "connection": { "$ref": "#/definitions/connectionDefinition" },
         "executionCommands": {
           "type": "array",
@@ -140,9 +122,10 @@
     },
     "commandPathDefinition": {
       "type": "object",
-      "required": ["name"],
+      "required": ["name", "path"],
       "properties": {
-        "name": { "type": "string", "examples": ["SUBMISSION","JOB_MONITORING","DELETION","CHECK_JOB","SHOW_QUEUE","SHOW_RESERVATION","SHOW_START"]}
+        "name": { "type": "string", "examples": ["SUBMISSION","JOB_MONITORING","DELETION","CHECK_JOB","SHOW_QUEUE","SHOW_RESERVATION","SHOW_START"]},
+        "path": { "type": "string" }
       }
     },
     "partitionDefinition": {
@@ -159,7 +142,7 @@
             "maxJobsPerUser": { "type": "integer" },
             "maxNodesPerJob": { "type": "integer" },
             "maxTimePerJob": { "type": "integer" },
-            "maxMemoryPerJob": { "$ref": "#/definitions/memorySizeSpec" },
+            "maxMemoryPerJob": { "type": "string" },
             "maxCPUsPerJob": { "type": "integer" },
             "maxGPUsPerJob": { "type": "integer" }
           }
@@ -170,7 +153,7 @@
       "type": "object",
       "required": ["systemType"],
       "properties": {
-        "systemType": { "type": "string", "enum": ["Linux", "Windows"] },
+        "systemType": { "type": "string", "enum": ["LINUX", "WINDOWS"] },
         "version": { "type": "string" },
         "nodeHardware": { "$ref": "#/definitions/nodeHardwareDefinition" }
       }
@@ -178,12 +161,12 @@
     "nodeHardwareDefinition": {
       "type": "object",
       "properties": {
-        "cpuType": { "type": "string" },
+        "cpuType": { "type": "string", "examples": ["Haswell CPUs @ 2.60GHz","Intel Xeon-E5"] },
         "cpuCount": { "type": "integer"},
-        "gpuType": { "type": "string" },
+        "gpuType": { "type": "string", "examples": ["NVIDIA Tesla P100","NVIDIA Tesla M2090"] },
         "gpuCount": { "type": "integer"},
         "memoryType": { "type": "string" },
-        "memorySize": { "$ref": "#/definitions/memorySizeSpec" }
+        "memorySize": { "type": "string", "examples": ["64 GB"] }
       }
     }
   }

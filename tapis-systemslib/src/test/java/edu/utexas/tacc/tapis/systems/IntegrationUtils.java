@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
@@ -52,6 +53,9 @@ public final class IntegrationUtils
   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
+  public static final JobRuntime runtimeA1 = new JobRuntime(JobRuntime.RuntimeType.DOCKER, "0.0.1A1");
+  public static final JobRuntime runtimeB1 = new JobRuntime(JobRuntime.RuntimeType.SINGULARITY, "0.0.1B1");
+  public static final List<JobRuntime> runtimeList1 = new ArrayList<>(List.of(runtimeA1, runtimeB1));
   public static final LogicalQueue queueA1 = new LogicalQueue("lqA1","hqA1", 1, 1, 1, 1, 1, 1);
   public static final LogicalQueue queueB1 = new LogicalQueue("lqB1","hqB1", 2, 2, 2, 2, 2, 2);
   public static final LogicalQueue queueC1 = new LogicalQueue("lqC1","hqC1", 3, 3, 3, 3, 3, 3);
@@ -113,6 +117,7 @@ public final class IntegrationUtils
               dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtn,
               canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
               "batchScheduler"+suffix, queueA1.getName(), tags, notes, importRefId , isDeleted, created, updated);
+      systems[i].setJobRuntimes(runtimeList1);
       systems[i].setBatchLogicalQueues(queueList1);
       systems[i].setJobCapabilities(capList1);
     }
@@ -122,7 +127,7 @@ public final class IntegrationUtils
   /**
    * Create a TSystem in memory with minimal attributes set based on TSystem given
    *   id, systemType, host, defaultAuthnMethod, canExec
-   * NOTE: many args to contructer are primitives so cannot be set to null.
+   * NOTE: many args to constructor are primitives so cannot be set to null.
    */
   public static TSystem makeMinimalSystem(TSystem tSys)
   {

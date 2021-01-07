@@ -5,6 +5,7 @@ import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
@@ -156,19 +157,19 @@ public class SystemsDaoTest
       Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
               "List of capabilities did not contain a capability named: " + capSeedItem.getName());
     }
-// TODO   // Verify jobRuntimes
-//    List<Capability> origCaps = sys0.getJobCapabilities();
-//    List<Capability> jobCaps = tmpSys.getJobCapabilities();
-//    Assert.assertNotNull(origCaps, "Orig Caps was null");
-//    Assert.assertNotNull(jobCaps, "Fetched Caps was null");
-//    Assert.assertEquals(jobCaps.size(), origCaps.size());
-//    var capNamesFound = new ArrayList<String>();
-//    for (Capability capFound : jobCaps) {capNamesFound.add(capFound.getName());}
-//    for (Capability capSeedItem : origCaps)
-//    {
-//      Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
-//              "List of capabilities did not contain a capability named: " + capSeedItem.getName());
-//    }
+    // Verify jobRuntimes
+    List<JobRuntime> origRuntimes = sys0.getJobRuntimes();
+    List<JobRuntime> jobRuntimes = tmpSys.getJobRuntimes();
+    Assert.assertNotNull(origRuntimes, "Orig Runtimes was null");
+    Assert.assertNotNull(jobRuntimes, "Fetched Runtimes was null");
+    Assert.assertEquals(jobRuntimes.size(), origRuntimes.size());
+    var runtimeVersionsFound = new ArrayList<String>();
+    for (JobRuntime runtimeFound : jobRuntimes) {runtimeVersionsFound.add(runtimeFound.getVersion());}
+    for (JobRuntime runtimeSeedItem : origRuntimes)
+    {
+      Assert.assertTrue(runtimeVersionsFound.contains(runtimeSeedItem.getVersion()),
+              "List of jobRuntimes did not contain a runtime with version: " + runtimeSeedItem.getVersion());
+    }
   }
 
   // Test retrieving all system names
