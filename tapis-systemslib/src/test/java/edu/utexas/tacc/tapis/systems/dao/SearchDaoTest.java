@@ -91,7 +91,7 @@ public class SearchDaoTest
     // Vary port # for checking numeric relational searches
     for (int i = 0; i < numSystems; i++) { systems[i].setPort(i+1); }
     // For half the systems change the owner
-    for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(ownerUser2); }
+    for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(owner2); }
 
     // For one system update description to have some special characters. 7 special chars in value: ,()~*!\
     //   and update jobWorkingDir for testing an escaped comma in a list value
@@ -156,8 +156,8 @@ public class SearchDaoTest
     validCaseInputs.put(6, new CaseData(1, Arrays.asList("job_working_dir.eq." + sys0.getJobWorkingDir())));
     validCaseInputs.put(7, new CaseData(1, Arrays.asList("batch_scheduler.eq." + sys0.getBatchScheduler())));
     validCaseInputs.put(8, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "batch_default_logical_queue.eq." + sys0.getBatchDefaultLogicalQueue())));
-    validCaseInputs.put(10, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + ownerUser1)));  // Half owned by one user
-    validCaseInputs.put(11, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + ownerUser2))); // and half owned by another
+    validCaseInputs.put(10, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + owner1)));  // Half owned by one user
+    validCaseInputs.put(11, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + owner2))); // and half owned by another
     validCaseInputs.put(12, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true")));  // All are enabled
     validCaseInputs.put(13, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "deleted.eq.false"))); // none are deleted
     validCaseInputs.put(14, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "deleted.neq.true"))); // none are deleted
@@ -169,7 +169,7 @@ public class SearchDaoTest
     validCaseInputs.put(20, new CaseData(1, Arrays.asList("id.like." + sysNameLikeAll, "id.in." + nameList)));
     validCaseInputs.put(21, new CaseData(numSystems - 1, Arrays.asList("id.like." + sysNameLikeAll, "id.nin." + nameList)));
     validCaseInputs.put(22, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "system_type.eq.LINUX")));
-    validCaseInputs.put(23, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "system_type.eq.LINUX", "owner.neq." + ownerUser2)));
+    validCaseInputs.put(23, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "system_type.eq.LINUX", "owner.neq." + owner2)));
     // Test numeric relational
     validCaseInputs.put(40, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "port.between.1," + numSystems / 2)));
     validCaseInputs.put(41, new CaseData(numSystems / 2 - 1, Arrays.asList("id.like." + sysNameLikeAll, "port.between.2," + numSystems / 2)));

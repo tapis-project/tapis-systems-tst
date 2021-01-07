@@ -90,7 +90,7 @@ public class SearchASTDaoTest
     // Vary port # for checking numeric relational searches
     for (int i = 0; i < numSystems; i++) { systems[i].setPort(i+1); }
     // For half the systems change the owner
-    for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(ownerUser2); }
+    for (int i = 0; i < numSystems/2; i++) { systems[i].setOwner(owner2); }
 
     // For one system update description to have some special characters. 7 special chars in value: ,()~*!\
     //   and update workingDir for testing an escaped comma in a list value
@@ -145,8 +145,8 @@ public class SearchASTDaoTest
     validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sys0.getJobWorkingDir()));
     validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sys0.getBatchScheduler()));
     validCaseInputs.put( 8,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + "AND batch_default_logical_queue = " + sys0.getBatchDefaultLogicalQueue()));
-    validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser1)));  // Half owned by one user
-    validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(ownerUser2))); // and half owned by another
+    validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner1)));  // Half owned by one user
+    validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner2))); // and half owned by another
     validCaseInputs.put(12,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled
     validCaseInputs.put(13,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted = false")); // none are deleted
     validCaseInputs.put(14,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted <> true")); // none are deleted
