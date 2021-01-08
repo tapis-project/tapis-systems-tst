@@ -40,7 +40,7 @@ public final class IntegrationUtils
 //  public static final KeyValuePair kv1 = new KeyValuePair("a","b");
 //  public static final KeyValuePair kv2 = new KeyValuePair("HOME","/home/testuser2");
 //  public static final KeyValuePair kv3 = new KeyValuePair("TMP","/tmp");
-//  public static final List<KeyValueString> jobEnvVariables = new ArrayList<>(List.of(kv1,kv2,kv3));
+//  public static final List<KeyValuePair> jobEnvVariables = new ArrayList<>(List.of(kv1,kv2,kv3));
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
   public static final boolean jobIsBatch = true;
   public static final int jobMaxJobs = -1;

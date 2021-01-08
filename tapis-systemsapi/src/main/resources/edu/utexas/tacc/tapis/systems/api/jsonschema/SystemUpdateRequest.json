@@ -25,7 +25,7 @@
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
     "jobEnvVariables": {
       "type": "array",
-      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/KeyValueString" }
+      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/KeyValuePair" }
     },
     "jobMaxJobs": { "type": "integer" },
     "jobMaxJobsPerUser": { "type": "integer" },

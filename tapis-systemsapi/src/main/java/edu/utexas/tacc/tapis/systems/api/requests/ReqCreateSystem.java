@@ -3,7 +3,7 @@ package edu.utexas.tacc.tapis.systems.api.requests;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
-import edu.utexas.tacc.tapis.systems.api.utils.KeyValueString;
+import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
@@ -52,7 +52,7 @@ public final class ReqCreateSystem
   public boolean isDtn;
   public boolean canExec; // Indicates if system will be used to execute jobs
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
-  public List<KeyValueString> jobEnvVariables = ApiUtils.getKeyValuesAsList(DEFAULT_JOBENV_VARIABLES);
+  public List<KeyValuePair> jobEnvVariables = ApiUtils.getKeyValuesAsList(DEFAULT_JOBENV_VARIABLES);
   public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
   public int jobMaxJobsPerUser = DEFAULT_JOBMAXJOBSPERUSER;
   public boolean jobIsBatch;

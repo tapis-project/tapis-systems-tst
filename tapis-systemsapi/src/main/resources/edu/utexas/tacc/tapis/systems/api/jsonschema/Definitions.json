@@ -12,7 +12,7 @@
   "TransferMethodEnum": { "type": "string", "enum": ["SFTP","S3"] },
   "AuthnMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
 
-  "KeyValueString": {
+  "KeyValuePair": {
     "type": "object",
     "required": [ "key" ],
     "properties": {

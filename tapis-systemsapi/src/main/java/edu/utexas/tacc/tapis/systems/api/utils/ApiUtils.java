@@ -199,21 +199,21 @@ public class ApiUtils
   }
 
   /**
-   * Return String[] array of jobEnvVariables given list of KeyValueString
+   * Return String[] array of jobEnvVariables given list of KeyValuePair
    */
-  public static String[] getKeyValuesAsArray(List<KeyValueString> kvList)
+  public static String[] getKeyValuesAsArray(List<KeyValuePair> kvList)
   {
     if (kvList == null || kvList.size() == 0) return TSystem.EMPTY_STR_ARRAY;
-    return kvList.stream().map(KeyValueString::toString).toArray(String[]::new);
+    return kvList.stream().map(KeyValuePair::toString).toArray(String[]::new);
   }
 
   /**
-   * Return list of KeyValueString given String[] array of jobEnvVariables given
+   * Return list of KeyValuePair given String[] array of jobEnvVariables given
    */
-  public static List<KeyValueString> getKeyValuesAsList(String[] kvArray)
+  public static List<KeyValuePair> getKeyValuesAsList(String[] kvArray)
   {
     if (kvArray == null || kvArray.length == 0) return Collections.emptyList();
-    List<KeyValueString> kvList = Arrays.stream(kvArray).map(KeyValueString::fromString).collect(Collectors.toList());
+    List<KeyValuePair> kvList = Arrays.stream(kvArray).map(KeyValuePair::fromString).collect(Collectors.toList());
     return kvList;
   }
 }

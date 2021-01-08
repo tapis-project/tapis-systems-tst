@@ -3,7 +3,7 @@ package edu.utexas.tacc.tapis.systems.api.responses.results;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
-import edu.utexas.tacc.tapis.systems.api.utils.KeyValueString;
+import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
@@ -40,7 +40,7 @@ public final class ResultSystem
   public boolean isDtn;
   public boolean canExec;
   public String jobWorkingDir;
-  public List<KeyValueString> jobEnvVariables;
+  public List<KeyValuePair> jobEnvVariables;
   public int jobMaxJobs;
   public int jobMaxJobsPerUser;
   public boolean jobIsBatch;
@@ -59,7 +59,7 @@ public final class ResultSystem
 
   public ResultSystem(TSystem s)
   {
-    // Convert jobEnvVariables from array of "key=value" to list of KeyValueString
+    // Convert jobEnvVariables from array of "key=value" to list of KeyValuePair
     jobEnvVariables = ApiUtils.getKeyValuesAsList(s.getJobEnvVariables());
     // All other attributes come directly from TSystem
     seqId = s.getSeqId();
