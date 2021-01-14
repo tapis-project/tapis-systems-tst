@@ -659,6 +659,14 @@ public class SystemsServiceImpl implements SystemsService
 
     TSystem result = dao.getTSystem(systemTenantName, systemId);
     if (result == null) return null;
+
+    // If flag is set to also require EXECUTE perm then system must support execute
+    if (requireExecPerm && !result.getCanExec())
+    {
+      String msg = LibUtils.getMsgAuth("SYSLIB_NOTEXEC", authenticatedUser, systemId, op.name());
+      throw new NotAuthorizedException(msg);
+    }
+
     // Resolve effectiveUserId
     String resolvedEffectiveUserId = resolveEffectiveUserId(result.getEffectiveUserId(), result.getOwner(), apiUserId);
     result.setEffectiveUserId(resolvedEffectiveUserId);
