@@ -38,7 +38,7 @@
     "type": "object",
     "required": [ "runtimeType" ],
     "properties": {
-      "runtimeType": { "type": "string", "enum": ["DOCKER","SINGULARTIY"] },
+      "runtimeType": { "type": "string", "enum": ["DOCKER","SINGULARITY"] },
       "version": { "type": "string" }
     }
   },

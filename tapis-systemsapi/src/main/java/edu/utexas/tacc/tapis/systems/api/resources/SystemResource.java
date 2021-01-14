@@ -36,6 +36,7 @@ import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqImportSGCIResource;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSGCISystem;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
@@ -1199,7 +1200,6 @@ public class SystemResource
 
   /**
    * Create a TSystem from a ReqCreateSystem
-   * TODO add jobRuntimes
    */
   private static TSystem createTSystemFromRequest(ReqCreateSystem req)
   {
@@ -1210,10 +1210,10 @@ public class SystemResource
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
-                       req.batchDefaultLogicalQueue, req.tags, req.notes, req.refImportId, false, null, null);
+                       req.batchDefaultLogicalQueue, req.tags, req.notes, req.importRefId, false, null, null);
     tSystem.setAuthnCredential(req.authnCredential);
     tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
-//TODO    tSystem.setJobRuntimes(req.jobRuntimes);
+    tSystem.setJobRuntimes(req.jobRuntimes);
     tSystem.setJobCapabilities(req.jobCapabilities);
     return tSystem;
   }
@@ -1239,11 +1239,17 @@ public class SystemResource
   }
 
   /**
-   * Fill in defaults and check constraints on TSystem attributes
+   * Fill in defaults and check restrictions on TSystem attributes
    * Check values. systemId, host, authnMethod must be set. effectiveUserId is restricted.
+   * If type is OBJECT_STORE then bucketName must be set and canExec must be false.
    * If transfer mechanism S3 is supported then bucketName must be set.
+   * If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
+   * TODO: If isDtn is true then canExec must be false and the following attributes may not be set:
+   *       dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+   * TODO: If jobIsBatch is true then batchScheduler must be specified
+   * TODO: If jobIsBatch is true and batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
    * Collect and report as many errors as possible so they can all be fixed before next attempt
-   * NOTE: JsonSchema validation should handle some of these checks but we check here again just in case
+   * NOTE: JsonSchema validation should handle some of these checks but we check here again for robustness.
    *
    * @return null if OK or error Response
    */
@@ -1257,6 +1263,8 @@ public class SystemResource
     String id = tSystem1.getId();
     String msg;
     var errMessages = new ArrayList<String>();
+
+    // Id, type, host and defaultAuthn must be set
     if (StringUtils.isBlank(tSystem1.getId()))
     {
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", ID_FIELD);
@@ -1277,27 +1285,59 @@ public class SystemResource
       msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", DEFAULT_AUTHN_METHOD_FIELD);
       errMessages.add(msg);
     }
+
+    // For CERT authn the effectiveUserId cannot be static string other than owner
     if (tSystem1.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
             !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
             !effectiveUserId.equals(TSystem.OWNER_VAR) &&
             !StringUtils.isBlank(owner) &&
             !effectiveUserId.equals(owner))
     {
-      // For CERT authn the effectiveUserId cannot be static string other than owner
       msg = ApiUtils.getMsg("SYSAPI_INVALID_EFFECTIVEUSERID_INPUT");
       errMessages.add(msg);
     }
+
+    // If type is OBJECT_STORE then bucketName must be set
+    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && StringUtils.isBlank(tSystem1.getBucketName()))
+    {
+      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_NOBUCKET_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If type is OBJECT_STORE then canExec must be false
+    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && tSystem1.getCanExec())
+    {
+      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_CANEXEC_INPUT");
+      errMessages.add(msg);
+    }
+
+    // For S3 support bucketName must be set
     if (tSystem1.getTransferMethods() != null &&
             tSystem1.getTransferMethods().contains(TransferMethod.S3) && StringUtils.isBlank(tSystem1.getBucketName()))
     {
-      // For S3 support bucketName must be set
       msg = ApiUtils.getMsg("SYSAPI_S3_NOBUCKET_INPUT");
       errMessages.add(msg);
     }
+
+    // If effectiveUserId is dynamic then providing credentials is disallowed
     if (tSystem1.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
     {
-      // If effectiveUserId is dynamic then providing credentials is disallowed
       msg = ApiUtils.getMsg("SYSAPI_CRED_DISALLOWED_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If canExec is true then jobWorkingDir must be set
+    if (tSystem1.getCanExec() && tSystem1.getJobWorkingDir() == null)
+    {
+      msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBWORKINGDIR_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If canExec is true then jobRuntimes must have at least one entry
+    List<JobRuntime> runtimes = tSystem1.getJobRuntimes();
+    if (tSystem1.getCanExec() && (runtimes == null || runtimes.isEmpty()))
+    {
+      msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBRUNTIME_INPUT");
       errMessages.add(msg);
     }
 

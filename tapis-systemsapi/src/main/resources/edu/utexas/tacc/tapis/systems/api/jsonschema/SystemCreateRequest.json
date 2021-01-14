@@ -20,6 +20,7 @@
     "rootDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
     "transferMethods": {
       "type": "array",
+      "uniqueItems": true,
       "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/TransferMethodEnum" }
     },
     "port": { "type": "integer" },
@@ -33,6 +34,8 @@
     "canExec": { "type": "boolean" },
     "jobRuntimes": {
       "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
       "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/JobRuntime" }
     },
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
@@ -46,6 +49,7 @@
     "batchScheduler": { "type": "string", "maxLength": 64 },
     "batchLogicalQueues": {
       "type": "array",
+      "uniqueItems": true,
       "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/LogicalQueue" }
     },
     "batchDefaultLogicalQueue": { "type": "string", "maxLength": 128 },
@@ -55,6 +59,7 @@
     },
     "tags": {
       "type": "array",
+      "uniqueItems": true,
       "items": { "type":  "string", "minLength": 1, "maxLength": 128 }
     },
     "notes": { "type": "object" },

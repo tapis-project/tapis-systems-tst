@@ -50,7 +50,7 @@ public final class KeyValuePair
     String k = s.substring(0, e1);
     String v = "";
     // Everything after "=" is the value
-    if (e1 > 0) v = s.substring(e1+1, s.length()-1);
+    if (e1 > 0) v = s.substring(e1+1);
     return new KeyValuePair(k, v);
   }
 }

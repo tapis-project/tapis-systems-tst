@@ -968,7 +968,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getCanExec(), sys0.getCanExec());
     Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
 
-    // Verify jogEnvVariables
+    // Verify jobEnvVariables
     String[] tmpVars = tmpSys.getJobEnvVariables();
     Assert.assertNotNull(tmpVars, "jobEnvVariables value was null");
     var varsList = Arrays.asList(tmpVars);

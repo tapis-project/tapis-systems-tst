@@ -4,6 +4,7 @@ import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
@@ -51,6 +52,7 @@ public final class ReqCreateSystem
   public String dtnMountSourcePath;
   public boolean isDtn;
   public boolean canExec; // Indicates if system will be used to execute jobs
+  public List<JobRuntime> jobRuntimes;
   public String jobWorkingDir; // Parent directory from which jobs are run, inputs and application assets are staged
   public List<KeyValuePair> jobEnvVariables = ApiUtils.getKeyValuesAsList(DEFAULT_JOBENV_VARIABLES);
   public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
@@ -62,5 +64,5 @@ public final class ReqCreateSystem
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   public String[] tags = DEFAULT_TAGS;       // List of arbitrary tags as strings
   public Object notes = DEFAULT_NOTES;      // Simple metadata as json
-  public String refImportId; // Optional reference ID for systems created via import
+  public String importRefId; // Optional reference ID for systems created via import
 }

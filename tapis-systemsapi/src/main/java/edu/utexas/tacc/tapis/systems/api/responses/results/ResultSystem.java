@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
@@ -39,6 +40,7 @@ public final class ResultSystem
   public String dtnMountSourcePath;
   public boolean isDtn;
   public boolean canExec;
+  public List<JobRuntime> jobRuntimes;
   public String jobWorkingDir;
   public List<KeyValuePair> jobEnvVariables;
   public int jobMaxJobs;
@@ -85,6 +87,7 @@ public final class ResultSystem
     dtnMountSourcePath = s.getDtnMountSourcePath();
     isDtn = s.getIsDtn();
     canExec = s.getCanExec();
+    jobRuntimes = s.getJobRuntimes();
     jobWorkingDir = s.getJobWorkingDir();
     jobMaxJobs = s.getJobMaxJobs();
     jobMaxJobsPerUser = s.getJobMaxJobsPerUser();
