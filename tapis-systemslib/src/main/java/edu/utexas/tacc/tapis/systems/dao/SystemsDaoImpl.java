@@ -41,6 +41,8 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * Class to handle persistence and queries for Tapis System objects.
@@ -50,8 +52,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /* ********************************************************************** */
   /*                               Constants                                */
   /* ********************************************************************** */
+  // Local logger.
+  private static final Logger _log = LoggerFactory.getLogger(SystemsDaoImpl.class);
 
   private static final String EMPTY_JSON = "{}";
+
 
   /* ********************************************************************** */
   /*                             Public Methods                             */
@@ -410,8 +415,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       result = e;
       // Rollback always logs msg and throws exception.
       // In this case of a simple check we ignore the exception, we just want the log msg
-      try { LibUtils.rollbackDB(conn, e,"DB_DELETE_FAILURE", "systems"); }
-      catch (Exception e1) { }
+      try { LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems"); }
+      catch (Exception e1) { _log.error(LibUtils.getMsg("SYSLIB_DB_ROLLBACK_ERROR", "checkDB"), e1); }
     }
     finally
     {
@@ -429,7 +434,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     Flyway flyway = Flyway.configure().dataSource(getDataSource()).load();
     // TODO remove workaround if possible. Figure out how to deploy X.Y.Z-SNAPSHOT repeatedly.
-    // Workaround to avoid checksum error during develop/deploy of SNAPSHOT versions when it is not a true migration.
+    // Use repair as workaround to avoid checksum error during develop/deploy of SNAPSHOT versions when it is not
+    // a true migration.
     flyway.repair();
     flyway.migrate();
   }
@@ -1539,14 +1545,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   private static Condition addSearchCondStrToWhere(Condition whereCondition, String searchStr, String joinOp)
           throws TapisException
   {
-    // If we have no search string then return what we were given
-    if (StringUtils.isBlank(searchStr)) return whereCondition;
-    // If we are given a condition but no indication of how to join new condition to it then return what we were given
-    if (whereCondition != null && StringUtils.isBlank(joinOp)) return whereCondition;
-    if (whereCondition != null && joinOp != null && !joinOp.equalsIgnoreCase("AND") && !joinOp.equalsIgnoreCase("OR"))
-    {
-      return whereCondition;
-    }
+    // If we have no search string or no whereConditions then return what we were given
+    if (StringUtils.isBlank(searchStr) || whereCondition == null) return whereCondition;
+    // If we are not given how to join new condition then return what we were given
+    if (StringUtils.isBlank(joinOp)) return whereCondition;
+    if (!joinOp.equalsIgnoreCase("AND") && !joinOp.equalsIgnoreCase("OR")) return whereCondition;
 
     // Parse search value into column name, operator and value
     // Format must be column_name.op.value
@@ -1676,7 +1679,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Get all capabilities contained in an abstract syntax tree by recursively walking the tree
    * @param astNode Abstract syntax tree node containing constraint matching conditions
-   * @return list of capabilities
    * @throws TapisException on error
    */
   private static void getCapabilitiesFromAST(ASTNode astNode, List<Capability> capList) throws TapisException
@@ -1741,7 +1743,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Recursive calls
       getCapabilitiesFromAST(leftNode, capList);
       getCapabilitiesFromAST(rightNode, capList);
-      return;
     }
     else
     {

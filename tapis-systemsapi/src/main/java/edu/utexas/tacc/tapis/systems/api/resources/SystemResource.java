@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import edu.utexas.tacc.tapis.search.SearchUtils;
+import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
@@ -89,6 +90,7 @@ public class SystemResource
   // Local logger.
   private static final Logger _log = LoggerFactory.getLogger(SystemResource.class);
 
+  private static final String SYSTEMS_SVC = StringUtils.capitalize(TapisConstants.SERVICE_NAME_SYSTEMS);
   // Json schema resource files.
   private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemCreateRequest.json";
   private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateRequest.json";
@@ -96,6 +98,22 @@ public class SystemResource
   private static final String FILE_SYSTEM_MATCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/MatchConstraintsRequest.json";
   private static final String FILE_SYSTEM_IMPORTSGCI_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemImportSGCIRequest.json";
   private static final String FILE_SYSTEM_UPDATESGCI_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateSGCIRequest.json";
+
+  // Message keys
+  private static final String INVALID_JSON_INPUT = "NET_INVALID_JSON_INPUT";
+  private static final String JSON_VALIDATION_ERR = "TAPIS_JSON_VALIDATION_ERROR";
+  private static final String UPDATE_ERR = "SYSAPI_UPDATE_ERROR";
+  private static final String CREATE_ERR = "SYSAPI_CREATE_ERROR";
+  private static final String SELECT_ERR = "SYSAPI_SELECT_ERROR";
+  private static final String LIB_UNAUTH = "SYSLIB_UNAUTH";
+  private static final String API_UNAUTH = "SYSAPI_SYS_UNAUTH";
+  private static final String TAPIS_FOUND = "TAPIS_FOUND";
+  private static final String NOT_FOUND = "SYSAPI_NOT_FOUND";
+  private static final String UPDATED = "SYSAPI_UPDATED";
+  private static final String CREATE_MISSING_ATTR = "SYSAPI_CREATE_MISSING_ATTR";
+
+  // Format strings
+  private static final String SYS_CNT_STR = "%d systems";
 
   // Field names used in Json
   private static final String ID_FIELD = "id";
@@ -158,11 +176,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -171,7 +190,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -183,7 +202,7 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -219,17 +238,17 @@ public class SystemResource
         _log.warn(msg);
         return Response.status(Status.CONFLICT).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
-      else if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      else if (e.getMessage().contains(LIB_UNAUTH))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid TSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -237,13 +256,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -289,11 +308,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -302,7 +322,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -314,7 +334,7 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -334,23 +354,23 @@ public class SystemResource
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
+      msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (IllegalStateException e)
     {
-      if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      if (e.getMessage().contains(LIB_UNAUTH))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -358,13 +378,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -375,7 +395,7 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
@@ -408,11 +428,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -421,7 +442,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -433,7 +454,7 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -483,17 +504,17 @@ public class SystemResource
         _log.warn(msg);
         return Response.status(Status.CONFLICT).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
-      else if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      else if (e.getMessage().contains(LIB_UNAUTH))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid TSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -501,13 +522,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CREATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -552,11 +573,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -565,7 +587,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -577,7 +599,7 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -603,23 +625,23 @@ public class SystemResource
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
+      msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (IllegalStateException e)
     {
-      if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      if (e.getMessage().contains(LIB_UNAUTH))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -627,13 +649,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -644,7 +666,7 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
@@ -686,23 +708,23 @@ public class SystemResource
     }
     catch (NotFoundException e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
+      msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (IllegalStateException e)
     {
-      if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      if (e.getMessage().contains(LIB_UNAUTH))
       {
         // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
         _log.warn(msg);
         return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
       }
@@ -710,13 +732,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -728,7 +750,7 @@ public class SystemResource
     count.changes = changeCount;
     RespChangeCount resp1 = new RespChangeCount(count);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_UPDATED", authenticatedUser, systemId), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
   /**
@@ -788,7 +810,7 @@ public class SystemResource
     // Resource was not found.
     if (tSystem == null)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
+      String msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -796,7 +818,7 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the system information.
     RespSystem resp1 = new RespSystem(tSystem);
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "System", systemId), resp1);
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, "System", systemId), resp1);
   }
 
   /**
@@ -838,7 +860,7 @@ public class SystemResource
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+      String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -851,8 +873,8 @@ public class SystemResource
 //    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
 //    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
 //                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
-    String itemCountStr = systems.size() + " systems";
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
+    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -907,7 +929,7 @@ public class SystemResource
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+      String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -932,7 +954,7 @@ public class SystemResource
                   threadContext.getStartAfter());
         } catch (Exception e)
         {
-          String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
           _log.error(msg, e);
           return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
         }
@@ -942,8 +964,8 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
                                         threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
-    String itemCountStr = systems.size() + " systems";
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
+    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -977,11 +999,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -990,7 +1013,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1005,11 +1028,11 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
-    _log.debug("Using search string: " + searchStr);
+    _log.debug(String.format("Using search string: %s", searchStr));
 
     // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
@@ -1020,7 +1043,7 @@ public class SystemResource
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+      msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1045,7 +1068,7 @@ public class SystemResource
                   threadContext.getStartAfter());
         } catch (Exception e)
         {
-          msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+          msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
           _log.error(msg, e);
           return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
         }
@@ -1055,8 +1078,8 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
                                         threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
-    String itemCountStr = systems.size() + " systems";
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
+    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -1090,11 +1113,12 @@ public class SystemResource
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
-    String rawJson, msg;
+    String rawJson;
+    String msg;
     try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
     catch (Exception e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName , e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1103,7 +1127,7 @@ public class SystemResource
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
-      msg = MsgUtils.getMsg("TAPIS_JSON_VALIDATION_ERROR", e.getMessage());
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1118,11 +1142,11 @@ public class SystemResource
     }
     catch (JsonSyntaxException e)
     {
-      msg = MsgUtils.getMsg("NET_INVALID_JSON_INPUT", opName, e.getMessage());
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
-    _log.debug("Using match string: " + matchStr);
+    _log.debug(String.format("Using match string: %s", matchStr));
 
     // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
@@ -1131,7 +1155,7 @@ public class SystemResource
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
+      msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -1140,8 +1164,8 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     RespSystemsArray resp1 = new RespSystemsArray(systems);
-    String itemCountStr = systems.size() + " systems";
-    return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "Systems", itemCountStr), resp1);
+    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -1248,6 +1272,7 @@ public class SystemResource
    *       dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
    * TODO: If jobIsBatch is true then batchScheduler must be specified
    * TODO: If jobIsBatch is true and batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
+   * TODO: If DTN is used verify that dtnSystemId exists with isDtn = true
    * Collect and report as many errors as possible so they can all be fixed before next attempt
    * NOTE: JsonSchema validation should handle some of these checks but we check here again for robustness.
    *
@@ -1267,22 +1292,22 @@ public class SystemResource
     // Id, type, host and defaultAuthn must be set
     if (StringUtils.isBlank(tSystem1.getId()))
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", ID_FIELD);
+      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD);
       errMessages.add(msg);
     }
     if (tSystem1.getSystemType() == null)
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", SYSTEM_TYPE_FIELD);
+      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD);
       errMessages.add(msg);
     }
     if (StringUtils.isBlank(tSystem1.getHost()))
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", HOST_FIELD);
+      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD);
       errMessages.add(msg);
     }
     if (tSystem1.getDefaultAuthnMethod() == null)
     {
-      msg = ApiUtils.getMsg("SYSAPI_CREATE_MISSING_ATTR", DEFAULT_AUTHN_METHOD_FIELD);
+      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD);
       errMessages.add(msg);
     }
 

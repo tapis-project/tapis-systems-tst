@@ -92,7 +92,7 @@ public class SystemsApplication extends ResourceConfig
     packages("edu.utexas.tacc.tapis");
 
     // Set the application name. Note that this has no impact on base URL.
-    setApplicationName("systems");
+    setApplicationName(TapisConstants.SERVICE_NAME_SYSTEMS);
 
     // Perform remaining init steps in try block so we can print a fatal error message if something goes wrong.
     try {
@@ -143,9 +143,11 @@ public class SystemsApplication extends ResourceConfig
     if (StringUtils.isBlank(servicePort)) servicePort = "8080";
 
     // Set base protocol and port. If mainly running in k8s this may not need to be configurable.
-    final URI BASE_URI = URI.create("http://0.0.0.0:" + servicePort + "/");
+    final URI baseUri = URI.create("http://0.0.0.0:" + servicePort + "/");
+
     // Initialize the application container
     SystemsApplication config = new SystemsApplication();
+
     // Initialize the service
     // In order to instantiate our service class using HK2 we need to create an application handler
     //   which allows us to get an injection manager which is used to get a locator.
@@ -159,7 +161,7 @@ public class SystemsApplication extends ResourceConfig
     // Call the main service init method
     svcImpl.initService(SystemsApplication.getSiteId());
     // Create and start the server
-    final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config, false);
+    final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
     server.start();
   }
 }

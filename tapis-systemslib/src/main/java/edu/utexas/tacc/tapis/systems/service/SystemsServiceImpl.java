@@ -188,7 +188,7 @@ public class SystemsServiceImpl implements SystemsService
     String roleNameR = null;
     String systemsPermSpecR = getPermSpecStr(systemTenantName, systemId, Permission.READ);
     String systemsPermSpecALL = getPermSpecAllStr(systemTenantName, systemId);
-    // TODO remove filesPermSpec related code
+    // TODO remove filesPermSpec related code (jira cic-3071)
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
 
     // Get SK client now. If we cannot get this rollback not needed.
@@ -200,14 +200,8 @@ public class SystemsServiceImpl implements SystemsService
       // Add permission roles for the system. This is only used for filtering systems based on who is authz
       //   to READ, so no other roles needed.
       roleNameR = TSystem.ROLE_READ_PREFIX + itemSeqId;
-      // TODO/TBD: Currently system owner owns the role. Plan is to have systems service own the role
-      //           This will need coordinated changes with SK
-      //   might need to munge system tenant into the role name (?)
-      // TODO/TBD: Keep the delete? Also, currently it fails due to skauthz failure
       // Delete role, because role may already exist due to failure of rollback
-//      _log.error("DELETE roleNameR="+ roleNameR);
-//      skClient.deleteRoleByName(systemTenantName, "systems", roleNameR);
-//      skClient.deleteRoleByName(systemTenantName, system.getOwner(), roleNameR);
+      skClient.deleteRoleByName(systemTenantName, roleNameR);
       skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       // TODO REMOVE DEBUG
       _log.debug("authUser.user=" + authenticatedUser.getName());
@@ -230,7 +224,7 @@ public class SystemsServiceImpl implements SystemsService
         skClient.grantUserPermission(systemTenantName, effectiveUserId, systemsPermSpecALL);
         skClient.grantUserRole(systemTenantName, effectiveUserId, roleNameR);
       }
-      // TODO remove filesPermSpec related code
+      // TODO remove filesPermSpec related code (jira cic-3071)
       // Give owner/effectiveUser files service related permission for root directory
       skClient.grantUserPermission(systemTenantName, system.getOwner(), filesPermSpec);
       if (!effectiveUserId.equals(APIUSERID_VAR) && !effectiveUserId.equals(OWNER_VAR))
@@ -263,7 +257,7 @@ public class SystemsServiceImpl implements SystemsService
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, effectiveUserId, systemsPermSpecALL); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermEffUsr", e.getMessage()));}
-      // TODO remove filesPermSpec related code
+      // TODO remove filesPermSpec related code (jira cic-3071)
       try { skClient.revokeUserPermission(systemTenantName, system.getOwner(), filesPermSpec);  }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermF1", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, effectiveUserId, filesPermSpec);  }
@@ -408,7 +402,7 @@ public class SystemsServiceImpl implements SystemsService
     var skClient = getSKClient(authenticatedUser);
     String systemsPermSpec = getPermSpecAllStr(systemTenantName, systemId);
     String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
-    // TODO remove addition of files related permSpec
+    // TODO remove addition of files related permSpec (jira cic-3071)
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
     try {
       // ------------------- Make Dao call to update the system owner -----------------------------------
@@ -416,19 +410,19 @@ public class SystemsServiceImpl implements SystemsService
       // Add role and permissions for new owner
       skClient.grantUserRole(systemTenantName, newOwnerName, roleNameR);
       skClient.grantUserPermission(systemTenantName, newOwnerName, systemsPermSpec);
-      // TODO remove addition of files related permSpec
+      // TODO remove addition of files related permSpec (jira cic-3071)
       // Give owner files service related permission for root directory
       skClient.grantUserPermission(systemTenantName, newOwnerName, filesPermSpec);
       // Remove role and permissions from old owner
       skClient.revokeUserRole(systemTenantName, oldOwnerName, roleNameR);
       skClient.revokeUserPermission(systemTenantName, oldOwnerName, systemsPermSpec);
-      // TODO: Notify files service of the change
+      // TODO: Notify files service of the change (jira cic-3071)
     }
     catch (Exception e0)
     {
       // Something went wrong. Attempt to undo all changes and then re-throw the exception
       try { dao.updateSystemOwner(authenticatedUser, seqId, oldOwnerName); } catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "updateOwner", e.getMessage()));}
-      // TODO remove filesPermSpec related code
+      // TODO remove filesPermSpec related code (jira cic-3071)
       try { skClient.revokeUserRole(systemTenantName, newOwnerName, roleNameR); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokeRoleNewOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, newOwnerName, filesPermSpec); }
@@ -490,6 +484,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param systemId - name of system
    * @return Number of items deleted
    * @throws TapisException - for Tapis related exceptions
+   * @throws TapisClientException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
    */
   public int hardDeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
@@ -499,8 +494,6 @@ public class SystemsServiceImpl implements SystemsService
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (StringUtils.isBlank(systemId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     // Extract various names for convenience
-    String tenantName = authenticatedUser.getTenantId();
-    String apiUserId = authenticatedUser.getName();
     String systemTenantName = authenticatedUser.getTenantId();
     // For service request use oboTenant for tenant associated with the system
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
@@ -696,7 +689,6 @@ public class SystemsServiceImpl implements SystemsService
                                   String sortBy, String sortDirection, String startAfter)
           throws TapisException, TapisClientException
   {
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -753,7 +745,6 @@ public class SystemsServiceImpl implements SystemsService
                                   String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -795,12 +786,6 @@ public class SystemsServiceImpl implements SystemsService
       system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(),
                  authenticatedUser.getName()));
     }
-// This is a simple brute force way to only get allowed systems
-//      try {
-//        checkAuth(authenticatedUser, op, system.getName(), null, null, null);
-//        allowedSystems.add(system);
-//      }
-//      catch (NotAuthorizedException e) { }
     return systems;
   }
 
@@ -824,7 +809,6 @@ public class SystemsServiceImpl implements SystemsService
     // If search string is empty delegate to getSystems()
     if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, sortBy, sortDirection, skip, startAfter);
 
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -833,7 +817,7 @@ public class SystemsServiceImpl implements SystemsService
       systemTenantName = authenticatedUser.getOboTenantId();
 
     // Validate and parse the sql string into an abstract syntax tree (AST)
-    // TODO/TBD: The activemq parser validates and parses the string into an AST but there does not appear to be a way
+    // NOTE: The activemq parser validates and parses the string into an AST but there does not appear to be a way
     //          to use the resulting BooleanExpression to walk the tree. How to now create a usable AST?
     //   I believe we don't want to simply try to run the where clause for various reasons:
     //      - SQL injection
@@ -842,7 +826,6 @@ public class SystemsServiceImpl implements SystemsService
     //        we should be able to check each one and generate of list of errors for reporting.
     //  Looks like jOOQ can parse an SQL string into a jooq Condition. Do this in the Dao? But still seems like no way
     //    to walk the AST and check each condition so we can report on errors.
-//    BooleanExpression searchAST;
     ASTNode searchAST;
     try { searchAST = ASTParser.parse(sqlSearchStr); }
     catch (Exception e)
@@ -880,7 +863,6 @@ public class SystemsServiceImpl implements SystemsService
   public List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)
           throws TapisException, TapisClientException
   {
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -930,7 +912,6 @@ public class SystemsServiceImpl implements SystemsService
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (StringUtils.isBlank(systemId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     // Extract various names for convenience
-    String apiUserId = authenticatedUser.getName();
     String systemTenantName = authenticatedUser.getTenantId();
     // For service request use oboTenant for tenant associated with the system
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
@@ -943,8 +924,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
     // Retrieve the system
-    SystemBasic result = dao.getSystemBasic(systemTenantName, systemId);
-    return result;
+    return dao.getSystemBasic(systemTenantName, systemId);
   }
 
   /**
@@ -963,7 +943,6 @@ public class SystemsServiceImpl implements SystemsService
                                            String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -997,9 +976,8 @@ public class SystemsServiceImpl implements SystemsService
     List<Integer> allowedSeqIDs = getAllowedSeqIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<SystemBasic> systems = dao.getSystemsBasic(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSeqIDs,
-                                                    limit, sortBy, sortDirection, skip, startAfter);
-    return systems;
+    return dao.getSystemsBasic(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSeqIDs,
+                               limit, sortBy, sortDirection, skip, startAfter);
   }
 
   /**
@@ -1022,7 +1000,6 @@ public class SystemsServiceImpl implements SystemsService
     // If search string is empty delegate to getSystemsBasic()
     if (StringUtils.isBlank(sqlSearchStr)) return getSystemsBasic(authenticatedUser, null, limit, sortBy, sortDirection, skip, startAfter);
 
-    SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
     String systemTenantName = authenticatedUser.getTenantId();
@@ -1044,9 +1021,8 @@ public class SystemsServiceImpl implements SystemsService
     List<Integer> allowedSeqIDs = getAllowedSeqIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<SystemBasic> systems = dao.getSystemsBasic(authenticatedUser.getTenantId(), null, searchAST, allowedSeqIDs,
+    return dao.getSystemsBasic(authenticatedUser.getTenantId(), null, searchAST, allowedSeqIDs,
                                                     limit, sortBy, sortDirection, skip, startAfter);
-    return systems;
   }
 
   /**
@@ -1462,9 +1438,6 @@ public class SystemsServiceImpl implements SystemsService
 
     // If system does not exist or has been soft deleted then return null
     if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
-//TODO/TBD    // If system does not exist then throw an exception
-//    if (!dao.checkForTSystem(systemTenantName, systemId))
-//      throw new TapisException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1564,7 +1537,7 @@ public class SystemsServiceImpl implements SystemsService
    * Resolve variables for TSystem attributes
    * @param system - the TSystem to process
    */
-  private static TSystem resolveVariables(TSystem system, String oboUser)
+  private static void resolveVariables(TSystem system, String oboUser)
   {
     // Resolve owner if necessary. If empty or "${apiUserId}" then fill in oboUser.
     // Note that for a user request oboUser and apiUserId are the same and for a service request we want oboUser here.
@@ -1579,7 +1552,6 @@ public class SystemsServiceImpl implements SystemsService
     system.setBucketName(StringUtils.replaceEach(system.getBucketName(), ALL_VARS, allVarSubstitutions));
     system.setRootDir(StringUtils.replaceEach(system.getRootDir(), ALL_VARS, allVarSubstitutions));
     system.setJobWorkingDir(StringUtils.replaceEach(system.getJobWorkingDir(), ALL_VARS, allVarSubstitutions));
-    return system;
   }
 
   /**
