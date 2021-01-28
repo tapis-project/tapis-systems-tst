@@ -1545,11 +1545,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   private static Condition addSearchCondStrToWhere(Condition whereCondition, String searchStr, String joinOp)
           throws TapisException
   {
-    // If we have no search string or no whereConditions then return what we were given
-    if (StringUtils.isBlank(searchStr) || whereCondition == null) return whereCondition;
-    // If we are not given how to join new condition then return what we were given
-    if (StringUtils.isBlank(joinOp)) return whereCondition;
-    if (!joinOp.equalsIgnoreCase("AND") && !joinOp.equalsIgnoreCase("OR")) return whereCondition;
+    // If we have no search string then return what we were given
+    if (StringUtils.isBlank(searchStr)) return whereCondition;
+    // If we are given a condition but no indication of how to join new condition to it then return what we were given
+    if (whereCondition != null && StringUtils.isBlank(joinOp)) return whereCondition;
+    if (whereCondition != null && joinOp != null && !joinOp.equalsIgnoreCase("AND") && !joinOp.equalsIgnoreCase("OR"))
+    {
+      return whereCondition;
+    }
 
     // Parse search value into column name, operator and value
     // Format must be column_name.op.value

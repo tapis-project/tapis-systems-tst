@@ -90,6 +90,10 @@ public class SystemsServiceImpl implements SystemsService
   private static final Set<String> SVCLIST_GETCRED = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
   private static final Set<String> SVCLIST_READ = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
 
+  // Message keys
+  private static final String ERROR_ROLLBACK = "SYSLIB_ERROR_ROLLBACK";
+  private static final String NOT_FOUND = "SYSLIB_NOT_FOUND";
+
   // ************************************************************************
   // *********************** Enums ******************************************
   // ************************************************************************
@@ -200,9 +204,6 @@ public class SystemsServiceImpl implements SystemsService
       // Add permission roles for the system. This is only used for filtering systems based on who is authz
       //   to READ, so no other roles needed.
       roleNameR = TSystem.ROLE_READ_PREFIX + itemSeqId;
-      // Delete role, because role may already exist due to failure of rollback
-      skClient.deleteRoleByName(systemTenantName, roleNameR);
-      skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       // TODO REMOVE DEBUG
       _log.debug("authUser.user=" + authenticatedUser.getName());
       _log.debug("authUser.tenant=" + authenticatedUser.getTenantId());
@@ -214,6 +215,15 @@ public class SystemsServiceImpl implements SystemsService
       _log.debug("systemsPermSpecR=" + systemsPermSpecR);
       _log.debug("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
       _log.debug("serviceJwt.getAccessJWT(siteId)=" + serviceContext.getServiceJWT().getAccessJWT(siteId));
+      // TODO: Delete fails to to SK authz failure
+      //       SK_API_AUTHORIZATION_FAILED These authorization checks failed for request tenant/user=dev/null
+      //       (jwt tenant/user=admin/systems, obo tenant/user=dev/owner1, account=service):  IsAdmin, OwnedRoles
+      // TODO: And call to get role throws a not found, which we could catch and handle, but this is getting
+      //       awkward. Seems like delete should not fail, should return 0 and get should return null.
+      // Delete role, because role may already exist due to failure of rollback
+//      SkRole tstRole = skClient.getRoleByName(systemTenantName, roleNameR);
+//      if (tstRole != null) skClient.deleteRoleByName(systemTenantName, roleNameR);
+      skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       skClient.addRolePermission(systemTenantName, roleNameR, systemsPermSpecR);
 
       // ------------------- Add permissions and role assignments -----------------------------
@@ -251,25 +261,25 @@ public class SystemsServiceImpl implements SystemsService
       // Rollback
       // Remove system from DB
       if (itemSeqId != -1) try {dao.hardDeleteTSystem(systemTenantName, systemId); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "hardDelete", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "hardDelete", e.getMessage()));}
       // Remove perms
       try { skClient.revokeUserPermission(systemTenantName, system.getOwner(), systemsPermSpecALL); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermOwner", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, effectiveUserId, systemsPermSpecALL); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermEffUsr", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermEffUsr", e.getMessage()));}
       // TODO remove filesPermSpec related code (jira cic-3071)
       try { skClient.revokeUserPermission(systemTenantName, system.getOwner(), filesPermSpec);  }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermF1", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermF1", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, effectiveUserId, filesPermSpec);  }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermF2", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermF2", e.getMessage()));}
       // Remove role assignments and roles
       if (!StringUtils.isBlank(roleNameR)) {
         try { skClient.revokeUserRole(systemTenantName, system.getOwner(), roleNameR);  }
-        catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokeRoleOwner", e.getMessage()));}
+        catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokeRoleOwner", e.getMessage()));}
         try { skClient.revokeUserRole(systemTenantName, effectiveUserId, roleNameR);  }
-        catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokeRoleEffUsr", e.getMessage()));}
+        catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokeRoleEffUsr", e.getMessage()));}
         try { skClient.deleteRoleByName(systemTenantName, roleNameR);  }
-        catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "deleteRole", e.getMessage()));}
+        catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "deleteRole", e.getMessage()));}
       }
       // Remove creds
       if (system.getAuthnCredential() != null && !effectiveUserId.equals(APIUSERID_VAR)) {
@@ -277,7 +287,7 @@ public class SystemsServiceImpl implements SystemsService
         if (effectiveUserId.equals(OWNER_VAR)) accessUser = system.getOwner();
         // Use private internal method instead of public API to skip auth and other checks not needed here.
         try { deleteCredential(skClient, tenantName, apiUserId, systemTenantName, systemId, accessUser); }
-        catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "deleteCred", e.getMessage()));}
+        catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "deleteCred", e.getMessage()));}
       }
       throw e0;
     }
@@ -326,7 +336,7 @@ public class SystemsServiceImpl implements SystemsService
     // System must already exist and not be soft deleted
     if (!dao.checkForTSystem(systemTenantName, systemId, false))
     {
-      throw new NotFoundException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
     }
 
     // Retrieve the system being patched and create fully populated TSystem with changes merged in
@@ -382,7 +392,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // System must already exist and not be soft deleted
     if (!dao.checkForTSystem(systemTenantName, systemId, false))
-         throw new NotFoundException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+         throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // Retrieve the system being updated
     TSystem tmpSystem = dao.getTSystem(systemTenantName, systemId);
@@ -421,20 +431,20 @@ public class SystemsServiceImpl implements SystemsService
     catch (Exception e0)
     {
       // Something went wrong. Attempt to undo all changes and then re-throw the exception
-      try { dao.updateSystemOwner(authenticatedUser, seqId, oldOwnerName); } catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "updateOwner", e.getMessage()));}
+      try { dao.updateSystemOwner(authenticatedUser, seqId, oldOwnerName); } catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "updateOwner", e.getMessage()));}
       // TODO remove filesPermSpec related code (jira cic-3071)
       try { skClient.revokeUserRole(systemTenantName, newOwnerName, roleNameR); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokeRoleNewOwner", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokeRoleNewOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, newOwnerName, filesPermSpec); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermNewOwner", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermNewOwner", e.getMessage()));}
       try { skClient.revokeUserPermission(systemTenantName, newOwnerName, filesPermSpec); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "revokePermF1", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePermF1", e.getMessage()));}
       try { skClient.grantUserPermission(systemTenantName, oldOwnerName, systemsPermSpec); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "grantPermOldOwner", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "grantPermOldOwner", e.getMessage()));}
       try { skClient.grantUserRole(systemTenantName, oldOwnerName, roleNameR); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "grantRoleOldOwner", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "grantRoleOldOwner", e.getMessage()));}
       try { skClient.grantUserPermission(systemTenantName, oldOwnerName, filesPermSpec); }
-      catch (Exception e) {_log.warn(LibUtils.getMsgAuth("SYSLIB_ERROR_ROLLBACK", authenticatedUser, systemId, "grantPermF1", e.getMessage()));}
+      catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "grantPermF1", e.getMessage()));}
       throw e0;
     }
     return 1;
@@ -1110,7 +1120,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // If system does not exist or has been soft deleted then throw an exception
     if (!dao.checkForTSystem(systemTenantName, systemId, false))
-      throw new TapisException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+      throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -1310,7 +1320,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // If system does not exist or has been soft deleted then throw an exception
     if (!dao.checkForTSystem(systemTenantName, systemId, false))
-      throw new TapisException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+      throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1446,7 +1456,7 @@ public class SystemsServiceImpl implements SystemsService
     if (authnMethod == null)
     {
       TSystem sys = dao.getTSystem(systemTenantName, systemId);
-      if (sys == null)  throw new TapisException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+      if (sys == null)  throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
       authnMethod = sys.getDefaultAuthnMethod();
     }
 

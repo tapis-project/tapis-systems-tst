@@ -63,7 +63,7 @@ public final class TSystem
                                grantPerms, revokePerms, setCred, removeCred, getCred}
   public enum Permission {READ, MODIFY, EXECUTE}
   public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
-  public enum TransferMethod {SFTP, S3}
+  public enum TransferMethod {SFTP, S3, FTP, IRODS}
 
   // ************************************************************************
   // *********************** Fields *****************************************
