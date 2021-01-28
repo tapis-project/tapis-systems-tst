@@ -32,7 +32,7 @@
       "required": ["connectionProtocol","securityProtocol"],
       "properties": {
         "connectionProtocol": { "type": "string", "enum": ["SSH","GLOBUS","HTTP","SFTP","SCP","IRODS"] },
-        "securityProtocol": { "type": "string", "enum": ["PASSWORDS","SSHKEYS","X509","OAUTH2"] },
+        "securityProtocol": { "type": "string", "enum": ["PASSWORDS","SSHKEYS","APIKEYS","X509","OAUTH2"] },
         "port": { "type":  "integer" },
         "proxyHost": { "$ref": "#/definitions/hostName" },
         "proxyPort": { "type": "integer" }
@@ -50,7 +50,7 @@
       "type": "object",
       "required": ["storageType", "fileSystem"],
       "properties": {
-        "storageType": { "type": "string", "enum": ["POSIX","S3","OBJECT_STORE"] },
+        "storageType": { "type": "string", "enum": ["POSIX","S3"] },
         "connection": { "$ref": "#/definitions/connectionDefinition" },
         "fileSystem":  { "$ref": "#/definitions/fileSystemDefinition" },
         "capacity": {

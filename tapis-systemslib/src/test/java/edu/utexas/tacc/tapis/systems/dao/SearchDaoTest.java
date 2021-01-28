@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,7 +252,7 @@ public class SearchDaoTest
   {
     String searchCond = "id.like." + sysNameLikeAll;
     String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(searchCond);
-    var verifiedSearchList = Arrays.asList(verifiedCondStr);
+    var verifiedSearchList = Collections.singletonList(verifiedCondStr);
     System.out.println("VerfiedInput: " + verifiedSearchList);
     List<TSystem> searchResults;
 
@@ -310,7 +311,7 @@ public class SearchDaoTest
   {
     String searchCond = "id.like." + sysNameLikeAll;
     String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(searchCond);
-    var verifiedSearchList = Arrays.asList(verifiedCondStr);
+    var verifiedSearchList = Collections.singletonList(verifiedCondStr);
     System.out.println("VerfiedInput: " + verifiedSearchList);
     List<TSystem> searchResults;
 
@@ -369,7 +370,7 @@ public class SearchDaoTest
   {
     String searchCond = "id.like." + sysNameLikeAll;
     String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(searchCond);
-    var verifiedSearchList = Arrays.asList(verifiedCondStr);
+    var verifiedSearchList = Collections.singletonList(verifiedCondStr);
     System.out.println("VerfiedInput: " + verifiedSearchList);
     List<TSystem> searchResults;
 

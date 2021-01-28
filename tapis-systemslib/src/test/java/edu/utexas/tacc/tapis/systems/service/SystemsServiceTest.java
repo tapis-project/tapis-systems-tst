@@ -48,8 +48,6 @@ import static edu.utexas.tacc.tapis.systems.IntegrationUtils.*;
  *    Tokens service - typically dev and obtained from tenants service
  *    Security Kernel service - typically dev and obtained from tenants service
  *
- *    TODO: Add tests for getSystem() retrieving various user credentials for the effectiveUserId,
- *          including effectiveUserId = ${apiUserId}
  */
 @Test(groups={"integration"})
 public class SystemsServiceTest
@@ -58,8 +56,8 @@ public class SystemsServiceTest
   private SystemsServiceImpl svcImpl;
   private SKClient skClient;
   private AuthenticatedUser authenticatedOwner1, authenticatedTestUser0, authenticatedTestUser1, authenticatedTestUser2,
-          authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc,
-          authenticatedSystemsSvc;
+          authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc1,
+          authenticatedFilesSvc3, authenticatedSystemsSvc;
   // Test data
   private static final String svcName = "systems";
   private static final String filesSvcName = "files";
@@ -140,8 +138,10 @@ public class SystemsServiceTest
                                                    null, testUser4, tenantName, null, null, null);
     authenticatedSystemsSvc = new AuthenticatedUser(svcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                     null, svcName, adminTenantName, null, null, null);
-    authenticatedFilesSvc = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
-                                                  null, owner1, tenantName, null, null, null);
+    authenticatedFilesSvc1 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+                                                   null, owner1, tenantName, null, null, null);
+    authenticatedFilesSvc3 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+                                                   null, testUser3, tenantName, null, null, null);
 
     // Initialize skClient for calls acting as the Systems service.
     skClient = svcImpl.getSKClient(authenticatedSystemsSvc);
@@ -213,7 +213,7 @@ public class SystemsServiceTest
     checkCommonSysAttrs(sys0, tmpSys);
     // Retrieve the system including the credential using the default authn method defined for the system
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getId(), true, null, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
     // Verify credentials. Only cred for default authnMethod is returned. In this case PKI_KEYS.
     Credential cred = tmpSys.getAuthnCredential();
@@ -226,7 +226,7 @@ public class SystemsServiceTest
     Assert.assertNull(cred.getCertificate(), "AuthnCredential certificate should be null");
 
     // Test retrieval using specified authn method
-    tmpSys = svc.getSystem(authenticatedFilesSvc, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
     System.out.println("Found item: " + sys0.getId());
     // Verify credentials. Only cred for default authnMethod is returned. In this case PASSWORD.
     cred = tmpSys.getAuthnCredential();
@@ -504,57 +504,78 @@ public class SystemsServiceTest
   }
 
   // Test creating, reading and deleting user credentials for a system
+  // Including retrieving credentials with a system when effectiveUserId=apiUserId for a system.
   @Test
   public void testUserCredentials() throws Exception
   {
-    // Create a system
+    // Create a system with effUsr = apiUserId
     TSystem sys0 = systems[10];
+    sys0.setEffectiveUserId("${apiUserId}");
     int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
-            "fakeAccessKey", "fakeAccessSecret", "fakeCert");
+    Credential cred1 = new Credential("fakePassword1", "fakePrivateKey1", "fakePublicKey1",
+            "fakeAccessKey1", "fakeAccessSecret1", "fakeCert1");
+    Credential cred3 = new Credential("fakePassword3", "fakePrivateKey3", "fakePublicKey3",
+            "fakeAccessKey3", "fakeAccessSecret3", "fakeCert3");
     // Store and retrieve multiple secret types: password, ssh keys, access key and secret
-    svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred0, scrubbedJson);
+    svc.createUserCredential(authenticatedOwner1, sys0.getId(), owner1, cred1, scrubbedJson);
+    svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
+
+    // Get system as owner1 using files service and should get cred for owner1
+    TSystem tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    Credential cred0 = tmpSys.getAuthnCredential();
+    Assert.assertNotNull(cred0, "AuthnCredential should not be null for user: " + owner1);
+    Assert.assertNotNull(cred0.getPassword(), "AuthnCredential password should not be null for user: " + owner1);
+    Assert.assertEquals(cred0.getPassword(), cred1.getPassword());
+
+    // Get system as testUser3 using files service and should get cred for testUser3
+    tmpSys = svc.getSystem(authenticatedFilesSvc3, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    cred0 = tmpSys.getAuthnCredential();
+    Assert.assertNotNull(cred0, "AuthnCredential should not be null for user: " + testUser3);
+    Assert.assertNotNull(cred0.getPassword(), "AuthnCredential password should not be null for user: " + testUser3);
+    Assert.assertEquals(cred0.getPassword(), cred3.getPassword());
+
+    // Get credentials for testUser3 and validate
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    Credential cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
     // Verify credentials
-    Assert.assertEquals(cred1.getPassword(), cred0.getPassword());
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
-    Assert.assertEquals(cred1.getPublicKey(), cred0.getPublicKey());
-    Assert.assertEquals(cred1.getPrivateKey(), cred0.getPrivateKey());
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
-    Assert.assertEquals(cred1.getAccessKey(), cred0.getAccessKey());
-    Assert.assertEquals(cred1.getAccessSecret(), cred0.getAccessSecret());
+    Assert.assertEquals(cred0.getPassword(), cred3.getPassword());
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
+    Assert.assertEquals(cred0.getPublicKey(), cred3.getPublicKey());
+    Assert.assertEquals(cred0.getPrivateKey(), cred3.getPrivateKey());
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    Assert.assertEquals(cred0.getAccessKey(), cred3.getAccessKey());
+    Assert.assertEquals(cred0.getAccessSecret(), cred3.getAccessSecret());
+
     // Delete credentials and verify they were destroyed
-    int changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
-    Assert.assertEquals(changeCount, 1, "Change count incorrect when removing a credential.");
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
-    Assert.assertNull(cred1, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
+    int changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), owner1);
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when removing credential for user: " + owner1);
+    changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when removing credential for user: " + testUser3);
+
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1, AuthnMethod.PASSWORD);
+    Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + owner1);
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+    Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
 
     // Attempt to delete again, should return 0 for change count
     changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
-    // TODO: Currently the attempt to return 0 if it does not exist is throwing an exception.
-//    Assert.assertEquals(changeCount, 0, "Change count incorrect when removing a credential already removed.");
+    Assert.assertEquals(changeCount, 0, "Change count incorrect when removing a credential already removed.");
 
     // Set just ACCESS_KEY only and test
-    cred0 = new Credential(null, null, null, "fakeAccessKey2", "fakeAccessSecret2", null);
-    svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred0, scrubbedJson);
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
-    Assert.assertEquals(cred1.getAccessKey(), cred0.getAccessKey());
-    Assert.assertEquals(cred1.getAccessSecret(), cred0.getAccessSecret());
+    cred3 = new Credential(null, null, null, "fakeAccessKey3a", "fakeAccessSecret3a", null);
+    svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    Assert.assertEquals(cred0.getAccessKey(), cred3.getAccessKey());
+    Assert.assertEquals(cred0.getAccessSecret(), cred3.getAccessSecret());
     // Attempt to retrieve secret that has not been set
-    cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
-    Assert.assertNull(cred1, "Credential was non-null for missing secret. System name: " + sys0.getId() + " User name: " + testUser3);
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
+    Assert.assertNull(cred0, "Credential was non-null for missing secret. System name: " + sys0.getId() + " User name: " + testUser3);
     // Delete credentials and verify they were destroyed
     changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when removing a credential.");
-    try {
-      cred1 = svc.getUserCredential(authenticatedFilesSvc, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
-    } catch (TapisException te) {
-      Assert.assertTrue(te.getMessage().startsWith("SYSLIB_NOT_FOUND"));
-      cred1 = null;
-    }
-    Assert.assertNull(cred1, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
+    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
   }
 
   // Test various cases when system is missing
@@ -660,7 +681,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.createSystem(authenticatedFilesSvc, sys0, scrubbedJson); }
+    try { svc.createSystem(authenticatedFilesSvc1, sys0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -717,7 +738,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.updateSystem(authenticatedFilesSvc, patchSys, scrubbedJson); }
+    try { svc.updateSystem(authenticatedFilesSvc1, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -735,7 +756,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.softDeleteSystem(authenticatedFilesSvc, sys0.getId()); }
+    try { svc.softDeleteSystem(authenticatedFilesSvc1, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -753,7 +774,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.changeSystemOwner(authenticatedFilesSvc, sys0.getId(), testUser2); }
+    try { svc.changeSystemOwner(authenticatedFilesSvc1, sys0.getId(), testUser2); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -781,7 +802,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.grantUserPermissions(authenticatedFilesSvc, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
+    try { svc.grantUserPermissions(authenticatedFilesSvc1, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -799,7 +820,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.grantUserPermissions(authenticatedFilesSvc, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
+    try { svc.grantUserPermissions(authenticatedFilesSvc1, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -817,7 +838,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.createUserCredential(authenticatedFilesSvc, sys0.getId(), owner1, cred0, scrubbedJson); }
+    try { svc.createUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1, cred0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -835,7 +856,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.deleteUserCredential(authenticatedFilesSvc, sys0.getId(), owner1); }
+    try { svc.deleteUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -899,7 +920,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = true;
-    try { svc.getSystem(authenticatedFilesSvc, sys0.getId(), false, null, false); }
+    try { svc.getSystem(authenticatedFilesSvc1, sys0.getId(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
