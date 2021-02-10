@@ -215,7 +215,7 @@ public class SystemsServiceImpl implements SystemsService
       _log.debug("systemsPermSpecR=" + systemsPermSpecR);
       _log.debug("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
       _log.debug("serviceJwt.getAccessJWT(siteId)=" + serviceContext.getServiceJWT().getAccessJWT(siteId));
-      // TODO: Delete fails to to SK authz failure
+      // TODO: Delete fails due to SK authz failure
       //       SK_API_AUTHORIZATION_FAILED These authorization checks failed for request tenant/user=dev/null
       //       (jwt tenant/user=admin/systems, obo tenant/user=dev/owner1, account=service):  IsAdmin, OwnedRoles
       // TODO: And call to get role throws a not found, which we could catch and handle, but this is getting
@@ -223,6 +223,7 @@ public class SystemsServiceImpl implements SystemsService
       // Delete role, because role may already exist due to failure of rollback
 //      SkRole tstRole = skClient.getRoleByName(systemTenantName, roleNameR);
 //      if (tstRole != null) skClient.deleteRoleByName(systemTenantName, roleNameR);
+//      skClient.deleteRoleByName(systemTenantName, roleNameR);
       skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       skClient.addRolePermission(systemTenantName, roleNameR, systemsPermSpecR);
 
@@ -1490,7 +1491,7 @@ public class SystemsServiceImpl implements SystemsService
               dataMap.get(SK_KEY_ACCESS_SECRET),
               null); //dataMap.get(CERT) TODO: how to get ssh certificate
     }
-    // TODO/TBD: If tapis client exception then log error but continue so null is returned.
+    // If tapis client exception then log error but continue so null is returned.
     catch (TapisClientException tce)
     {
       _log.warn(tce.toString());
@@ -2000,7 +2001,7 @@ public class SystemsServiceImpl implements SystemsService
 //      skClient.destroySecret(tenantName, apiUserId, sParms);
     // TODO/TBD Also clean up secret metadata
 
-    // TODO/TBD If anything destroyed we consider it the removal of a single credential
+    // If anything destroyed we consider it the removal of a single credential
     if (changeCount > 0) changeCount = 1;
     return changeCount;
   }

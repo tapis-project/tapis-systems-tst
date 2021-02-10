@@ -11,6 +11,9 @@ import edu.utexas.tacc.tapis.sharedapi.jaxrs.filters.JWTValidateRequestFilter;
 import edu.utexas.tacc.tapis.sharedapi.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
+import edu.utexas.tacc.tapis.systems.api.filtering.TapisEntityProcessor;
+import edu.utexas.tacc.tapis.systems.api.filtering.TapisScopeResolver;
+import edu.utexas.tacc.tapis.systems.api.model.TSystemFilterView;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
@@ -24,28 +27,32 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import org.jooq.tools.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.net.URI;
 
-// The path here is appended to the context root and is configured to work when invoked in a standalone
-// container (command line) and in an IDE (eclipse).
-// NOTE: When running using tomcat this path should match the war file name (v3#systems.war) for running
-//       in IntelliJ IDE as well as from a docker container.
-// NOTE: When running using tomcat in IntelliJ IDE the live openapi docs contain /v3/systems in the URL
-//       but when running from a docker container they do not.
-// NOTE: When running using grizzly in IntelliJ IDE or from docker container the live openapi docs do not
-//       contain /v3/systems in the URL.
-// NOTE: When running from IntelliJ IDE the live openapi docs do not contain the top level paths
-//       GET /v3/systems, POST /v3/systems, GET /v3/systems/{sysName} and POST /v3/systems/{sysName}
-//       but the file on disk (tapis-systemsapi/src/main/resources/openapi.json) does contains the paths.
-// NOTE: All the paths in the openapi file on disk (tapis-systemsapi/src/main/resources/openapi.json) are
-//       missing the prefix /v3/systems
-// NOTE: ApplicationPath changed from "v3/systems" to "/" since each resource class includes "/v3/systems" in the
-//       path set at the class level. See SystemResource.java, PermsResource.java, etc.
+/*
+ * Main startup class for the web application. Uses Jersey and Grizzly frameworks.
+ *   Performs setup for HK2 dependency injection.
+ *   Registers packages and features for Jersey.
+ *   Gets runtime parameters from the environment.
+ *   Initializes the service:
+ *     Tapis site id.
+ *     DB creation or migration
+ *   Starts the Grizzly server.
+ *
+ * The path here is appended to the context root and is configured to work when invoked in a standalone
+ * container (command line) and in an IDE (such as eclipse).
+ * ApplicationPath set to "/" since each resource class includes "/v3/systems" in the
+ *     path set at the class level. See SystemResource.java, PermsResource.java, etc.
+ *     This has been found to be a more robust scheme for keeping startup working for both
+ *     running in an IDE and standalone.
+ */
 @ApplicationPath("/")
 public class SystemsApplication extends ResourceConfig
 {
@@ -73,11 +80,21 @@ public class SystemsApplication extends ResourceConfig
 //    register(new MoxyJsonConfig().resolver());
 // NOTE on Selectable feature: gave up on this (for now) as too cumbersome and limited. Awkward to specify attributes
 //      and could not get it to work when list of systems nested in results->search.
-// Use jackson as is done for files? Yes, breaks getting notes but allows for Credential
-// With a custom objectmapper and custom jsonobject serializer this now works for both notes and authnCredential
+
+    // Register Jersey filtering feature to support returning selected attributes in response.
+//    property(EntityFilteringFeature.ENTITY_FILTERING_SCOPE, new Annotation[] {TSystemFilterView.Factory.get()});
+    register(EntityFilteringFeature.class);
+    register(TapisEntityProcessor.class);
+    register(TapisScopeResolver.class);
+
+
+    // Use jackson as opposed to Moxy.
+    // Initially there were problems with notes and authnCredential but with a custom objectmapper
+    // and custom jsonobject serializer the problems were resolved.
     register(JacksonFeature.class);
 
     // Needed for properly returning timestamps
+    // Also allows for setting a breakpoint when response is being constructed.
     register(ObjectMapperContextResolver.class);
 
     // Register classes needed for returning a standard Tapis response for non-Tapis exceptions.
@@ -123,7 +140,6 @@ public class SystemsApplication extends ResourceConfig
           bind(SKClient.class).to(SKClient.class); // Used in service impl
         }
       });
-
     } catch (Exception e) {
       // This is a fatal error
       System.out.println("**** FAILURE TO INITIALIZE: tapis-systemsapi ****");

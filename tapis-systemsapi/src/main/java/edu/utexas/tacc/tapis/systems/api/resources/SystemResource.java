@@ -75,7 +75,7 @@ import edu.utexas.tacc.tapis.systems.service.SystemsService;
  * JAX-RS REST resource for a Tapis System (edu.utexas.tacc.tapis.systems.model.TSystem)
  * jax-rs annotations map HTTP verb + endpoint to method invocation and map query parameters.
  * NOTE: Annotations for generating OpenAPI specification not currently used.
- *       Please see tapis-client-java repo file systems-client/SystemsAPI.yaml
+ *       Please see openapi-systems repo file SystemsAPI.yaml
  *       and note at top of SystemsResource.java
  *
  * NOTE: The "pretty" query parameter is available for all endpoints. It is processed in
@@ -851,6 +851,9 @@ public class SystemResource
     List<String> searchList = threadContext.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
+//    List<String> filterList = threadContext.getFilterList();
+//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
+
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
     try {
@@ -1265,13 +1268,13 @@ public class SystemResource
   /**
    * Fill in defaults and check restrictions on TSystem attributes
    * Check values. systemId, host, authnMethod must be set. effectiveUserId is restricted.
-   * If type is OBJECT_STORE then bucketName must be set and canExec must be false.
+   * If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
    * If transfer mechanism S3 is supported then bucketName must be set.
    * If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
-   * TODO: If isDtn is true then canExec must be false and the following attributes may not be set:
-   *       dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
-   * TODO: If jobIsBatch is true then batchScheduler must be specified
-   * TODO: If jobIsBatch is true and batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
+   * If isDtn is true then canExec must be false and the following attributes may not be set:
+   *   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+   * If jobIsBatch is true then batchScheduler must be specified
+   *   and if batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
    * TODO: If DTN is used verify that dtnSystemId exists with isDtn = true
    * Collect and report as many errors as possible so they can all be fixed before next attempt
    * NOTE: JsonSchema validation should handle some of these checks but we check here again for robustness.
@@ -1336,6 +1339,13 @@ public class SystemResource
       errMessages.add(msg);
     }
 
+    // If type is OBJECT_STORE then isDtn must be false
+    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && tSystem1.getIsDtn())
+    {
+      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_ISDTN_INPUT");
+      errMessages.add(msg);
+    }
+
     // For S3 support bucketName must be set
     if (tSystem1.getTransferMethods() != null &&
             tSystem1.getTransferMethods().contains(TransferMethod.S3) && StringUtils.isBlank(tSystem1.getBucketName()))
@@ -1351,19 +1361,65 @@ public class SystemResource
       errMessages.add(msg);
     }
 
-    // If canExec is true then jobWorkingDir must be set
-    if (tSystem1.getCanExec() && tSystem1.getJobWorkingDir() == null)
+    // If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry
+    if (tSystem1.getCanExec())
     {
-      msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBWORKINGDIR_INPUT");
-      errMessages.add(msg);
+      if (StringUtils.isBlank(tSystem1.getJobWorkingDir()))
+      {
+        msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBWORKINGDIR_INPUT");
+        errMessages.add(msg);
+      }
+      if (tSystem1.getJobRuntimes() == null || tSystem1.getJobRuntimes().isEmpty())
+      {
+        msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBRUNTIME_INPUT");
+        errMessages.add(msg);
+      }
     }
 
-    // If canExec is true then jobRuntimes must have at least one entry
-    List<JobRuntime> runtimes = tSystem1.getJobRuntimes();
-    if (tSystem1.getCanExec() && (runtimes == null || runtimes.isEmpty()))
+    // If isDtn is true then canExec must be false and the following attributes may not be set:
+    //   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+    if (tSystem1.getIsDtn())
     {
-      msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBRUNTIME_INPUT");
-      errMessages.add(msg);
+      if (tSystem1.getCanExec())
+      {
+        msg = ApiUtils.getMsg("SYSAPI_DTN_CANEXEC");
+        errMessages.add(msg);
+      }
+      if (!StringUtils.isBlank(tSystem1.getDtnSystemId()) ||
+          !StringUtils.isBlank(tSystem1.getDtnMountPoint()) ||
+          !StringUtils.isBlank(tSystem1.getDtnMountSourcePath()))
+      {
+        msg = ApiUtils.getMsg("SYSAPI_DTN_DTNATTRS");
+        errMessages.add(msg);
+      }
+      if (!StringUtils.isBlank(tSystem1.getJobWorkingDir()) ||
+          !(tSystem1.getJobCapabilities() == null || tSystem1.getJobCapabilities().isEmpty()) ||
+          !(tSystem1.getJobRuntimes() == null || tSystem1.getJobRuntimes().isEmpty()) ||
+          !(tSystem1.getJobEnvVariables() == null || tSystem1.getJobEnvVariables().length == 0) ||
+          !StringUtils.isBlank(tSystem1.getBatchScheduler()) ||
+          !StringUtils.isBlank(tSystem1.getBatchDefaultLogicalQueue()) ||
+          !(tSystem1.getBatchLogicalQueues() == null || tSystem1.getBatchLogicalQueues().isEmpty()) )
+      {
+        msg = ApiUtils.getMsg("SYSAPI_DTN_JOBATTRS");
+        errMessages.add(msg);
+      }
+    }
+
+    // If jobIsBatch is true then batchScheduler must be specified
+    //   and if batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
+    if (tSystem1.getJobIsBatch())
+    {
+      if (StringUtils.isBlank(tSystem1.getBatchScheduler()))
+      {
+        msg = ApiUtils.getMsg("SYSAPI_ISBATCH_NOSCHED");
+        errMessages.add(msg);
+      }
+      if (tSystem1.getBatchLogicalQueues() != null && !tSystem1.getBatchLogicalQueues().isEmpty() &&
+          StringUtils.isBlank(tSystem1.getBatchDefaultLogicalQueue()))
+      {
+        msg = ApiUtils.getMsg("SYSAPI_ISBATCH_NODEFAULTQ");
+        errMessages.add(msg);
+      }
     }
 
     // If validation failed log error message and return response

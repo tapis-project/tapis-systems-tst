@@ -1594,7 +1594,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Create the condition
     Condition newCondition = createCondition(col, op, val);
     // If specified add the condition to the WHERE clause
-    if (StringUtils.isBlank(joinOp)) return newCondition;
+    if (StringUtils.isBlank(joinOp) || whereCondition == null) return newCondition;
     else if (joinOp.equalsIgnoreCase("AND")) return whereCondition.and(newCondition);
     else if (joinOp.equalsIgnoreCase("OR")) return whereCondition.or(newCondition);
     return newCondition;

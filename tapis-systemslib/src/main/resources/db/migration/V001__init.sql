@@ -5,7 +5,7 @@
 --   CREATE DATABASE tapissysdb ENCODING='UTF8' LC_COLLATE='en_US.utf8' LC_CTYPE='en_US.utf8';
 --   CREATE USER tapis_sys WITH ENCRYPTED PASSWORD '<password>'
 --   GRANT ALL PRIVILEGES ON DATABASE tapissysdb TO tapis_sys;
--- Fast way to check for table. Might use this at startup during an init phase.
+-- Fast way to check for table:
 --   SELECT to_regclass('tapis_sys.systems');
 --
 --
@@ -28,7 +28,6 @@
 CREATE SCHEMA IF NOT EXISTS tapis_sys AUTHORIZATION tapis_sys;
 ALTER ROLE tapis_sys SET search_path = 'tapis_sys';
 SET search_path TO tapis_sys;
--- SET search_path TO public;
 
 -- Set permissions
 -- GRANT CONNECT ON DATABASE tapissysdb TO tapis_sys;
@@ -161,7 +160,7 @@ CREATE TABLE logical_queues
 (
     seq_id SERIAL PRIMARY KEY,
     system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
-    name     VARCHAR(128) NOT NULL DEFAULT '',
+    name VARCHAR(128) NOT NULL DEFAULT '',
     hpc_queue_name VARCHAR(128) NOT NULL DEFAULT '',
     max_jobs INTEGER NOT NULL DEFAULT -1,
     max_jobs_per_user INTEGER NOT NULL DEFAULT -1,

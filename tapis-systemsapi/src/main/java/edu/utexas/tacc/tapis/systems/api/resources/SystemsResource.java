@@ -242,8 +242,12 @@ public class SystemsResource
     // ---------------------------- Success -------------------------------
     // Create the response payload.
     RespBasic resp = new RespBasic("Ready check passed. Count: " + checkNum);
-    return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            MsgUtils.getMsg("TAPIS_READY", "Systems Service"), false, resp)).build();
+    // Manually create a success response with git info included in version
+    resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
+    resp.message = MsgUtils.getMsg("TAPIS_READY", "Systems Service");
+    resp.version = TapisUtils.getTapisFullVersion();
+    String respStr = TapisGsonUtils.getGson().toJson(resp);
+    return Response.status(Status.OK).entity(respStr).build();
   }
 
   /* **************************************************************************** */
