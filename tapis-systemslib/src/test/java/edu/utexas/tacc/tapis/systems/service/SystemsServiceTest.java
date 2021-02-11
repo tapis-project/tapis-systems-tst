@@ -1,8 +1,8 @@
 package edu.utexas.tacc.tapis.systems.service;
 
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
@@ -60,7 +60,6 @@ public class SystemsServiceTest
   // Test data
   private static final String svcName = "systems";
   private static final String filesSvcName = "files";
-  private static final String siteId = "tacc";
 // TODO  private static final String adminUser = "admin";
   private static final String adminUser = "testuser9";
   private static final String adminTenantName = "admin";
@@ -106,8 +105,8 @@ public class SystemsServiceTest
         bind(SystemsServiceImpl.class).to(SystemsService.class);
         bind(SystemsServiceImpl.class).to(SystemsServiceImpl.class);
         bind(SystemsDaoImpl.class).to(SystemsDao.class);
-        bindFactory(SystemsServiceContextFactory.class).to(ServiceContext.class);
-        bind(SKClient.class).to(SKClient.class);
+        bindFactory(ServiceContextFactory.class).to(ServiceContext.class);
+        bindFactory(ServiceClientsFactory.class).to(ServiceClients.class);
       }
     });
     locator.inject(this);
@@ -119,7 +118,7 @@ public class SystemsServiceTest
     // Initialize services
     svc = locator.getService(SystemsService.class);
     svcImpl = locator.getService(SystemsServiceImpl.class);
-    svcImpl.initService(siteId);
+    svcImpl.initService(RuntimeParameters.getInstance());
 
     // Initialize authenticated user and service
     authenticatedOwner1 = new AuthenticatedUser(owner1, tenantName, TapisThreadContext.AccountType.user.name(),

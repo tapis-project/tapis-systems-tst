@@ -1,5 +1,6 @@
 package edu.utexas.tacc.tapis.systems.service;
 
+import static edu.utexas.tacc.tapis.shared.TapisConstants.SYSTEMS_SERVICE;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_ACCESS_KEY;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_ACCESS_SECRET;
 import static edu.utexas.tacc.tapis.systems.model.Credential.SK_KEY_PASSWORD;
@@ -24,7 +25,10 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 
 import edu.utexas.tacc.tapis.shared.TapisConstants;
+import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.security.ServiceClients;
+import edu.utexas.tacc.tapis.shared.security.ServiceContext;
+import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -45,12 +49,9 @@ import edu.utexas.tacc.tapis.security.client.model.SKSecretReadParms;
 import edu.utexas.tacc.tapis.security.client.model.SKSecretWriteParms;
 import edu.utexas.tacc.tapis.security.client.model.SecretType;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
-import edu.utexas.tacc.tapis.shared.security.ServiceContext;
-import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
-import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
@@ -61,7 +62,6 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
-import edu.utexas.tacc.tapis.tenants.client.gen.model.Tenant;
 
 /*
  * Service level methods for Systems.
@@ -82,10 +82,6 @@ public class SystemsServiceImpl implements SystemsService
   private static final Set<Permission> ALL_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY, Permission.EXECUTE));
   private static final Set<Permission> READMODIFY_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
   private static final String PERM_SPEC_PREFIX = "system:";
-
-  private static final String HDR_TAPIS_TOKEN = "X-Tapis-Token";
-  private static final String HDR_TAPIS_TENANT = "X-Tapis-Tenant";
-  private static final String HDR_TAPIS_USER = "X-Tapis-User";
 
   private static final String FILES_SERVICE = TapisConstants.SERVICE_NAME_FILES;
   private static final String JOBS_SERVICE = TapisConstants.SERVICE_NAME_JOBS;
@@ -108,18 +104,11 @@ public class SystemsServiceImpl implements SystemsService
   @Inject
   private SystemsDao dao;
 
-//  @Inject
-//  private ServiceClients svcClients;
+  @Inject
+  private ServiceClients serviceClients;
 
   @Inject
   private ServiceContext serviceContext;
-
-  // TODO remove?
-  @Inject
-  private SKClient skClient;
-
-  // We must be running on a specific site and this will never change.
-  private static String siteId;
 
   // ************************************************************************
   // *********************** Public Methods *********************************
@@ -220,7 +209,6 @@ public class SystemsServiceImpl implements SystemsService
       _log.debug("roleNameR="+ roleNameR);
       _log.debug("systemsPermSpecR=" + systemsPermSpecR);
       _log.debug("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
-      _log.debug("serviceJwt.getAccessJWT(siteId)=" + serviceContext.getServiceJWT().getAccessJWT(siteId));
       // TODO: Delete fails due to SK authz failure
       //       SK_API_AUTHORIZATION_FAILED These authorization checks failed for request tenant/user=dev/null
       //       (jwt tenant/user=admin/systems, obo tenant/user=dev/owner1, account=service):  IsAdmin, OwnedRoles
@@ -530,61 +518,13 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Initialize the service:
-   *   Check for Systems admin role. If not found create it
+   *   init service context
+   *   migrate DB
    */
-  public void initService(String svcSiteId) throws TapisException, TapisClientException
+  public void initService(RuntimeParameters runParms) throws TapisException, TapisClientException
   {
-    siteId = svcSiteId;
-//    // Get service admin tenant
-//    String svcAdminTenant = RuntimeParameters.getInstance().getServiceAdminTenant();
-//    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
-//    // Create user for SK client
-//    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
-//    //       that in general this may be the pattern to follow.
-//    String svcJwt = serviceJWT.getAccessJWT(siteId);
-//    AuthenticatedUser svcUser =
-//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
-//                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
-//    // TODO: Revisit how to manage skClient instances.
-//    // Get service admin tenant
-//    String svcAdminTenant = TenantManager.getInstance().getSiteAdminTenantId(siteId);
-//    if (StringUtils.isBlank(svcAdminTenant)) svcAdminTenant = SYSTEMS_DEFAULT_ADMIN_TENANT;
-//    // Create user for SK client
-//    // NOTE: getSKClient() does not require the jwt to be set in AuthenticatedUser but we keep it here as a reminder
-//    //       that in general this may be the pattern to follow.
-//    String svcJwt = serviceContext.getAccessJWT(svcAdminTenant, SERVICE_NAME_SYSTEMS);
-//    AuthenticatedUser svcUser =
-//        new AuthenticatedUser(SERVICE_NAME_SYSTEMS, svcAdminTenant, TapisThreadContext.AccountType.service.name(),
-//                              null, SERVICE_NAME_SYSTEMS, svcAdminTenant, null, siteId, svcJwt);
-//    // Use SK client to check for admin role and create it if necessary
-//    var skClient = getSKClient(svcUser);
-//    // Check for admin role, continue if error getting role.
-//    // TODO: Move msgs to properties file
-//    // TODO/TBD: Do we still need the special service admin role "SystemsAdmin" or should be use the tenant admin role?
-//    SkRole adminRole = null;
-//    try
-//    {
-//      adminRole = skClient.getRoleByName(svcAdminTenant, SYSTEMS_ADMIN_ROLE);
-//    }
-//    catch (TapisClientException e)
-//    {
-//      String msg = e.getTapisMessage();
-//      // If we have a special message then log it
-//      if (!StringUtils.isBlank(msg)) _log.error("Unable to get Admin Role. Caught TapisClientException: " + msg);
-//      // If there is no message or the message is something other than "role does not exist" then log the exception.
-//      // There may be a problem with SK but do not throw (i.e. fail) just because we cannot get the role at this point.
-//      if (msg == null || !msg.startsWith("TAPIS_NOT_FOUND")) _log.error("Unable to get Admin Role. Caught Exception: " + e);
-//    }
-//    if (adminRole == null)
-//    {
-//      _log.info("Systems administrative role not found. Role name: " + SYSTEMS_ADMIN_ROLE);
-//      skClient.createRole(svcAdminTenant, SYSTEMS_ADMIN_ROLE, SYSTEMS_ADMIN_DESCRIPTION);
-//      _log.info("Systems administrative created. Role name: " + SYSTEMS_ADMIN_ROLE);
-//    }
-//    else
-//    {
-//      _log.info("Systems administrative role found. Role name: " + SYSTEMS_ADMIN_ROLE);
-//    }
+    // Initialize service context
+    serviceContext.initServiceJWT(runParms.getSiteId(), SYSTEMS_SERVICE, runParms.getServicePassword());
     // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
   }
@@ -1510,7 +1450,6 @@ public class SystemsServiceImpl implements SystemsService
   // ************************************************************************
 
   /**
-   *  TODO: revisit this. There is now ServiceContext/ServiceClients which will probably help.
    * Get Security Kernel client associated with specified tenant
    * @param authenticatedUser - name of tenant
    * @return SK client
@@ -1518,33 +1457,30 @@ public class SystemsServiceImpl implements SystemsService
    */
   private SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
   {
-    // Use TenantManager to get tenant info. Needed for tokens and SK base URLs.
-    Tenant userTenant = TenantManager.getInstance().getTenant(authenticatedUser.getTenantId());
-
-    // Update SKClient on the fly. If this becomes a bottleneck we can add a cache.
-    // Get Security Kernel URL from the env or the tenants service. Env value has precedence.
-    //    String skURL = "https://dev.develop.tapis.io/v3";
-    String skURL = RuntimeParameters.getInstance().getSkSvcURL();
-    if (StringUtils.isBlank(skURL)) skURL = userTenant.getSecurityKernel();
-    if (StringUtils.isBlank(skURL)) throw new TapisException(LibUtils.getMsgAuth("SYSLIB_CREATE_SK_URL_ERROR", authenticatedUser));
-    // TODO remove strip-off of everything after /v3 once tenant is updated or we do something different for base URL in auto-generated clients
-    // Strip off everything after the /v3 so we have a valid SK base URL
-    skURL = skURL.substring(0, skURL.indexOf("/v3") + 3);
-
-    skClient.setBasePath(skURL);
-    skClient.addDefaultHeader(HDR_TAPIS_TOKEN, serviceContext.getServiceJWT().getAccessJWT(siteId));
-
-    // For service jwt pass along oboTenant and oboUser in OBO headers
-    // For user jwt use authenticated user name and tenant in OBO headers
+    SKClient skClient;
+    String tenantName;
+    String userName;
+    // If service request use oboTenant and oboUser in OBO headers
+    // else for user request use authenticated user name and tenant in OBO headers
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
     {
-      skClient.addDefaultHeader(HDR_TAPIS_TENANT, authenticatedUser.getOboTenantId());
-      skClient.addDefaultHeader(HDR_TAPIS_USER, authenticatedUser.getOboUser());
+      tenantName = authenticatedUser.getOboTenantId();
+      userName = authenticatedUser.getOboUser();
     }
     else
     {
-      skClient.addDefaultHeader(HDR_TAPIS_TENANT, authenticatedUser.getTenantId());
-      skClient.addDefaultHeader(HDR_TAPIS_USER, authenticatedUser.getName());
+      tenantName = authenticatedUser.getTenantId();
+      userName = authenticatedUser.getName();
+    }
+    try
+    {
+      skClient = serviceClients.getClient(userName, tenantName, SKClient.class);
+    }
+    catch (Exception e)
+    {
+      String msg = MsgUtils.getMsg("TAPIS_CLIENT_NOT_FOUND", TapisConstants.SERVICE_NAME_SECURITY,
+                                   authenticatedUser.getTenantId(), authenticatedUser.getName());
+      throw new TapisException(msg, e);
     }
     return skClient;
   }

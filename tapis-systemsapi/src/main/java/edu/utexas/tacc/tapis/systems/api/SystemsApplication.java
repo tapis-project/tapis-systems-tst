@@ -2,7 +2,6 @@ package edu.utexas.tacc.tapis.systems.api;
 
 import javax.ws.rs.ApplicationPath;
 
-import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
@@ -14,13 +13,13 @@ import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
 import edu.utexas.tacc.tapis.systems.api.filtering.TapisEntityProcessor;
 import edu.utexas.tacc.tapis.systems.api.filtering.TapisScopeResolver;
-import edu.utexas.tacc.tapis.systems.api.model.TSystemFilterView;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceImpl;
-import edu.utexas.tacc.tapis.systems.service.SystemsServiceContextFactory;
+import edu.utexas.tacc.tapis.systems.service.ServiceClientsFactory;
+import edu.utexas.tacc.tapis.systems.service.ServiceContextFactory;
 
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -34,7 +33,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import org.jooq.tools.StringUtils;
 
-import java.lang.annotation.Annotation;
 import java.net.URI;
 
 /*
@@ -68,6 +66,7 @@ public class SystemsApplication extends ResourceConfig
     // Output version information on startup
     System.out.println("**** Starting tapis-systems. Version: " + TapisUtils.getTapisFullVersion() + " ****");
 
+    // TODO clean up comments once filtering is implemented.
     // Setup and register Jersey's dynamic filtering
     // This allows for returning selected attributes in a return result
     //   using the query parameter select, e.g.
@@ -137,9 +136,8 @@ public class SystemsApplication extends ResourceConfig
           bind(SystemsServiceImpl.class).to(SystemsService.class); // Used in Resource classes for most service calls
           bind(SystemsServiceImpl.class).to(SystemsServiceImpl.class); // Used in SystemsResource for checkDB
           bind(SystemsDaoImpl.class).to(SystemsDao.class); // Used in service impl
-          bindFactory(SystemsServiceContextFactory.class).to(ServiceContext.class); // Used in service impl and SystemsResource
-          bind(SKClient.class).to(SKClient.class); // Used in service impl
-          bind(ServiceClients.class).to(ServiceClients.class); // Used in service impl
+          bindFactory(ServiceContextFactory.class).to(ServiceContext.class); // Used in SystemsResource for checkJWT
+          bindFactory(ServiceClientsFactory.class).to(ServiceClients.class); // Used in service impl
         }
       });
     } catch (Exception e) {
@@ -177,7 +175,7 @@ public class SystemsApplication extends ResourceConfig
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
     // Call the main service init method
-    svcImpl.initService(SystemsApplication.getSiteId());
+    svcImpl.initService(RuntimeParameters.getInstance());
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
     server.start();

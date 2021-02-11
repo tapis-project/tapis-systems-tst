@@ -37,7 +37,6 @@ import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqImportSGCIResource;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSGCISystem;
-import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
