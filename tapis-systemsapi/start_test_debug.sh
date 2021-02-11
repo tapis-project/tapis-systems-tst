@@ -11,4 +11,4 @@ export TAPIS_SVC_URL_TENANTS=https://dev.develop.tapis.io
 
 set -xv
 java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8081 \
-     -jar target/v3#systems.jar
+     -jar target/systems.jar

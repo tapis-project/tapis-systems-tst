@@ -133,7 +133,7 @@ COMMENT ON COLUMN systems.updated IS 'UTC time for when record was last updated'
 CREATE TABLE system_updates
 (
     seq_id SERIAL PRIMARY KEY,
-    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
+    system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
     user_name VARCHAR(60) NOT NULL,
     user_tenant VARCHAR(24) NOT NULL,
     operation operation_type NOT NULL,
@@ -159,7 +159,7 @@ COMMENT ON COLUMN system_updates.created IS 'UTC time for when record was create
 CREATE TABLE logical_queues
 (
     seq_id SERIAL PRIMARY KEY,
-    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
+    system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
     name VARCHAR(128) NOT NULL DEFAULT '',
     hpc_queue_name VARCHAR(128) NOT NULL DEFAULT '',
     max_jobs INTEGER NOT NULL DEFAULT -1,
@@ -190,7 +190,7 @@ COMMENT ON COLUMN logical_queues.max_minutes IS 'Maximum run time in minutes tha
 CREATE TABLE job_runtimes
 (
     seq_id SERIAL PRIMARY KEY,
-    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
+    system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
     runtime_type job_runtime_type NOT NULL,
     version VARCHAR(128) NOT NULL DEFAULT ''
 );
@@ -205,7 +205,7 @@ ALTER TABLE job_runtimes OWNER TO tapis_sys;
 CREATE TABLE capabilities
 (
     seq_id SERIAL PRIMARY KEY,
-    system_seq_id SERIAL REFERENCES systems(seq_id) ON DELETE CASCADE,
+    system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
     category capability_category_type NOT NULL,
     name VARCHAR(128) NOT NULL DEFAULT '',
     datatype capability_datatype_type NOT NULL,

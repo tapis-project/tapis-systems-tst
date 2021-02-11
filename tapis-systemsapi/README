@@ -85,7 +85,7 @@ Note that TAPIS_SVC_URL_TENANTS is required either in service.properties or in t
 The other base service URLs are optional and by default are looked up using the Tenants service.
 
 The web application is packaged as a WAR file.  Configure your web application
-server, such as Tomcat, with the v3#systems.war file.  Start your web application server 
+server, such as Tomcat, with the systems.war file.  Start your web application server
 after setting the above environment variables to control the web application.
 
 ------------

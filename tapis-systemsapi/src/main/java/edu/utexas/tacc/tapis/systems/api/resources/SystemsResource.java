@@ -183,7 +183,6 @@ public class SystemsResource
       RespBasic r = new RespBasic("Readiness tenants check failed. Check number: " + checkNum);
       String msg = MsgUtils.getMsg("TAPIS_NOT_READY", "Systems Service");
       // We failed so set the log limiter check.
-      // TODO/TBD Do we need to also check exception type? Info would get lost if exception type changes.
       if (checkTenantsOK.toggleOff())
       {
         _log.warn(msg, readyCheckException);
@@ -204,7 +203,6 @@ public class SystemsResource
       RespBasic r = new RespBasic("Readiness JWT check failed. Check number: " + checkNum);
       String msg = MsgUtils.getMsg("TAPIS_NOT_READY", "Systems Service");
       // We failed so set the log limiter check.
-      // TODO/TBD Do we need to also check exception type? Info would get lost if exception type changes.
       if (checkJWTOK.toggleOff())
       {
         _log.warn(msg, readyCheckException);
@@ -225,7 +223,6 @@ public class SystemsResource
       RespBasic r = new RespBasic("Readiness DB check failed. Check number: " + checkNum);
       String msg = MsgUtils.getMsg("TAPIS_NOT_READY", "Systems Service");
       // We failed so set the log limiter check.
-      // TODO/TBD Do we need to also check exception type? Info would get lost if exception type changes.
       if (checkDBOK.toggleOff())
       {
         _log.warn(msg, readyCheckException);

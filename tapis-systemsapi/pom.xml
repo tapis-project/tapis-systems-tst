@@ -38,18 +38,6 @@
       <artifactId>tapis-shared-searchlib</artifactId>
       <version>${tapis-shared-java.version}</version>
     </dependency>
-    <!-- Jersey Test Framework -->
-    <dependency>
-      <groupId>org.glassfish.jersey.test-framework</groupId>
-      <artifactId>jersey-test-framework-core</artifactId>
-      <version>2.32</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-      <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-      <version>2.32</version>
-      <scope>test</scope>
-    </dependency>
     <!-- Jersey/Jackson jax-rs modules -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
@@ -148,7 +136,7 @@
 <!--      </plugin>-->
     </plugins>
 
-    <finalName>v3#systems</finalName>
+    <finalName>systems</finalName>
   </build>
 
 </project>

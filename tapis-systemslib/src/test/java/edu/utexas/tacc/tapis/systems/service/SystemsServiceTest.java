@@ -54,7 +54,6 @@ public class SystemsServiceTest
 {
   private SystemsService svc;
   private SystemsServiceImpl svcImpl;
-  private SKClient skClient;
   private AuthenticatedUser authenticatedOwner1, authenticatedTestUser0, authenticatedTestUser1, authenticatedTestUser2,
           authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc1,
           authenticatedFilesSvc3, authenticatedSystemsSvc;
@@ -62,8 +61,8 @@ public class SystemsServiceTest
   private static final String svcName = "systems";
   private static final String filesSvcName = "files";
   private static final String siteId = "tacc";
-  private static final String adminUser = "testuser9";
 // TODO  private static final String adminUser = "admin";
+  private static final String adminUser = "testuser9";
   private static final String adminTenantName = "admin";
   private static final String testUser0 = "testuser0";
   private static final String testUser1 = "testuser1";
@@ -143,9 +142,6 @@ public class SystemsServiceTest
                                                    null, owner1, tenantName, null, null, null);
     authenticatedFilesSvc3 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                    null, testUser3, tenantName, null, null, null);
-
-    // Initialize skClient for calls acting as the Systems service.
-    skClient = svcImpl.getSKClient(authenticatedSystemsSvc);
 
     // Cleanup anything leftover from previous failed run
     tearDown();

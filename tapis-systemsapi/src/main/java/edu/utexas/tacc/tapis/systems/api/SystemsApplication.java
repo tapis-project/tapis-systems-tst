@@ -3,6 +3,7 @@ package edu.utexas.tacc.tapis.systems.api;
 import javax.ws.rs.ApplicationPath;
 
 import edu.utexas.tacc.tapis.security.client.SKClient;
+import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
@@ -138,6 +139,7 @@ public class SystemsApplication extends ResourceConfig
           bind(SystemsDaoImpl.class).to(SystemsDao.class); // Used in service impl
           bindFactory(SystemsServiceContextFactory.class).to(ServiceContext.class); // Used in service impl and SystemsResource
           bind(SKClient.class).to(SKClient.class); // Used in service impl
+          bind(ServiceClients.class).to(ServiceClients.class); // Used in service impl
         }
       });
     } catch (Exception e) {

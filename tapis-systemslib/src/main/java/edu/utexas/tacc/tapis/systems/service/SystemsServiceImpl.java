@@ -23,6 +23,8 @@ import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 
+import edu.utexas.tacc.tapis.shared.TapisConstants;
+import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import org.apache.commons.lang3.StringUtils;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -85,8 +87,8 @@ public class SystemsServiceImpl implements SystemsService
   private static final String HDR_TAPIS_TENANT = "X-Tapis-Tenant";
   private static final String HDR_TAPIS_USER = "X-Tapis-User";
 
-  private static final String FILES_SERVICE = "files";
-  private static final String JOBS_SERVICE = "jobs";
+  private static final String FILES_SERVICE = TapisConstants.SERVICE_NAME_FILES;
+  private static final String JOBS_SERVICE = TapisConstants.SERVICE_NAME_JOBS;
   private static final Set<String> SVCLIST_GETCRED = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
   private static final Set<String> SVCLIST_READ = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
 
@@ -106,11 +108,15 @@ public class SystemsServiceImpl implements SystemsService
   @Inject
   private SystemsDao dao;
 
-  @Inject
-  private SKClient skClient;
+//  @Inject
+//  private ServiceClients svcClients;
 
   @Inject
   private ServiceContext serviceContext;
+
+  // TODO remove?
+  @Inject
+  private SKClient skClient;
 
   // We must be running on a specific site and this will never change.
   private static String siteId;
@@ -1504,14 +1510,13 @@ public class SystemsServiceImpl implements SystemsService
   // ************************************************************************
 
   /**
-   *  TODO: revisit this. There is now ServiceContext which will probably help.
+   *  TODO: revisit this. There is now ServiceContext/ServiceClients which will probably help.
    * Get Security Kernel client associated with specified tenant
-   * NOTE: This is public so test code can use it but it is not part of the public interface.
    * @param authenticatedUser - name of tenant
    * @return SK client
    * @throws TapisException - for Tapis related exceptions
    */
-  public SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
+  private SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
   {
     // Use TenantManager to get tenant info. Needed for tokens and SK base URLs.
     Tenant userTenant = TenantManager.getInstance().getTenant(authenticatedUser.getTenantId());
@@ -1800,18 +1805,12 @@ public class SystemsServiceImpl implements SystemsService
           throws TapisException, TapisClientException
   {
     // If requester is a service or an admin then all systems allowed
-    // TODO: for all services or just some, such as files and jobs?
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()) ||
         hasAdminRole(authenticatedUser, null, null)) return null;
     var seqIDs = new ArrayList<Integer>();
     // Get roles for user and extract system seqIDs
-    // TODO: Need a way to make sure roles that a user has created and assigned to themselves are not included
-    //       Maybe a special role name? Or a search that only returns roles owned by "systems"
-    // TODO: Is it possible for a user to already have roles in this format that are assigned to them but not owned by "systems"?
-    //       If yes then it is a problem.
     List<String> userRoles = getSKClient(authenticatedUser).getUserRoles(systemTenantName, authenticatedUser.getName());
     // Find roles of the form Systems_R_<id> and generate a list of seqIDs
-    // TODO Create a function and turn this into a stream/lambda
     for (String role: userRoles)
     {
       if (role.startsWith(TSystem.ROLE_READ_PREFIX))

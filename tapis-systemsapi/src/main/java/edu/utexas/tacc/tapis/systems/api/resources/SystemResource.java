@@ -398,6 +398,7 @@ public class SystemResource
             ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
+  // TODO If SGCI endpoint not finalized before production then remove.
   /**
    * Import a system - create a system based on an attributes from an external source
    * @param payloadStream - request body
