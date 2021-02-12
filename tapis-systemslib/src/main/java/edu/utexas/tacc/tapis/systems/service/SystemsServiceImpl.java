@@ -135,8 +135,10 @@ public class SystemsServiceImpl implements SystemsService
           throws TapisException, TapisClientException, IllegalStateException, IllegalArgumentException, NotAuthorizedException
   {
     SystemOperation op = SystemOperation.create;
+    _log.trace(LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, scrubbedText));
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (system == null) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
+    _log.trace(LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, scrubbedText));
     // Extract various names for convenience
     String tenantName = authenticatedUser.getTenantId();
     String apiUserId = authenticatedUser.getName();
@@ -218,6 +220,7 @@ public class SystemsServiceImpl implements SystemsService
 //      SkRole tstRole = skClient.getRoleByName(systemTenantName, roleNameR);
 //      if (tstRole != null) skClient.deleteRoleByName(systemTenantName, roleNameR);
 //      skClient.deleteRoleByName(systemTenantName, roleNameR);
+// TODO use service tenant name, "admin" ?
       skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       skClient.addRolePermission(systemTenantName, roleNameR, systemsPermSpecR);
 

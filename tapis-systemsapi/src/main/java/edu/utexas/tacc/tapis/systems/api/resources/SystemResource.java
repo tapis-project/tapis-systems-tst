@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
@@ -208,6 +207,13 @@ public class SystemResource
 
     // Create a TSystem from the request
     TSystem tSystem = createTSystemFromRequest(req);
+
+    // Mask any secret info that might be contained in rawJson
+    String scrubbedJson = rawJson;
+    if (tSystem.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
+    _log.trace(ApiUtils.getMsgAuth("SYSAPI_CREATE_TRACE", authenticatedUser, scrubbedJson));
+
+
     // Fill in defaults and check constraints on TSystem attributes
     resp = validateTSystem(tSystem, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
@@ -215,10 +221,6 @@ public class SystemResource
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
     tSystem.setNotes(notes);
-
-    // Mask any secret info that might be contained in rawJson
-    String scrubbedJson = rawJson;
-    if (tSystem.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
 
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience

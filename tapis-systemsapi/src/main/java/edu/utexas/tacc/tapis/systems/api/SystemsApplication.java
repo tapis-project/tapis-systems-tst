@@ -142,7 +142,7 @@ public class SystemsApplication extends ResourceConfig
       });
     } catch (Exception e) {
       // This is a fatal error
-      System.out.println("**** FAILURE TO INITIALIZE: tapis-systemsapi ****");
+      System.out.println("**** FAILURE TO INITIALIZE: Tapis Systems Service ****");
       e.printStackTrace();
       throw e;
     }

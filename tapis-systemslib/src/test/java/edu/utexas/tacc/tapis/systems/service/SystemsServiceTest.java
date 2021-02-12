@@ -60,8 +60,8 @@ public class SystemsServiceTest
   // Test data
   private static final String svcName = "systems";
   private static final String filesSvcName = "files";
-// TODO  private static final String adminUser = "admin";
   private static final String adminUser = "testuser9";
+//TODO  private static final String adminUser = "admin";
   private static final String adminTenantName = "admin";
   private static final String testUser0 = "testuser0";
   private static final String testUser1 = "testuser1";
