@@ -41,7 +41,7 @@ import java.net.URI;
  *   Registers packages and features for Jersey.
  *   Gets runtime parameters from the environment.
  *   Initializes the service:
- *     Tapis site id.
+ *     Init service context.
  *     DB creation or migration
  *   Starts the Grizzly server.
  *

@@ -1176,6 +1176,7 @@ public class SystemResource
   /**
    * deleteSystem
    * @param systemId - name of the system to delete
+   * @param confirmDelete - confirm the action
    * @param securityContext - user identity
    * @return - response with change count as the result
    */
@@ -1183,8 +1184,8 @@ public class SystemResource
   @Path("{systemId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-// TODO/TBD Add query parameter "confirm" which must be set to true since this is an operation that cannot be undone by a user
   public Response deleteSystem(@PathParam("systemId") String systemId,
+                               @QueryParam("confirm") @DefaultValue("false") boolean confirmDelete,
                                @Context SecurityContext securityContext)
   {
     String opName = "deleteSystem";
@@ -1200,6 +1201,14 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+
+    // If confirmDelete is false then return error response
+    if (confirmDelete)
+    {
+      String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NOCONFIRM", authenticatedUser, systemId);
+      _log.warn(msg);
+      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+    }
 
     int changeCount;
     try
