@@ -201,26 +201,15 @@ public class SystemsServiceImpl implements SystemsService
       // Add permission roles for the system. This is only used for filtering systems based on who is authz
       //   to READ, so no other roles needed.
       roleNameR = TSystem.ROLE_READ_PREFIX + itemSeqId;
-      // TODO REMOVE DEBUG
-      _log.debug("authUser.user=" + authenticatedUser.getName());
-      _log.debug("authUser.tenant=" + authenticatedUser.getTenantId());
-      _log.debug("authUser.OboUser=" + authenticatedUser.getOboUser());
-      _log.debug("authUser.OboTenant=" + authenticatedUser.getOboTenantId());
-      _log.debug("systemTenantName=" + systemTenantName);
-      _log.debug("system.getOwner=" + system.getOwner());
-      _log.debug("roleNameR="+ roleNameR);
-      _log.debug("systemsPermSpecR=" + systemsPermSpecR);
-      _log.debug("authenticatedUser.getJwt=" + authenticatedUser.getJwt());
-      // TODO: Delete fails due to SK authz failure
-      //       SK_API_AUTHORIZATION_FAILED These authorization checks failed for request tenant/user=dev/null
-      //       (jwt tenant/user=admin/systems, obo tenant/user=dev/owner1, account=service):  IsAdmin, OwnedRoles
-      // TODO: And call to get role throws a not found, which we could catch and handle, but this is getting
-      //       awkward. Seems like delete should not fail, should return 0 and get should return null.
-      // Delete role, because role may already exist due to failure of rollback
-//      SkRole tstRole = skClient.getRoleByName(systemTenantName, roleNameR);
-//      if (tstRole != null) skClient.deleteRoleByName(systemTenantName, roleNameR);
-//      skClient.deleteRoleByName(systemTenantName, roleNameR);
-// TODO use service tenant name, "admin" ?
+      _log.trace(String.format("authUser.user=%s",authenticatedUser.getName()));
+      _log.trace(String.format("authUser.tenant=%s",authenticatedUser.getTenantId()));
+      _log.trace(String.format("authUser.OboUser=%s",authenticatedUser.getOboUser()));
+      _log.trace(String.format("authUser.OboTenant=%s",authenticatedUser.getOboTenantId()));
+      _log.trace(String.format("systemTenantName=%s",systemTenantName));
+      _log.trace(String.format("system.owner=%s",system.getOwner()));
+      _log.trace(String.format("roleNameR=%s",roleNameR));
+      _log.trace(String.format("systemsPermSpecR=%s",systemsPermSpecR));
+      // TODO use service tenant name, "admin" ?
       skClient.createRole(systemTenantName, roleNameR, "Role allowing READ for system " + systemId);
       skClient.addRolePermission(systemTenantName, roleNameR, systemsPermSpecR);
 
@@ -1322,9 +1311,9 @@ public class SystemsServiceImpl implements SystemsService
     // Get the Security Kernel client
     var skClient = getSKClient(authenticatedUser);
 
-    // TODO: Mutliple txns. Need to handle failure
-    // TODO: Use try/catch to rollback in case of failure.
     // Create credential
+    // If this throws an exception we do not try to rollback. Attempting to track which secrets
+    //   have been changed and reverting seems fraught with peril and not a good ROI.
     try
     {
       createCredential(skClient, credential, tenantName, apiUserId, systemId, systemTenantName, userName);
@@ -1384,8 +1373,9 @@ public class SystemsServiceImpl implements SystemsService
     // Get the Security Kernel client
     var skClient = getSKClient(authenticatedUser);
 
-    // TODO: Mutliple txns. Need to handle failure
-    // TODO: Use try/catch to rollback in case of failure.
+    // Delete credential
+    // If this throws an exception we do not try to rollback. Attempting to track which secrets
+    //   have been changed and reverting seems fraught with peril and not a good ROI.
     try {
       changeCount = deleteCredential(skClient, tenantName, apiUserId, systemTenantName, systemId, userName);
     }
@@ -1461,7 +1451,6 @@ public class SystemsServiceImpl implements SystemsService
       else if (authnMethod.equals(AuthnMethod.CERT))sParms.setKeyType(KeyType.cert);
 
       // Retrieve the secrets
-      // TODO/TBD: why not pass in tenant and apiUser here?
       SkSecret skSecret = skClient.readSecret(sParms);
       if (skSecret == null) return null;
       var dataMap = skSecret.getSecretMap();
@@ -1473,7 +1462,7 @@ public class SystemsServiceImpl implements SystemsService
               dataMap.get(SK_KEY_PUBLIC_KEY),
               dataMap.get(SK_KEY_ACCESS_KEY),
               dataMap.get(SK_KEY_ACCESS_SECRET),
-              null); //dataMap.get(CERT) TODO: how to get ssh certificate
+              null); //dataMap.get(CERT) TODO: get ssh certificate when supported
     }
     // If tapis client exception then log error but continue so null is returned.
     catch (TapisClientException tce)
@@ -1832,7 +1821,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    // TODO: Remove this
+    // TODO: Remove this when admin access is available
     if ("testuser9".equalsIgnoreCase(userName)) return true;
     var skClient = getSKClient(authenticatedUser);
     return skClient.isAdmin(tenantName, userName);
@@ -1948,7 +1937,7 @@ public class SystemsServiceImpl implements SystemsService
       sParms.setData(dataMap);
       skClient.writeSecret(tenantName, apiUserId, sParms);
     }
-    // TODO what about ssh certificate? Nothing to do here?
+    // TODO if necessary handle ssh certificate when supported
   }
 
   /**
@@ -1970,14 +1959,12 @@ public class SystemsServiceImpl implements SystemsService
     }
     catch (Exception e)
     {
-      //TODO How to better check and return 0 if credential not there?
       _log.warn(e.getMessage());
       skMetaSecret = null;
     }
     if (skMetaSecret == null) return changeCount;
 
     // Construct basic SK secret parameters
-//    var sParms = new SKSecretMetaParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME).setSysId(systemId).setSysUser(userName);
     var sParms = new SKSecretDeleteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
     sParms.setTenant(systemTenantName).setSysId(systemId).setSysUser(userName);
     sParms.setUser(apiUserId).setVersions(Collections.emptyList());
@@ -1991,11 +1978,6 @@ public class SystemsServiceImpl implements SystemsService
     sParms.setKeyType(KeyType.accesskey);
     intList = skClient.destroySecret(tenantName, apiUserId, sParms);
     if (intList != null && !intList.isEmpty()) changeCount++;
-    // TODO/TBD: This currently throws a "not found" exception. How to handle it? Have SK make it a no-op? Catch exception for each call?
-//      sParms.setKeyType(KeyType.cert);
-//      skClient.destroySecret(tenantName, apiUserId, sParms);
-    // TODO/TBD Also clean up secret metadata
-
     // If anything destroyed we consider it the removal of a single credential
     if (changeCount > 0) changeCount = 1;
     return changeCount;
@@ -2023,27 +2005,7 @@ public class SystemsServiceImpl implements SystemsService
     effectiveUserId = resolveEffectiveUserId(effectiveUserId, system.getOwner(), apiUserId);
 
     var skClient = getSKClient(authenticatedUser);
-    // TODO: Remove all credentials associated with the system.
-    // TODO: Have SK do this in one operation?
-    // TODO: How to remove for users other than effectiveUserId?
-    // Remove credentials in Security Kernel if cred provided and effectiveUser is static
-    if (!effectiveUserId.equals(APIUSERID_VAR)) {
-      // Use private internal method instead of public API to skip auth and other checks not needed here.
-// TODO/TBD: Do we need to convert this from TCE to TE?
-//      try {
-//        deleteCredential(skClient, tenantName, apiUserId, systemTenantName, system.getId(), effectiveUserId);
-//      }
-//      // If tapis client exception then log error and convert to TapisException
-//      catch (TapisClientException tce)
-//      {
-//        _log.error(tce.toString());
-//        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_CRED_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
-//      }
-      deleteCredential(skClient, tenantName, apiUserId, systemTenantName, system.getId(), effectiveUserId);
-    }
 
-    // TODO/TBD: How to make sure all perms for a system are removed?
-    // TODO: See if it makes sense to have a SK method to do this in one operation
     // Use Security Kernel client to find all users with perms associated with the system.
     String permSpec = PERM_SPEC_PREFIX + systemTenantName + ":%:" + systemId;
     var userNames = skClient.getUsersWithPermission(systemTenantName, permSpec);
@@ -2054,8 +2016,8 @@ public class SystemsServiceImpl implements SystemsService
       String wildCardPermSpec = getPermSpecAllStr(systemTenantName, systemId);
       skClient.revokeUserPermission(systemTenantName, userName, wildCardPermSpec);
     }
+
     // If role is present then remove role assignments and roles
-    // TODO: Ask SK to either provide checkForRole() or return null if role does not exist.
     String roleNameR = TSystem.ROLE_READ_PREFIX + system.getSeqId();
     SkRole role = null;
     try
@@ -2076,6 +2038,15 @@ public class SystemsServiceImpl implements SystemsService
       for (String userName : userNames) skClient.revokeUserRole(systemTenantName, userName, roleNameR);
       // Remove the role
       skClient.deleteRoleByName(systemTenantName, roleNameR);
+    }
+
+    // Remove credentials associated with the system.
+    // TODO: Have SK do this in one operation?
+    // TODO: How to remove for users other than effectiveUserId?
+    // Remove credentials in Security Kernel if effectiveUser is static
+    if (!effectiveUserId.equals(APIUSERID_VAR)) {
+      // Use private internal method instead of public API to skip auth and other checks not needed here.
+      deleteCredential(skClient, tenantName, apiUserId, systemTenantName, system.getId(), effectiveUserId);
     }
   }
 
