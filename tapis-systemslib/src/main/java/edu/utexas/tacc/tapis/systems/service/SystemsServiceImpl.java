@@ -1045,8 +1045,11 @@ public class SystemsServiceImpl implements SystemsService
   // -----------------------------------------------------------------------
 
   /**
-   * Grant permissions to a user for a system
-   * NOTE: This only impacts the default user role
+   * Grant permissions and roles to a user for a system.
+   * If READ or MODIFY after grant then grant special role to the user.
+   * The role is used when fetching systems the user is allowed to view.
+   * Grant of MODIFY implies grant of READ
+   * NOTE: Permissions only impact the default user role
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemId - name of system
    * @param userName - Target user for operation
@@ -1066,7 +1069,10 @@ public class SystemsServiceImpl implements SystemsService
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     String systemTenantName = authenticatedUser.getTenantId();
     // For service request use oboTenant for tenant associated with the system
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+    {
+      systemTenantName = authenticatedUser.getOboTenantId();
+    }
 
     // If system does not exist or has been soft deleted then throw an exception
     if (!dao.checkForTSystem(systemTenantName, systemId, false))
@@ -1077,45 +1083,62 @@ public class SystemsServiceImpl implements SystemsService
 
     int seqId = dao.getTSystemSeqId(systemTenantName, systemId);
 
-    // Extract various names for convenience
-    String tenantName = authenticatedUser.getTenantId();
-
     // Check inputs. If anything null or empty throw an exception
-    if (StringUtils.isBlank(tenantName) || permissions == null || permissions.isEmpty())
+    if (permissions == null || permissions.isEmpty())
     {
       throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     }
+
+    // Grant of MODIFY implies grant of READ
+    if (permissions.contains(Permission.MODIFY)) permissions.add(Permission.READ);
 
     // Create a set of individual permSpec entries based on the list passed in
     Set<String> permSpecSet = getPermSpecSet(systemTenantName, systemId, permissions);
 
     // Get the Security Kernel client
     var skClient = getSKClient(authenticatedUser);
+    // Special role for view access
+    String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
 
-    // TODO: Mutliple txns. Need to handle failure
-    // TODO: Use try/catch to rollback in case of failure.
+    // Determine if user can currently view the system
+    boolean userCanView = skClient.hasRole(systemTenantName, userName, roleNameR);
 
     // Assign perms and roles to user.
+    // Start of updates. Will need to rollback on failure.
     try
     {
-      // Grant permission roles as appropriate, RoleR
-      String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
-      for (Permission perm : permissions)
-      {
-        if (perm.equals(Permission.READ)) skClient.grantUserRole(systemTenantName, userName, roleNameR);
-      }
       // Assign perms to user. SK creates a default role for the user
       for (String permSpec : permSpecSet)
       {
         skClient.grantUserPermission(systemTenantName, userName, permSpec);
       }
+      // If user could not view before but now can then grant special role.
+      if (!userCanView && isPermittedAny(authenticatedUser, systemTenantName, userName, systemId, READMODIFY_PERMS))
+      {
+        skClient.grantUserRole(systemTenantName, userName, roleNameR);
+      }
     }
-    // If tapis client exception then log error and convert to TapisException
     catch (TapisClientException tce)
     {
-      _log.error(tce.toString());
+      // Rollback
+      // Something went wrong. Attempt to undo all changes and then re-throw the exception
+      String msg = LibUtils.getMsgAuth("SYSLIB_PERM_ERROR_ROLLBACK", authenticatedUser, systemId, tce.getMessage());
+      _log.error(msg);
+
+      // NOTE: We do not have to worry about revoking the role because if it is granted it is granted last in the
+      //       sequence of operations above. So if there is an exception it was never granted.
+
+      // Revoke permissions that may have been granted.
+      for (String permSpec : permSpecSet)
+      {
+        try { skClient.revokeUserPermission(systemTenantName, userName, permSpec); }
+        catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "revokePerm", e.getMessage()));}
+      }
+
+      // Convert to TapisException and re-throw
       throw new TapisException(LibUtils.getMsgAuth("SYSLIB_PERM_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
     }
+
     // Construct Json string representing the update
     String updateJsonStr = TapisGsonUtils.getGson().toJson(permissions);
     // Create a record of the update
@@ -1124,7 +1147,10 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Revoke permissions from a user for a system
-   * NOTE: This only impacts the default user role
+   * If after revoking the user does not have READ or MODIFY then also revoke the special role used to filter
+   *   for users having view access.
+   * Revoke of READ implies revoke of MODIFY
+   * NOTE: Permissions only impact the default user role
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemId - name of system
    * @param userName - Target user for operation
@@ -1156,35 +1182,59 @@ public class SystemsServiceImpl implements SystemsService
     // Retrieve the sequence Id. Used to add an update record.
     int seqId = dao.getTSystemSeqId(systemTenantName, systemId);
 
-    // Extract various names for convenience
-    String tenantName = authenticatedUser.getTenantId();
-
     // Check inputs. If anything null or empty throw an exception
-    if (StringUtils.isBlank(tenantName) || permissions == null || permissions.isEmpty())
+    if (permissions == null || permissions.isEmpty())
     {
       throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     }
 
+    // Revoke of READ implies revoke of MODIFY
+    if (permissions.contains(Permission.READ)) permissions.add(Permission.MODIFY);
+
     var skClient = getSKClient(authenticatedUser);
     int changeCount;
+    String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
 
-    // TODO: Mutliple txns. Need to handle failure
-    // TODO: Use try/catch to rollback in case of failure.
+    // Determine if user can currently view the system
+    boolean userCanView = skClient.hasRole(systemTenantName, userName, roleNameR);
+    // Determine current set of user permissions
+    var userPermSet = getUserPermSet(skClient, userName, systemTenantName, systemId);
 
-    try {
-      // Revoke permission roles as appropriate, RoleR
-      String roleNameR = TSystem.ROLE_READ_PREFIX + seqId;
-      for (Permission perm : permissions) {
-        if (perm.equals(Permission.READ)) skClient.revokeUserRole(systemTenantName, userName, roleNameR);
-      }
+    try
+    {
+      // Revoke perms
       changeCount = revokePermissions(skClient, systemTenantName, systemId, userName, permissions);
+      // If user was able to view and can no longer view then revoke special role.
+      if (userCanView && permissions.contains(Permission.READ))
+      {
+        skClient.revokeUserRole(systemTenantName, userName, roleNameR);
+      }
     }
     catch (TapisClientException tce)
     {
-      // If tapis client exception then log error and convert to TapisException
-      _log.error(tce.toString());
+      // Rollback
+      // Something went wrong. Attempt to undo all changes and then re-throw the exception
+      String msg = LibUtils.getMsgAuth("SYSLIB_PERM_ERROR_ROLLBACK", authenticatedUser, systemId, tce.getMessage());
+      _log.error(msg);
+
+      // NOTE: We do not have to worry about granting the role because if it is revoked it is revoked last in the
+      //       sequence of operations above. So if there is an exception it was never revoked.
+
+      // Grant permissions that may have been revoked and that the user previously held.
+      for (Permission perm : permissions)
+      {
+        if (userPermSet.contains(perm))
+        {
+          String permSpec = getPermSpecStr(systemTenantName, systemId, perm);
+          try { skClient.grantUserPermission(systemTenantName, userName, permSpec); }
+          catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "grantPerm", e.getMessage()));}
+        }
+      }
+
+      // Convert to TapisException and re-throw
       throw new TapisException(LibUtils.getMsgAuth("SYSLIB_PERM_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
     }
+
     // Construct Json string representing the update
     String updateJsonStr = TapisGsonUtils.getGson().toJson(permissions);
     // Create a record of the update
@@ -1212,7 +1262,8 @@ public class SystemsServiceImpl implements SystemsService
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     String systemTenantName = authenticatedUser.getTenantId();
     // For service request use oboTenant for tenant associated with the system
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
+         systemTenantName = authenticatedUser.getOboTenantId();
 
     // If system does not exist or has been soft deleted then return null
     if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
@@ -1221,24 +1272,8 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
 
     // Use Security Kernel client to check for each permission in the enum list
-    var userPerms = new HashSet<Permission>();
     var skClient = getSKClient(authenticatedUser);
-    for (Permission perm : Permission.values())
-    {
-      String permSpec = PERM_SPEC_PREFIX + systemTenantName + ":" + perm.name() + ":" + systemId;
-      try
-      {
-        Boolean isAuthorized = skClient.isPermitted(systemTenantName, userName, permSpec);
-        if (Boolean.TRUE.equals(isAuthorized)) userPerms.add(perm);
-      }
-      // If tapis client exception then log error and convert to TapisException
-      catch (TapisClientException tce)
-      {
-        _log.error(tce.toString());
-        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_PERM_SK_ERROR", authenticatedUser, systemId, op.name()), tce);
-      }
-    }
-    return userPerms;
+    return getUserPermSet(skClient, userName, systemTenantName, systemId);
   }
 
   // -----------------------------------------------------------------------
@@ -1568,6 +1603,28 @@ public class SystemsServiceImpl implements SystemsService
     else if (userId.equals(OWNER_VAR) && !StringUtils.isBlank(owner)) return owner;
     else if (userId.equals(APIUSERID_VAR) && !StringUtils.isBlank(apiUserId)) return apiUserId;
     else return userId;
+  }
+
+
+  /**
+   * Retrieve set of user permissions given sk client, user, tenant, id
+   * @param skClient - SK client
+   * @param userName - name of user
+   * @param tenantName - name of tenant
+   * @param resourceId - Id of resource
+   * @return - Set of Permissions for the user
+   */
+  private static Set<Permission> getUserPermSet(SKClient skClient, String userName, String tenantName,
+                                                String resourceId)
+          throws TapisClientException
+  {
+    var userPerms = new HashSet<Permission>();
+    for (Permission perm : Permission.values())
+    {
+      String permSpec = PERM_SPEC_PREFIX + tenantName + ":" + perm.name() + ":" + resourceId;
+      if (skClient.isPermitted(tenantName, userName, permSpec)) userPerms.add(perm);
+    }
+    return userPerms;
   }
 
   /**
@@ -1993,6 +2050,9 @@ public class SystemsServiceImpl implements SystemsService
     // Revoke all perms for all users
     for (String userName : userNames) {
       revokePermissions(skClient, systemTenantName, systemId, userName, ALL_PERMS);
+      // Remove wildcard perm
+      String wildCardPermSpec = getPermSpecAllStr(systemTenantName, systemId);
+      skClient.revokeUserPermission(systemTenantName, userName, wildCardPermSpec);
     }
     // If role is present then remove role assignments and roles
     // TODO: Ask SK to either provide checkForRole() or return null if role does not exist.
