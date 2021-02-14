@@ -13,10 +13,11 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
@@ -58,7 +59,7 @@ public class MatchConstraintsDaoTest
 
   int numSystems = 4; // Total number of systems to create for testing
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey); // System definitions to use for testing.
-  List<Integer> allowedIDs = new ArrayList<>(); // List of IDs for all systems created for testing.
+  Set<String> allowedIDs = new HashSet<>(); // List of IDs for all systems created for testing.
 
   LocalDateTime createBegin;
   LocalDateTime createEnd;
@@ -88,7 +89,7 @@ public class MatchConstraintsDaoTest
     {
       int itemId = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-      allowedIDs.add(itemId);
+      allowedIDs.add(sys.getId());//allowedIDs.add(itemId);
     }
     Thread.sleep(500);
     createEnd = TapisUtils.getUTCTimeNow();

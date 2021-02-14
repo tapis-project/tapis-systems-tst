@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
@@ -207,22 +208,24 @@ public class SystemsDaoTest
   // Test retrieving all systems in a list of IDs
   @Test
   public void testGetSystemsInIDList() throws Exception {
-    var seqIdList = new ArrayList<Integer>();
+    var seqIdList = new HashSet<String>();
     // Create 2 systems
     TSystem sys0 = systems[5];
     int itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
-    seqIdList.add(itemSeqId);
+//    seqIdList.add(itemSeqId);
+    seqIdList.add(sys0.getId());
     sys0 = systems[6];
     itemSeqId = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemSeqId > 0, "Invalid system seqId: " + itemSeqId);
-    seqIdList.add(itemSeqId);
+//    seqIdList.add(itemSeqId);
+    seqIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
     List<TSystem> systems = dao.getTSystems(tenantName, null, null, seqIdList, DEFAULT_LIMIT, DEFAULT_SORTBY,
                                             DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
-      Assert.assertTrue(seqIdList.contains(system.getSeqId()));
+      Assert.assertTrue(seqIdList.contains(system.getId()));
     }
     Assert.assertEquals(seqIdList.size(), systems.size());
   }

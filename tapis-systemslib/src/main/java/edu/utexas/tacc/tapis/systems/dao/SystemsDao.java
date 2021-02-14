@@ -9,6 +9,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 
 import java.util.List;
+import java.util.Set;
 
 public interface SystemsDao
 {
@@ -37,17 +38,17 @@ public interface SystemsDao
 
   TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
-  int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs,
+  int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs,
                        String sortBy, String sortDirection, String startAfter) throws TapisException;
 
-  List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs, int limit,
+  List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
-  List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, List<Integer> seqIDs) throws TapisException;
+  List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> seqIDs) throws TapisException;
 
   SystemBasic getSystemBasic(String tenant, String id) throws TapisException;
 
-  List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs, int limit,
+  List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs, int limit,
                                     String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
   List<String> getTSystemNames(String tenant) throws TapisException;

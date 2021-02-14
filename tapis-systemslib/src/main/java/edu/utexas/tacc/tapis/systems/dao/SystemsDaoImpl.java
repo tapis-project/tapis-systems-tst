@@ -5,6 +5,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -559,7 +560,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs,
+  public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs,
                               String sortBy, String sortDirection, String startAfter)
           throws TapisException
   {
@@ -610,7 +611,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     }
 
     // Add IN condition for list of seqIDs
-    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.SEQ_ID.in(seqIDs));
+    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(seqIDs));
 
     // ------------------------- Build and execute SQL ----------------------------
     int count = 0;
@@ -659,7 +660,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs,
+  public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs,
                                    int limit, String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException
   {
@@ -725,7 +726,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     }
 
     // Add IN condition for list of seqIDs
-    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.SEQ_ID.in(seqIDs));
+    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(seqIDs));
 
     // ------------------------- Build and execute SQL ----------------------------
     Connection conn = null;
@@ -804,7 +805,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, List<Integer> seqIDs)
+  public List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> seqIDs)
           throws TapisException
   {
     // TODO: might be possible to optimize this method with a join between systems and capabilities tables.
@@ -831,10 +832,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      List<Integer> allowedSeqIDs = seqIDs;
+      Set<String> allowedSeqIDs = seqIDs;
       // If seqIDs is null then all allowed. Use tenant to get all system seqIDs
       // TODO: might be able to optimize with a join somewhere
-      if (seqIDs == null) allowedSeqIDs = getAllSystemSeqIdsInTenant(db, tenant);
+      if (seqIDs == null) allowedSeqIDs = null; //TODO getAllSystemSeqIdsInTenant(db, tenant); still needed?
 
       // Get all Systems that specify they support the desired Capabilities
       systemsList = getSystemsHavingCapabilities(db, tenant, capabilitiesInAST, allowedSeqIDs);
@@ -941,7 +942,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, List<Integer> seqIDs,
+  public List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs,
                                            int limit, String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException
   {
@@ -997,7 +998,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     }
 
     // Add IN condition for list of seqIDs
-    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.SEQ_ID.in(seqIDs));
+    if (seqIDs != null && !seqIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(seqIDs));
 
     // Build list of attributes we will be returning.
     List<TableField> fieldList = new ArrayList<>();
@@ -1828,7 +1829,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @return - true if system exists, else false
    */
   private static List<TSystem> getSystemsHavingCapabilities(DSLContext db, String tenant, List<Capability> capabilityList,
-                                                            List<Integer> allowedSeqIDs)
+                                                            Set<String> allowedSeqIDs)
   {
     List<TSystem> retList = new ArrayList<>();
     if (allowedSeqIDs == null || allowedSeqIDs.isEmpty()) return retList;
@@ -1866,7 +1867,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
      */
 
     // Add IN condition for list of IDs
-    whereCondition = whereCondition.and(SYSTEMS.SEQ_ID.in(allowedSeqIDs));
+    whereCondition = whereCondition.and(SYSTEMS.ID.in(allowedSeqIDs));
 
     // Inner join on capabilities table
     // Execute the select

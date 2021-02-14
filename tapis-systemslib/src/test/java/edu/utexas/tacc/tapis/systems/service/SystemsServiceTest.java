@@ -433,7 +433,7 @@ public class SystemsServiceTest
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(system.getId().equals(sys1Name) || system.getId().equalsIgnoreCase(sys2Name));
     }
-    Assert.assertEquals(2, systems.size());
+    Assert.assertEquals(systems.size(), 2);
   }
 
   @Test
