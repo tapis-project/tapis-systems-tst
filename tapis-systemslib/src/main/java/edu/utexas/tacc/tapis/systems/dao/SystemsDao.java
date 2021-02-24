@@ -13,18 +13,19 @@ import java.util.Set;
 
 public interface SystemsDao
 {
-  int createTSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
+  boolean createTSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  int updateTSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
+  void updateTSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
                     String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void updateSystemOwner(AuthenticatedUser authenticatedUser, int seqId, String newOwnerName) throws TapisException;
+  void updateSystemOwner(AuthenticatedUser authenticatedUser, String id, String newOwnerName) throws TapisException;
 
-  int softDeleteTSystem(AuthenticatedUser authenticatedUser, int seqId) throws TapisException;
+  int softDeleteTSystem(AuthenticatedUser authenticatedUser, String systemId) throws TapisException;
 
-  void addUpdateRecord(AuthenticatedUser authenticatedUser, int seqId, SystemOperation op, String upd_json, String upd_text) throws TapisException;
+  void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenant, String id, SystemOperation op,
+                       String upd_json, String upd_text) throws TapisException;
 
   int hardDeleteTSystem(String tenant, String id) throws TapisException;
 
@@ -38,24 +39,22 @@ public interface SystemsDao
 
   TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
-  int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs,
+  int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
                        String sortBy, String sortDirection, String startAfter) throws TapisException;
 
-  List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs, int limit,
+  List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
                             String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
-  List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> seqIDs) throws TapisException;
+  List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;
 
   SystemBasic getSystemBasic(String tenant, String id) throws TapisException;
 
-  List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> seqIDs, int limit,
+  List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
                                     String sortBy, String sortDirection, int skip, String startAfter) throws TapisException;
 
-  List<String> getTSystemNames(String tenant) throws TapisException;
+  Set<String> getTSystemNames(String tenant) throws TapisException;
 
   String getTSystemOwner(String tenant, String id) throws TapisException;
 
   String getTSystemEffectiveUserId(String tenant, String id) throws TapisException;
-
-  int getTSystemSeqId(String tenant, String id) throws TapisException;
 }

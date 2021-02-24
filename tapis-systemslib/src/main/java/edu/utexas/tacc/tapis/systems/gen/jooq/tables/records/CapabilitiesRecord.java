@@ -21,7 +21,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class CapabilitiesRecord extends UpdatableRecordImpl<CapabilitiesRecord> implements Record7<Integer, Integer, Category, String, Datatype, Integer, String> {
 
-    private static final long serialVersionUID = -1893687006;
+    private static final long serialVersionUID = 1775808558;
 
     /**
      * Setter for <code>tapis_sys.capabilities.seq_id</code>. Capability sequence id
@@ -38,14 +38,14 @@ public class CapabilitiesRecord extends UpdatableRecordImpl<CapabilitiesRecord> 
     }
 
     /**
-     * Setter for <code>tapis_sys.capabilities.system_seq_id</code>. Sequenc id of system supporting the capability
+     * Setter for <code>tapis_sys.capabilities.system_seq_id</code>. Sequence id of system supporting the capability
      */
     public void setSystemSeqId(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tapis_sys.capabilities.system_seq_id</code>. Sequenc id of system supporting the capability
+     * Getter for <code>tapis_sys.capabilities.system_seq_id</code>. Sequence id of system supporting the capability
      */
     public Integer getSystemSeqId() {
         return (Integer) get(1);

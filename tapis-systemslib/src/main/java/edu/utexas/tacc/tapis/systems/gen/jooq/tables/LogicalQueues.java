@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = 1974049244;
+    private static final long serialVersionUID = -1677829507;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -55,7 +55,7 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     /**
      * The column <code>tapis_sys.logical_queues.system_seq_id</code>. Sequence id of system associated with the logical queue
      */
-    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_system_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Sequence id of system associated with the logical queue");
+    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "Sequence id of system associated with the logical queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.name</code>. Name of logical queue

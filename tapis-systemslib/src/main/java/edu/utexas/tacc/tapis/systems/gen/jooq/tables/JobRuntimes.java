@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
 
-    private static final long serialVersionUID = -616454874;
+    private static final long serialVersionUID = 1806959628;
 
     /**
      * The reference instance of <code>tapis_sys.job_runtimes</code>
@@ -56,7 +56,7 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
     /**
      * The column <code>tapis_sys.job_runtimes.system_seq_id</code>.
      */
-    public final TableField<JobRuntimesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('job_runtimes_system_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JobRuntimesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>tapis_sys.job_runtimes.runtime_type</code>.

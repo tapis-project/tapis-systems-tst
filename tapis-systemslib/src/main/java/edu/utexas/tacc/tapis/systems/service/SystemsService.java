@@ -23,10 +23,10 @@ import java.util.Set;
 @Contract
 public interface SystemsService
 {
-  int createSystem(AuthenticatedUser authenticatedUser, TSystem system, String scrubbedText)
+  void createSystem(AuthenticatedUser authenticatedUser, TSystem system, String scrubbedText)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, TapisClientException;
 
-  int updateSystem(AuthenticatedUser authenticatedUser, PatchSystem patchSystem, String scrubbedText)
+  void updateSystem(AuthenticatedUser authenticatedUser, PatchSystem patchSystem, String scrubbedText)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException;
 
   int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemId, String newOwnerName)
@@ -67,7 +67,7 @@ public interface SystemsService
                                                      String sortBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
-  List<String> getSystemNames(AuthenticatedUser authenticatedUser) throws TapisException;
+  Set<String> getSystemIDs(AuthenticatedUser authenticatedUser) throws TapisException;
 
   String getSystemOwner(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;

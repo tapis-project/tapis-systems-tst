@@ -87,8 +87,8 @@ public class MatchConstraintsDaoTest
     Thread.sleep(500);
     for (TSystem sys : systems)
     {
-      int itemId = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
-      Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+      boolean itemCreated = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
       allowedIDs.add(sys.getId());//allowedIDs.add(itemId);
     }
     Thread.sleep(500);

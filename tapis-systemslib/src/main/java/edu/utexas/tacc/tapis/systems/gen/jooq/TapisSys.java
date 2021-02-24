@@ -26,7 +26,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TapisSys extends SchemaImpl {
 
-    private static final long serialVersionUID = -855341256;
+    private static final long serialVersionUID = -1764432209;
 
     /**
      * The reference instance of <code>tapis_sys</code>
@@ -80,13 +80,9 @@ public class TapisSys extends SchemaImpl {
     public final List<Sequence<?>> getSequences() {
         return Arrays.<Sequence<?>>asList(
             Sequences.CAPABILITIES_SEQ_ID_SEQ,
-            Sequences.CAPABILITIES_SYSTEM_SEQ_ID_SEQ,
             Sequences.JOB_RUNTIMES_SEQ_ID_SEQ,
-            Sequences.JOB_RUNTIMES_SYSTEM_SEQ_ID_SEQ,
             Sequences.LOGICAL_QUEUES_SEQ_ID_SEQ,
-            Sequences.LOGICAL_QUEUES_SYSTEM_SEQ_ID_SEQ,
             Sequences.SYSTEM_UPDATES_SEQ_ID_SEQ,
-            Sequences.SYSTEM_UPDATES_SYSTEM_SEQ_ID_SEQ,
             Sequences.SYSTEMS_SEQ_ID_SEQ);
     }
 

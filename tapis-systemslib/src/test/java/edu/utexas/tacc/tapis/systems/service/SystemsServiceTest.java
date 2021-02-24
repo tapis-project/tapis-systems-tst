@@ -176,8 +176,7 @@ public class SystemsServiceTest
   public void testCreateSystem() throws Exception
   {
     TSystem sys0 = systems[0];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
   }
 
   // Create a system using minimal attributes:
@@ -186,8 +185,7 @@ public class SystemsServiceTest
   public void testCreateSystemMinimal() throws Exception
   {
     TSystem sys0 = makeMinimalSystem(systems[11]);
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
   }
 
   // Test retrieving a system including default authn method
@@ -200,8 +198,7 @@ public class SystemsServiceTest
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
     sys0.setAuthnCredential(cred0);
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Retrieve system as owner, without and with requireExecPerm
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
@@ -250,8 +247,7 @@ public class SystemsServiceTest
             capList2, tags2, notes2);
     patchSystem.setId(sys0.getId());
     patchSystem.setTenant(tenantName);
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, createText);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, createText);
     // Update using patchSys
     svc.updateSystem(authenticatedOwner1, patchSystem, patch1Text);
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
@@ -292,8 +288,7 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList1);
     String createText = "{\"testChangeOwner\": \"0-create\"}";
     String newOwnerName = testUser2;
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, createText);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, createText);
     // Change owner using api
     svc.changeSystemOwner(authenticatedOwner1, sys0.getId(), newOwnerName);
     TSystem tmpSys = svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false);
@@ -340,8 +335,7 @@ public class SystemsServiceTest
     sys0.setBucketName("bucket8-${tenant}-${apiUserId}");
     sys0.setRootDir("/root8/${tenant}");
     sys0.setJobWorkingDir("jobWorkDir8/${owner}/${tenant}/${apiUserId}");
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
@@ -382,12 +376,10 @@ public class SystemsServiceTest
   public void testGetSystemNames() throws Exception
   {
     TSystem sys0 = systems[2];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     sys0 = systems[3];
-    itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-    List<String> systemNames = svc.getSystemNames(authenticatedOwner1);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+    Set<String> systemNames = svc.getSystemIDs(authenticatedOwner1);
     for (String name : systemNames) {
       System.out.println("Found item: " + name);
     }
@@ -399,8 +391,7 @@ public class SystemsServiceTest
   public void testGetSystems() throws Exception
   {
     TSystem sys0 = systems[4];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
@@ -415,16 +406,13 @@ public class SystemsServiceTest
     TSystem sys0 = systems[16];
     String sys1Name = sys0.getId();
     sys0.setOwner(authenticatedTestUser4.getName());
-    int itemId =  svc.createSystem(authenticatedTestUser4, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedTestUser4, sys0, scrubbedJson);
     sys0 = systems[17];
     String sys2Name = sys0.getId();
     sys0.setOwner(authenticatedTestUser4.getName());
-    itemId =  svc.createSystem(authenticatedTestUser4, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedTestUser4, sys0, scrubbedJson);
     sys0 = systems[18];
-    itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // When retrieving systems as testUser4 only 2 should be returned
     List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
@@ -441,9 +429,7 @@ public class SystemsServiceTest
   {
     // Create the system
     TSystem sys0 = systems[5];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
-
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Soft delete the system
     int changeCount = svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
@@ -458,8 +444,7 @@ public class SystemsServiceTest
     Assert.assertFalse(svc.checkForSystem(authenticatedOwner1, systems[6].getId()));
     // After creating system we should get true
     TSystem sys0 = systems[6];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     Assert.assertTrue(svc.checkForSystem(authenticatedOwner1, systems[6].getId()));
   }
 
@@ -469,8 +454,7 @@ public class SystemsServiceTest
   {
     // Create the system
     TSystem sys0 = systems[8];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     Assert.assertTrue(svc.checkForSystem(authenticatedOwner1, sys0.getId()));
     // Now attempt to create again, should get IllegalStateException with msg SYSLIB_SYS_EXISTS
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
@@ -482,8 +466,7 @@ public class SystemsServiceTest
   {
     // Create a system
     TSystem sys0 = systems[9];
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Create user perms for the system
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser3, testPermsREADMODIFY, scrubbedJson);
     // Get the system perms for the user and make sure permissions are there
@@ -507,8 +490,7 @@ public class SystemsServiceTest
     // Create a system with effUsr = apiUserId
     TSystem sys0 = systems[10];
     sys0.setEffectiveUserId("${apiUserId}");
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     Credential cred1 = new Credential("fakePassword1", "fakePrivateKey1", "fakePublicKey1",
             "fakeAccessKey1", "fakeAccessSecret1", "fakeCert1");
     Credential cred3 = new Credential("fakePassword3", "fakePrivateKey3", "fakePublicKey3",
@@ -689,8 +671,7 @@ public class SystemsServiceTest
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
     sys0.setAuthnCredential(cred0);
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Grant testUesr3 - READ and testUser2 - MODIFY
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser3, testPermsREAD, scrubbedJson);
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser2, testPermsMODIFY, scrubbedJson);
@@ -896,8 +877,7 @@ public class SystemsServiceTest
     Credential cred0 = new Credential("fakePassword", "fakePrivateKey", "fakePublicKey",
             "fakeAccessKey", "fakeAccessSecret", "fakeCert");
     sys0.setAuthnCredential(cred0);
-    int itemId = svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    Assert.assertTrue(itemId > 0, "Invalid system id: " + itemId);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Grant User1 - READ and User2 - MODIFY
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser3, testPermsREADEXECUTE, scrubbedJson);
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser2, testPermsMODIFY, scrubbedJson);

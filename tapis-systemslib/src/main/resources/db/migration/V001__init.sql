@@ -134,8 +134,10 @@ CREATE TABLE system_updates
 (
     seq_id SERIAL PRIMARY KEY,
     system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
-    user_name VARCHAR(60) NOT NULL,
+    system_tenant VARCHAR(24) NOT NULL,
+    system_id VARCHAR(80) NOT NULL,
     user_tenant VARCHAR(24) NOT NULL,
+    user_name VARCHAR(60) NOT NULL,
     operation operation_type NOT NULL,
     upd_json JSONB NOT NULL,
     upd_text VARCHAR,
@@ -144,8 +146,10 @@ CREATE TABLE system_updates
 ALTER TABLE system_updates OWNER TO tapis_sys;
 COMMENT ON COLUMN system_updates.seq_id IS 'System update request sequence id';
 COMMENT ON COLUMN system_updates.system_seq_id IS 'Sequence id of system being updated';
-COMMENT ON COLUMN system_updates.user_name IS 'Name of user who requested the update';
+COMMENT ON COLUMN system_updates.system_tenant IS 'Tenant of system being updated';
+COMMENT ON COLUMN system_updates.system_id IS 'Id of system being updated';
 COMMENT ON COLUMN system_updates.user_tenant IS 'Tenant of user who requested the update';
+COMMENT ON COLUMN system_updates.user_name IS 'Name of user who requested the update';
 COMMENT ON COLUMN system_updates.operation IS 'Type of update operation';
 COMMENT ON COLUMN system_updates.upd_json IS 'JSON representing the update - with secrets scrubbed';
 COMMENT ON COLUMN system_updates.upd_text IS 'Text data supplied by client - secrets should be scrubbed';
@@ -215,7 +219,7 @@ CREATE TABLE capabilities
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;
 COMMENT ON COLUMN capabilities.seq_id IS 'Capability sequence id';
-COMMENT ON COLUMN capabilities.system_seq_id IS 'Sequenc id of system supporting the capability';
+COMMENT ON COLUMN capabilities.system_seq_id IS 'Sequence id of system supporting the capability';
 COMMENT ON COLUMN capabilities.category IS 'Category for grouping of capabilities';
 COMMENT ON COLUMN capabilities.name IS 'Name of capability';
 COMMENT ON COLUMN capabilities.datatype IS 'Datatype associated with the value';
