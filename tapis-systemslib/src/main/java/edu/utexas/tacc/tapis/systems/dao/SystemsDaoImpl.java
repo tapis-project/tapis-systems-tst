@@ -134,7 +134,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.DTN_SYSTEM_ID, system.getDtnSystemId())
               .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, system.getDtnMountSourcePath())
               .set(SYSTEMS.DTN_MOUNT_POINT, system.getDtnMountPoint())
-              .set(SYSTEMS.IS_DTN, system.getIsDtn())
+              .set(SYSTEMS.IS_DTN, system.isDtn())
               .set(SYSTEMS.CAN_EXEC, system.getCanExec())
               .set(SYSTEMS.JOB_WORKING_DIR, system.getJobWorkingDir())
               .set(SYSTEMS.JOB_ENV_VARIABLES, system.getJobEnvVariables())
@@ -305,7 +305,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     catch (Exception e)
     {
       // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_DELETE_FAILURE", "systems");
+      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "systems", id);
     }
     finally
     {

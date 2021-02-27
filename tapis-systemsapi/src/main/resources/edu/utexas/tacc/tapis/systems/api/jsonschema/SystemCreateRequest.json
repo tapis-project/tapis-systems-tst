@@ -57,11 +57,7 @@
       "type": "array",
       "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/Capability" }
     },
-    "tags": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": { "type":  "string", "minLength": 1, "maxLength": 128 }
-    },
+    "tags": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/tagsDefinition" },
     "notes": { "type": "object" },
     "importRefId": { "type": "string", "maxLength": 80 }
   }

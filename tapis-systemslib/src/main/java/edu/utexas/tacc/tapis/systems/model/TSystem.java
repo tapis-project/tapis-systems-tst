@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 
-import edu.utexas.tacc.tapis.shared.utils.SkConstants;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 
@@ -39,6 +39,14 @@ public final class TSystem
   public static final String TENANT_VAR = "${tenant}";
   public static final String EFFUSERID_VAR = "${effectiveUserId}";
 
+  // Attribute names, also used as field names in Json
+  public static final String ID_FIELD = "id";
+  public static final String NOTES_FIELD = "notes";
+  public static final String SYSTEM_TYPE_FIELD = "systemType";
+  public static final String HOST_FIELD = "host";
+  public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
+  public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
+
   // Default values
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
@@ -55,6 +63,9 @@ public final class TSystem
   public static final int DEFAULT_PROXYPORT = -1;
   public static final int DEFAULT_JOBMAXJOBS = -1;
   public static final int DEFAULT_JOBMAXJOBSPERUSER = -1;
+
+  // Message keys
+  private static final String CREATE_MISSING_ATTR = "SYSLIB_CREATE_MISSING_ATTR";
 
   // ************************************************************************
   // *********************** Enums ******************************************
@@ -233,7 +244,7 @@ public final class TSystem
     dtnSystemId = t.getDtnSystemId();
     dtnMountPoint = t.getDtnMountPoint();
     dtnMountSourcePath = t.dtnMountSourcePath;
-    isDtn = t.getIsDtn();
+    isDtn = t.isDtn();
     canExec = t.getCanExec();
     jobRuntimes = t.getJobRuntimes();
     jobWorkingDir = t.getJobWorkingDir();
@@ -254,7 +265,13 @@ public final class TSystem
   // ************************************************************************
   // *********************** Public methods *********************************
   // ************************************************************************
-  public static TSystem checkAndSetDefaults(TSystem system)
+
+  /**
+   * Set defaults for a TSystem and return the same TSystem
+   * @param system - TSystem to be updated.
+   * @return TSystem passed in
+   */
+  public static TSystem setDefaults(TSystem system)
   {
     if (system==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     if (StringUtils.isBlank(system.getOwner())) system.setOwner(DEFAULT_OWNER);
@@ -262,7 +279,195 @@ public final class TSystem
     if (system.getTags() == null) system.setTags(DEFAULT_TAGS);
     if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
     if (system.getTransferMethods() == null) system.setTransferMethods(DEFAULT_TRANSFER_METHODS);
+    // If jobIsBatch and qlist has one value then set default q to that value
+    if (system.getJobIsBatch() &&
+        system.getBatchLogicalQueues() != null && system.getBatchLogicalQueues().size() == 1)
+    {
+      system.setBatchDefaultLogicalQueue(system.getBatchLogicalQueues().get(0).getName());
+    }
     return system;
+  }
+
+  /**
+   * Check constraints on TSystem attributes.
+   * Make checks that do not require a dao or service call. Check only internal consistency.
+   *  systemId, host, authnMethod must be set.
+   *  effectiveUserId is restricted.
+   *  If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
+   *  If transfer mechanism S3 is supported then bucketName must be set.
+   *  If effectiveUserId is dynamic then providing credentials is disallowed
+   *  If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
+   *  If isDtn is true then canExec must be false and the following attributes may not be set:
+   *    dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+   *  If jobIsBatch is true then batchScheduler must be specified
+   *  If jobIsBatch is true then batchLogicalQueues must have at least one item
+   *  If jobIsBatch is true then and batchLogicalQueues has more then one item then batchDefaultLogicalQueue must be set
+   *  If jobIsBatch is true then batchDefaultLogicalQueue must be in the list of logical queueus.
+   *
+   * @return  list of error messages, empty list if no errors
+   */
+  public List<String> checkAttributeConstraints()
+  {
+    String msg;
+    var errMessages = new ArrayList<String>();
+
+    // Id, type, host and defaultAuthn must be set
+    if (StringUtils.isBlank(id))
+    {
+      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD);
+      errMessages.add(msg);
+    }
+    if (systemType == null)
+    {
+      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD);
+      errMessages.add(msg);
+    }
+    if (StringUtils.isBlank(host))
+    {
+      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD);
+      errMessages.add(msg);
+    }
+    if (defaultAuthnMethod == null)
+    {
+      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD);
+      errMessages.add(msg);
+    }
+
+    // For CERT authn the effectiveUserId cannot be static string other than owner
+    if (defaultAuthnMethod.equals(AuthnMethod.CERT) &&
+            !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
+            !effectiveUserId.equals(TSystem.OWNER_VAR) &&
+            !StringUtils.isBlank(owner) &&
+            !effectiveUserId.equals(owner))
+    {
+      msg = LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If type is OBJECT_STORE then bucketName must be set
+    if (systemType == TSystem.SystemType.OBJECT_STORE && StringUtils.isBlank(bucketName))
+    {
+      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_NOBUCKET_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If type is OBJECT_STORE then canExec must be false
+    if (systemType == TSystem.SystemType.OBJECT_STORE && canExec)
+    {
+      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_CANEXEC_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If type is OBJECT_STORE then isDtn must be false
+    if (systemType == TSystem.SystemType.OBJECT_STORE && isDtn)
+    {
+      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_ISDTN_INPUT");
+      errMessages.add(msg);
+    }
+
+    // For S3 support bucketName must be set
+    if (transferMethods != null && transferMethods.contains(TransferMethod.S3) &&
+            StringUtils.isBlank(bucketName))
+    {
+      msg = LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If effectiveUserId is dynamic then providing credentials is disallowed
+    if (authnCredential != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
+    {
+      msg = LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT");
+      errMessages.add(msg);
+    }
+
+    // If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry
+    if (canExec)
+    {
+      if (StringUtils.isBlank(jobWorkingDir))
+      {
+        msg = LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBWORKINGDIR_INPUT");
+        errMessages.add(msg);
+      }
+      if (jobRuntimes == null || jobRuntimes.isEmpty())
+      {
+        msg = LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBRUNTIME_INPUT");
+        errMessages.add(msg);
+      }
+    }
+
+    // If isDtn is true then canExec must be false and the following attributes may not be set:
+    //   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+    if (isDtn)
+    {
+      if (canExec)
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_CANEXEC");
+        errMessages.add(msg);
+      }
+      if (!StringUtils.isBlank(dtnSystemId) || !StringUtils.isBlank(dtnMountPoint) ||
+          !StringUtils.isBlank(dtnMountSourcePath))
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_DTNATTRS");
+        errMessages.add(msg);
+      }
+      if (!StringUtils.isBlank(jobWorkingDir) ||
+          !(jobCapabilities == null || jobCapabilities.isEmpty()) ||
+          !(jobRuntimes == null || jobRuntimes.isEmpty()) ||
+          !(jobEnvVariables == null || jobEnvVariables.length == 0) ||
+          !StringUtils.isBlank(batchScheduler) ||
+          !StringUtils.isBlank(batchDefaultLogicalQueue) ||
+          !(batchLogicalQueues == null || batchLogicalQueues.isEmpty()) )
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_JOBATTRS");
+        errMessages.add(msg);
+      }
+    }
+
+    // If jobIsBatch is true
+    //   * batchScheduler must be specified
+    //   * batchLogicalQueues must not be empty
+    //   * batchLogicalDefaultQueue must be set
+    //   * batchLogicalDefaultQueue must be in the list of queues
+    if (jobIsBatch)
+    {
+      if (StringUtils.isBlank(batchScheduler))
+      {
+        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NOSCHED");
+        errMessages.add(msg);
+      }
+      if (batchLogicalQueues == null || batchLogicalQueues.isEmpty())
+      {
+        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NOQUEUES");
+        errMessages.add(msg);
+      }
+      if (StringUtils.isBlank(batchDefaultLogicalQueue))
+      {
+        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NODEFAULTQ");
+        errMessages.add(msg);
+      }
+      if (!StringUtils.isBlank(batchDefaultLogicalQueue))
+      {
+        boolean inList = false;
+        if (batchLogicalQueues != null)
+        {
+          for (LogicalQueue lq : batchLogicalQueues)
+          {
+            if (batchDefaultLogicalQueue.equals(lq.getName()))
+            {
+              inList = true;
+              break;
+            }
+          }
+        }
+        if (!inList)
+        {
+          msg = LibUtils.getMsg("SYSLIB_ISBATCH_DEFAULTQ_NOTINLIST", batchDefaultLogicalQueue);
+          errMessages.add(msg);
+        }
+      }
+    }
+
+    return errMessages;
   }
 
   // ************************************************************************
@@ -341,7 +546,7 @@ public final class TSystem
   public String getDtnMountSourcePath() { return dtnMountSourcePath; }
   public TSystem setDtnMountSourcePath(String s) { dtnMountSourcePath = s; return this; }
 
-  public boolean getIsDtn() { return isDtn; }
+  public boolean isDtn() { return isDtn; }
 
   public boolean getCanExec() { return canExec; }
 

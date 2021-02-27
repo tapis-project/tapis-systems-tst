@@ -11,7 +11,10 @@
   "SystemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "TransferMethodEnum": { "type": "string", "enum": ["SFTP","S3","FTP","IRODS"] },
   "AuthnMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
-
+  "tagsDefinition": {
+    "type": "array",
+    "items": { "type":  "string", "minLength": 1, "maxLength": 128 }
+  },
   "KeyValuePair": {
     "type": "object",
     "required": [ "key" ],

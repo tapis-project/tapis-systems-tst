@@ -85,7 +85,7 @@ public final class ResultSystem
     dtnSystemId = s.getDtnSystemId();
     dtnMountPoint = s.getDtnMountPoint();
     dtnMountSourcePath = s.getDtnMountSourcePath();
-    isDtn = s.getIsDtn();
+    isDtn = s.isDtn();
     canExec = s.getCanExec();
     jobRuntimes = s.getJobRuntimes();
     jobWorkingDir = s.getJobWorkingDir();

@@ -2,7 +2,6 @@ package edu.utexas.tacc.tapis.systems.api.resources;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -11,6 +10,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
@@ -29,8 +29,10 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
+import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
@@ -63,11 +65,13 @@ import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsSearch;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsArray;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
-import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
+
+import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.NOTES_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.AUTHN_CREDENTIAL_FIELD;
 
 /*
  * JAX-RS REST resource for a Tapis System (edu.utexas.tacc.tapis.systems.model.TSystem)
@@ -108,18 +112,9 @@ public class SystemResource
   private static final String TAPIS_FOUND = "TAPIS_FOUND";
   private static final String NOT_FOUND = "SYSAPI_NOT_FOUND";
   private static final String UPDATED = "SYSAPI_UPDATED";
-  private static final String CREATE_MISSING_ATTR = "SYSAPI_CREATE_MISSING_ATTR";
 
   // Format strings
   private static final String SYS_CNT_STR = "%d systems";
-
-  // Field names used in Json
-  private static final String ID_FIELD = "id";
-  private static final String NOTES_FIELD = "notes";
-  private static final String SYSTEM_TYPE_FIELD = "systemType";
-  private static final String HOST_FIELD = "host";
-  private static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
-  private static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
   // ************************************************************************
   // *********************** Fields *****************************************
@@ -195,9 +190,7 @@ public class SystemResource
 
     ReqCreateSystem req;
     // ------------------------- Create a TSystem from the json and validate constraints -------------------------
-    try {
-      req = TapisGsonUtils.getGson().fromJson(rawJson, ReqCreateSystem.class);
-    }
+    try { req = TapisGsonUtils.getGson().fromJson(rawJson, ReqCreateSystem.class); }
     catch (JsonSyntaxException e)
     {
       msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
@@ -211,10 +204,10 @@ public class SystemResource
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
     if (tSystem.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
-    _log.trace(ApiUtils.getMsgAuth("SYSAPI_CREATE_TRACE", authenticatedUser, scrubbedJson));
-
+    if (_log.isTraceEnabled()) _log.trace(ApiUtils.getMsgAuth("SYSAPI_CREATE_TRACE", authenticatedUser, scrubbedJson));
 
     // Fill in defaults and check constraints on TSystem attributes
+    TSystem.setDefaults(tSystem);
     resp = validateTSystem(tSystem, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
 
@@ -399,7 +392,7 @@ public class SystemResource
             ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), prettyPrint, resp1)).build();
   }
 
-  // TODO If SGCI endpoint not finalized before production then remove.
+  // TODO cic-2658. If SGCI endpoint not finalized before production then remove.
   /**
    * Import a system - create a system based on an attributes from an external source
    * @param payloadStream - request body
@@ -479,6 +472,7 @@ public class SystemResource
     TSystem system = null; //createTSystemFromSGCIImportRequest(req, systemId);
     system.setImportRefId(req.sgciResourceId);
     // Fill in defaults and check constraints on TSystem attributes
+    TSystem.setDefaults(system);
     resp = validateTSystem(system, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
 
@@ -853,6 +847,7 @@ public class SystemResource
     List<String> searchList = threadContext.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
+    // TODO: cic-3939 Support filtering
 //    List<String> filterList = threadContext.getFilterList();
 //    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
 
@@ -876,8 +871,8 @@ public class SystemResource
     RespSystemsArray resp1 = new RespSystemsArray(systems);
 //    // TODO Get total count
 //    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
-//    RespSystems resp1 = new RespSystems(systems, threadContext.getLimit(), threadContext.getSortBy(),
-//                                        threadContext.getSkip(), threadContext.getStartAfter(), -1);
+//    RespSystems resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
+//                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
     String itemCountStr = String.format(SYS_CNT_STR, systems.size());
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
@@ -1258,7 +1253,7 @@ public class SystemResource
 
   /**
    * Create a PatchSystem from a ReqUpdateSystem
-   * TODO allow for patch of jobRuntimes, others?
+   * TODO cic-3940 allow for patch of jobRuntimes, others? verify update of jobCapabilities
    */
   private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId)
   {
@@ -1278,158 +1273,50 @@ public class SystemResource
 
   /**
    * Fill in defaults and check restrictions on TSystem attributes
-   * Check values. systemId, host, authnMethod must be set. effectiveUserId is restricted.
-   * If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
-   * If transfer mechanism S3 is supported then bucketName must be set.
-   * If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
-   * If isDtn is true then canExec must be false and the following attributes may not be set:
-   *   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
-   * If jobIsBatch is true then batchScheduler must be specified
-   *   and if batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
-   * TODO: If DTN is used verify that dtnSystemId exists with isDtn = true
+   * Use TSystem method to check internal consistency of attributes.
+   * If DTN is used verify that dtnSystemId exists with isDtn = true
    * Collect and report as many errors as possible so they can all be fixed before next attempt
    * NOTE: JsonSchema validation should handle some of these checks but we check here again for robustness.
    *
    * @return null if OK or error Response
    */
-  private static Response validateTSystem(TSystem tSystem, AuthenticatedUser authenticatedUser, boolean prettyPrint)
+  private Response validateTSystem(TSystem tSystem1, AuthenticatedUser authenticatedUser, boolean prettyPrint)
   {
-    // Make sure owner, effectiveUserId, transferMethods, notes and tags are all set
-    TSystem tSystem1 = TSystem.checkAndSetDefaults(tSystem);
-
-    String effectiveUserId = tSystem1.getEffectiveUserId();
-    String owner  = tSystem1.getOwner();
-    String id = tSystem1.getId();
     String msg;
-    var errMessages = new ArrayList<String>();
 
-    // Id, type, host and defaultAuthn must be set
-    if (StringUtils.isBlank(tSystem1.getId()))
-    {
-      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD);
-      errMessages.add(msg);
-    }
-    if (tSystem1.getSystemType() == null)
-    {
-      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD);
-      errMessages.add(msg);
-    }
-    if (StringUtils.isBlank(tSystem1.getHost()))
-    {
-      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD);
-      errMessages.add(msg);
-    }
-    if (tSystem1.getDefaultAuthnMethod() == null)
-    {
-      msg = ApiUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD);
-      errMessages.add(msg);
-    }
+    // Make call for lib level validation
+    List<String> errMessages = tSystem1.checkAttributeConstraints();
 
-    // For CERT authn the effectiveUserId cannot be static string other than owner
-    if (tSystem1.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
-            !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
-            !effectiveUserId.equals(TSystem.OWNER_VAR) &&
-            !StringUtils.isBlank(owner) &&
-            !effectiveUserId.equals(owner))
-    {
-      msg = ApiUtils.getMsg("SYSAPI_INVALID_EFFECTIVEUSERID_INPUT");
-      errMessages.add(msg);
-    }
+    // Now validate attributes that have special handling at API level.
 
-    // If type is OBJECT_STORE then bucketName must be set
-    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && StringUtils.isBlank(tSystem1.getBucketName()))
+    // If DTN is used (i.e. dtnSystemId is set) verify that dtnSystemId exists with isDtn = true
+    if (!StringUtils.isBlank(tSystem1.getDtnSystemId()))
     {
-      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_NOBUCKET_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If type is OBJECT_STORE then canExec must be false
-    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && tSystem1.getCanExec())
-    {
-      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_CANEXEC_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If type is OBJECT_STORE then isDtn must be false
-    if (tSystem1.getSystemType() == TSystem.SystemType.OBJECT_STORE && tSystem1.getIsDtn())
-    {
-      msg = ApiUtils.getMsg("SYSAPI_OBJSTORE_ISDTN_INPUT");
-      errMessages.add(msg);
-    }
-
-    // For S3 support bucketName must be set
-    if (tSystem1.getTransferMethods() != null &&
-            tSystem1.getTransferMethods().contains(TransferMethod.S3) && StringUtils.isBlank(tSystem1.getBucketName()))
-    {
-      msg = ApiUtils.getMsg("SYSAPI_S3_NOBUCKET_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If effectiveUserId is dynamic then providing credentials is disallowed
-    if (tSystem1.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
-    {
-      msg = ApiUtils.getMsg("SYSAPI_CRED_DISALLOWED_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry
-    if (tSystem1.getCanExec())
-    {
-      if (StringUtils.isBlank(tSystem1.getJobWorkingDir()))
+      TSystem dtnSystem = null;
+      try
       {
-        msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBWORKINGDIR_INPUT");
+        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false);
+      }
+      catch (NotAuthorizedException e)
+      {
+        msg = ApiUtils.getMsg("SYSAPI_DTN_NOT_AUTH", tSystem1.getDtnSystemId());
         errMessages.add(msg);
       }
-      if (tSystem1.getJobRuntimes() == null || tSystem1.getJobRuntimes().isEmpty())
+      catch (TapisClientException | TapisException e)
       {
-        msg = ApiUtils.getMsg("SYSAPI_CANEXEC_NO_JOBRUNTIME_INPUT");
+        msg = ApiUtils.getMsg("SYSAPI_DTN_CHECK_ERROR", tSystem1.getDtnSystemId(), e.getMessage());
+        _log.error(msg, e);
         errMessages.add(msg);
       }
-    }
-
-    // If isDtn is true then canExec must be false and the following attributes may not be set:
-    //   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
-    if (tSystem1.getIsDtn())
-    {
-      if (tSystem1.getCanExec())
+      if (dtnSystem == null)
       {
-        msg = ApiUtils.getMsg("SYSAPI_DTN_CANEXEC");
+        msg = ApiUtils.getMsg("SYSAPI_DTN_NO_SYSTEM", tSystem1.getDtnSystemId());
         errMessages.add(msg);
       }
-      if (!StringUtils.isBlank(tSystem1.getDtnSystemId()) ||
-          !StringUtils.isBlank(tSystem1.getDtnMountPoint()) ||
-          !StringUtils.isBlank(tSystem1.getDtnMountSourcePath()))
+      else if (!dtnSystem.isDtn())
       {
-        msg = ApiUtils.getMsg("SYSAPI_DTN_DTNATTRS");
-        errMessages.add(msg);
-      }
-      if (!StringUtils.isBlank(tSystem1.getJobWorkingDir()) ||
-          !(tSystem1.getJobCapabilities() == null || tSystem1.getJobCapabilities().isEmpty()) ||
-          !(tSystem1.getJobRuntimes() == null || tSystem1.getJobRuntimes().isEmpty()) ||
-          !(tSystem1.getJobEnvVariables() == null || tSystem1.getJobEnvVariables().length == 0) ||
-          !StringUtils.isBlank(tSystem1.getBatchScheduler()) ||
-          !StringUtils.isBlank(tSystem1.getBatchDefaultLogicalQueue()) ||
-          !(tSystem1.getBatchLogicalQueues() == null || tSystem1.getBatchLogicalQueues().isEmpty()) )
-      {
-        msg = ApiUtils.getMsg("SYSAPI_DTN_JOBATTRS");
-        errMessages.add(msg);
-      }
-    }
-
-    // If jobIsBatch is true then batchScheduler must be specified
-    //   and if batchLogicalQueues is not empty then batchLogicalDefaultQueue must be set
-    if (tSystem1.getJobIsBatch())
-    {
-      if (StringUtils.isBlank(tSystem1.getBatchScheduler()))
-      {
-        msg = ApiUtils.getMsg("SYSAPI_ISBATCH_NOSCHED");
-        errMessages.add(msg);
-      }
-      if (tSystem1.getBatchLogicalQueues() != null && !tSystem1.getBatchLogicalQueues().isEmpty() &&
-          StringUtils.isBlank(tSystem1.getBatchDefaultLogicalQueue()))
-      {
-        msg = ApiUtils.getMsg("SYSAPI_ISBATCH_NODEFAULTQ");
-        errMessages.add(msg);
+          msg = ApiUtils.getMsg("SYSAPI_DTN_NOT_DTN", tSystem1.getDtnSystemId());
+          errMessages.add(msg);
       }
     }
 
@@ -1437,7 +1324,7 @@ public class SystemResource
     if (!errMessages.isEmpty())
     {
       // Construct message reporting all errors
-      String allErrors = getListOfErrors(errMessages, authenticatedUser, id);
+      String allErrors = getListOfErrors(errMessages, authenticatedUser, tSystem1.getId());
       _log.error(allErrors);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(allErrors, prettyPrint)).build();
     }

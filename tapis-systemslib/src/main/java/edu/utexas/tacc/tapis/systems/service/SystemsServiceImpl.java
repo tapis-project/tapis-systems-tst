@@ -59,7 +59,6 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 
 /*
@@ -146,7 +145,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // ---------------------------- Check inputs ------------------------------------
-    // Required system attributes: name, type, host, defaultAuthnMethod
+    // Required system attributes: id, type, host, defaultAuthnMethod
     if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId) || StringUtils.isBlank(systemId) ||
         system.getSystemType() == null || StringUtils.isBlank(system.getHost()) ||
         system.getDefaultAuthnMethod() == null || StringUtils.isBlank(apiUserId) || StringUtils.isBlank(scrubbedText))
@@ -163,7 +162,7 @@ public class SystemsServiceImpl implements SystemsService
     // Make sure owner, effectiveUserId, notes and tags are all set
     // Note that this is done before auth so owner can get resolved and used during auth check.
     system.setTenant(systemTenantName);
-    TSystem.checkAndSetDefaults(system);
+    TSystem.setDefaults(system);
     String effectiveUserId = system.getEffectiveUserId();
 
     // ----------------- Resolve variables for any attributes that might contain them --------------------
@@ -173,6 +172,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, system.getId(), system.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
+    TSystem.setDefaults(system);
     validateTSystem(authenticatedUser, system);
 
     // Construct Json string representing the TSystem (without credentials) about to be created
@@ -303,6 +303,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, origTSystem.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
+    TSystem.setDefaults(patchedTSystem);
     validateTSystem(authenticatedUser, patchedTSystem);
 
     // Construct Json string representing the PatchSystem about to be used to update the system
@@ -1459,47 +1460,47 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Check constraints on TSystem attributes.
-   * Notes must be json
-   * effectiveUserId is restricted.
-   * If transfer mechanism S3 is supported then bucketName must be set.
-   * @param system - the TSystem to check
+   * If DTN is used verify that dtnSystemId exists with isDtn = true
+   * Collect and report as many errors as possible so they can all be fixed before next attempt
+   * @param tSystem1 - the TSystem to check
    * @throws IllegalStateException - if any constraints are violated
    */
-  private static void validateTSystem(AuthenticatedUser authenticatedUser, TSystem system) throws IllegalStateException
+  private void validateTSystem(AuthenticatedUser authenticatedUser, TSystem tSystem1) throws IllegalStateException
   {
     String msg;
-    var errMessages = new ArrayList<String>();
-    // Check for valid effectiveUserId
-    // For CERT authn the effectiveUserId cannot be static string other than owner
-    String effectiveUserId = system.getEffectiveUserId();
-    if (system.getDefaultAuthnMethod().equals(AuthnMethod.CERT) &&
-        !effectiveUserId.equals(TSystem.APIUSERID_VAR) &&
-        !effectiveUserId.equals(TSystem.OWNER_VAR) &&
-        !StringUtils.isBlank(system.getOwner()) &&
-        !effectiveUserId.equals(system.getOwner()))
+    List<String> errMessages = tSystem1.checkAttributeConstraints();
+
+    // If DTN is used (i.e. dtnSystemId is set) verify that dtnSystemId exists with isDtn = true
+    if (!StringUtils.isBlank(tSystem1.getDtnSystemId()))
     {
-      // For CERT authn the effectiveUserId cannot be static string other than owner
-      msg = LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT");
-      errMessages.add(msg);
+      TSystem dtnSystem = null;
+      try
+      {
+        dtnSystem = dao.getTSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId());
+      }
+      catch (TapisException e)
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_CHECK_ERROR", tSystem1.getDtnSystemId(), e.getMessage());
+        _log.error(msg, e);
+        errMessages.add(msg);
+      }
+      if (dtnSystem == null)
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_NO_SYSTEM", tSystem1.getDtnSystemId());
+        errMessages.add(msg);
+      }
+      else if (!dtnSystem.isDtn())
+      {
+        msg = LibUtils.getMsg("SYSLIB_DTN_NOT_DTN", tSystem1.getDtnSystemId());
+        errMessages.add(msg);
+      }
     }
-    if (system.getTransferMethods() != null && system.getTransferMethods().contains(TransferMethod.S3) &&
-             StringUtils.isBlank(system.getBucketName()))
-    {
-      // For S3 support bucketName must be set
-      msg = LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT");
-      errMessages.add(msg);
-    }
-    if (system.getAuthnCredential() != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
-    {
-      // If effectiveUserId is dynamic then providing credentials is disallowed
-      msg = LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT");
-      errMessages.add(msg);
-    }
+
     // If validation failed throw an exception
     if (!errMessages.isEmpty())
     {
       // Construct message reporting all errors
-      String allErrors = getListOfErrors(authenticatedUser, system.getId(), errMessages);
+      String allErrors = getListOfErrors(authenticatedUser, tSystem1.getId(), errMessages);
       _log.error(allErrors);
       throw new IllegalStateException(allErrors);
     }

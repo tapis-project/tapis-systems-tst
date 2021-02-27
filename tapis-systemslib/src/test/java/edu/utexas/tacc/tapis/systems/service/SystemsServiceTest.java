@@ -961,7 +961,7 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getDtnSystemId(), sys0.getDtnSystemId());
     Assert.assertEquals(tmpSys.getDtnMountSourcePath(), sys0.getDtnMountSourcePath());
     Assert.assertEquals(tmpSys.getDtnMountPoint(), sys0.getDtnMountPoint());
-    Assert.assertEquals(tmpSys.getIsDtn(), sys0.getIsDtn());
+    Assert.assertEquals(tmpSys.isDtn(), sys0.isDtn());
     Assert.assertEquals(tmpSys.getCanExec(), sys0.getCanExec());
     Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
 

@@ -20,7 +20,6 @@ import java.util.List;
 @TSystemFilterView
 public class TSystem
 {
-  public int seqId;
   public String tenant;
   public String id;
   public String description;
