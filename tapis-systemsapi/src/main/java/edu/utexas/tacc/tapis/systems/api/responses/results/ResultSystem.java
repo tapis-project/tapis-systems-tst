@@ -13,11 +13,10 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import java.util.List;
 
 /*
-    Class representing a returned TSystem result
+    Class representing a TSystem result to be returned
  */
 public final class ResultSystem
 {
-  public int seqId;
   public String tenant;
   public String id;
   public String description;
@@ -47,7 +46,7 @@ public final class ResultSystem
   public int jobMaxJobsPerUser;
   public boolean jobIsBatch;
   public String batchScheduler;
-  public List<LogicalQueue> batchLogicalQueues;
+  public List<ResultLogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities;
   public String[] tags;
@@ -57,14 +56,13 @@ public final class ResultSystem
   public String refImportId;
 
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public ResultSystem() { }
+//TODO  public ResultSystem() { }
 
   public ResultSystem(TSystem s)
   {
     // Convert jobEnvVariables from array of "key=value" to list of KeyValuePair
     jobEnvVariables = ApiUtils.getKeyValuesAsList(s.getJobEnvVariables());
     // All other attributes come directly from TSystem
-    seqId = s.getSeqId();
     tenant = s.getTenant();
     id = s.getId();
     description = s.getDescription();
@@ -93,11 +91,16 @@ public final class ResultSystem
     jobMaxJobsPerUser = s.getJobMaxJobsPerUser();
     jobIsBatch = s.getJobIsBatch();
     batchScheduler = s.getBatchScheduler();
-    batchLogicalQueues = s.getBatchLogicalQueues();
+    if (s.getBatchLogicalQueues() != null )
+        for (LogicalQueue q : s.getBatchLogicalQueues()) { batchLogicalQueues.add(new ResultLogicalQueue(q)); }
     batchDefaultLogicalQueue = s.getBatchDefaultLogicalQueue();
     jobCapabilities = s.getJobCapabilities();
     tags = s.getTags();
     notes = s.getNotes();
     refImportId = s.getImportRefId();
+    // Check for -1 in max values and return Integer.MAX_VALUE instead.
+    //   As requested by Jobs service.
+    if (jobMaxJobs < 0) jobMaxJobs = Integer.MAX_VALUE;
+    if (jobMaxJobsPerUser < 0) jobMaxJobsPerUser = Integer.MAX_VALUE;
   }
 }

@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 265947185;
+    private static final long serialVersionUID = 1251552488;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -62,17 +62,17 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.tenant</code>. Tenant name associated with system
      */
-    public final TableField<SystemsRecord, String> TENANT = createField(DSL.name("tenant"), org.jooq.impl.SQLDataType.VARCHAR(24).nullable(false), this, "Tenant name associated with system");
+    public final TableField<SystemsRecord, String> TENANT = createField(DSL.name("tenant"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Tenant name associated with system");
 
     /**
      * The column <code>tapis_sys.systems.id</code>. Unique name for the system
      */
-    public final TableField<SystemsRecord, String> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.VARCHAR(80).nullable(false), this, "Unique name for the system");
+    public final TableField<SystemsRecord, String> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Unique name for the system");
 
     /**
      * The column <code>tapis_sys.systems.description</code>. System description
      */
-    public final TableField<SystemsRecord, String> DESCRIPTION = createField(DSL.name("description"), org.jooq.impl.SQLDataType.VARCHAR(2048), this, "System description");
+    public final TableField<SystemsRecord, String> DESCRIPTION = createField(DSL.name("description"), org.jooq.impl.SQLDataType.CLOB, this, "System description");
 
     /**
      * The column <code>tapis_sys.systems.system_type</code>. Type of system
@@ -82,12 +82,12 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.owner</code>. User name of system owner
      */
-    public final TableField<SystemsRecord, String> OWNER = createField(DSL.name("owner"), org.jooq.impl.SQLDataType.VARCHAR(60).nullable(false), this, "User name of system owner");
+    public final TableField<SystemsRecord, String> OWNER = createField(DSL.name("owner"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "User name of system owner");
 
     /**
      * The column <code>tapis_sys.systems.host</code>. System host name or ip address
      */
-    public final TableField<SystemsRecord, String> HOST = createField(DSL.name("host"), org.jooq.impl.SQLDataType.VARCHAR(256).nullable(false), this, "System host name or ip address");
+    public final TableField<SystemsRecord, String> HOST = createField(DSL.name("host"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "System host name or ip address");
 
     /**
      * The column <code>tapis_sys.systems.enabled</code>. Indicates if system is currently active and available for use
@@ -97,7 +97,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.effective_user_id</code>. User name to use when accessing the system
      */
-    public final TableField<SystemsRecord, String> EFFECTIVE_USER_ID = createField(DSL.name("effective_user_id"), org.jooq.impl.SQLDataType.VARCHAR(60).nullable(false), this, "User name to use when accessing the system");
+    public final TableField<SystemsRecord, String> EFFECTIVE_USER_ID = createField(DSL.name("effective_user_id"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "User name to use when accessing the system");
 
     /**
      * The column <code>tapis_sys.systems.default_authn_method</code>. Enum for how authorization is handled by default
@@ -107,12 +107,12 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.bucket_name</code>. Name of the bucket for an S3 system
      */
-    public final TableField<SystemsRecord, String> BUCKET_NAME = createField(DSL.name("bucket_name"), org.jooq.impl.SQLDataType.VARCHAR(63), this, "Name of the bucket for an S3 system");
+    public final TableField<SystemsRecord, String> BUCKET_NAME = createField(DSL.name("bucket_name"), org.jooq.impl.SQLDataType.CLOB, this, "Name of the bucket for an S3 system");
 
     /**
      * The column <code>tapis_sys.systems.root_dir</code>. Effective root directory path for a Unix system
      */
-    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Effective root directory path for a Unix system");
+    public final TableField<SystemsRecord, String> ROOT_DIR = createField(DSL.name("root_dir"), org.jooq.impl.SQLDataType.CLOB, this, "Effective root directory path for a Unix system");
 
     /**
      * The column <code>tapis_sys.systems.transfer_methods</code>. List of supported transfer methods
@@ -132,7 +132,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.proxy_host</code>. Proxy host name or ip address
      */
-    public final TableField<SystemsRecord, String> PROXY_HOST = createField(DSL.name("proxy_host"), org.jooq.impl.SQLDataType.VARCHAR(256).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Proxy host name or ip address");
+    public final TableField<SystemsRecord, String> PROXY_HOST = createField(DSL.name("proxy_host"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Proxy host name or ip address");
 
     /**
      * The column <code>tapis_sys.systems.proxy_port</code>. Proxy port number
@@ -142,17 +142,17 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.dtn_system_id</code>. Alternate system to use as a Data Transfer Node (DTN)
      */
-    public final TableField<SystemsRecord, String> DTN_SYSTEM_ID = createField(DSL.name("dtn_system_id"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Alternate system to use as a Data Transfer Node (DTN)");
+    public final TableField<SystemsRecord, String> DTN_SYSTEM_ID = createField(DSL.name("dtn_system_id"), org.jooq.impl.SQLDataType.CLOB, this, "Alternate system to use as a Data Transfer Node (DTN)");
 
     /**
      * The column <code>tapis_sys.systems.dtn_mount_point</code>. Mount point on local system for the DTN
      */
-    public final TableField<SystemsRecord, String> DTN_MOUNT_POINT = createField(DSL.name("dtn_mount_point"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Mount point on local system for the DTN");
+    public final TableField<SystemsRecord, String> DTN_MOUNT_POINT = createField(DSL.name("dtn_mount_point"), org.jooq.impl.SQLDataType.CLOB, this, "Mount point on local system for the DTN");
 
     /**
      * The column <code>tapis_sys.systems.dtn_mount_source_path</code>.
      */
-    public final TableField<SystemsRecord, String> DTN_MOUNT_SOURCE_PATH = createField(DSL.name("dtn_mount_source_path"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "");
+    public final TableField<SystemsRecord, String> DTN_MOUNT_SOURCE_PATH = createField(DSL.name("dtn_mount_source_path"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>tapis_sys.systems.is_dtn</code>. Indicates if system is to serve as a data transfer node
@@ -167,7 +167,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.job_working_dir</code>. Parent directory from which a job is run. Relative to effective root directory.
      */
-    public final TableField<SystemsRecord, String> JOB_WORKING_DIR = createField(DSL.name("job_working_dir"), org.jooq.impl.SQLDataType.VARCHAR(4096), this, "Parent directory from which a job is run. Relative to effective root directory.");
+    public final TableField<SystemsRecord, String> JOB_WORKING_DIR = createField(DSL.name("job_working_dir"), org.jooq.impl.SQLDataType.CLOB, this, "Parent directory from which a job is run. Relative to effective root directory.");
 
     /**
      * The column <code>tapis_sys.systems.job_env_variables</code>. Environment variables added to shell environment
@@ -192,12 +192,12 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
      */
-    public final TableField<SystemsRecord, String> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.VARCHAR(64), this, "Type of scheduler used when running batch jobs");
+    public final TableField<SystemsRecord, String> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.CLOB, this, "Type of scheduler used when running batch jobs");
 
     /**
      * The column <code>tapis_sys.systems.batch_default_logical_queue</code>. Default logical batch queue for the system
      */
-    public final TableField<SystemsRecord, String> BATCH_DEFAULT_LOGICAL_QUEUE = createField(DSL.name("batch_default_logical_queue"), org.jooq.impl.SQLDataType.VARCHAR(128), this, "Default logical batch queue for the system");
+    public final TableField<SystemsRecord, String> BATCH_DEFAULT_LOGICAL_QUEUE = createField(DSL.name("batch_default_logical_queue"), org.jooq.impl.SQLDataType.CLOB, this, "Default logical batch queue for the system");
 
     /**
      * The column <code>tapis_sys.systems.tags</code>. Tags for user supplied key:value pairs
@@ -212,7 +212,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.import_ref_id</code>. Optional reference ID for systems created via import
      */
-    public final TableField<SystemsRecord, String> IMPORT_REF_ID = createField(DSL.name("import_ref_id"), org.jooq.impl.SQLDataType.VARCHAR(80), this, "Optional reference ID for systems created via import");
+    public final TableField<SystemsRecord, String> IMPORT_REF_ID = createField(DSL.name("import_ref_id"), org.jooq.impl.SQLDataType.CLOB, this, "Optional reference ID for systems created via import");
 
     /**
      * The column <code>tapis_sys.systems.deleted</code>. Indicates if system has been soft deleted

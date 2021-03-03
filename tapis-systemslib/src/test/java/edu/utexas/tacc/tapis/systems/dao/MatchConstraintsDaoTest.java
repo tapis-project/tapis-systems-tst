@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
+import static edu.utexas.tacc.tapis.systems.IntegrationUtils.dtnSystem;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.gson;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.queueList2;
@@ -85,11 +86,14 @@ public class MatchConstraintsDaoTest
     // Create all the systems in the dB using the in-memory objects, recording start and end times
     createBegin = TapisUtils.getUTCTimeNow();
     Thread.sleep(500);
+    boolean itemCreated = dao.createTSystem(authenticatedUser, dtnSystem, gson.toJson(dtnSystem), scrubbedJson);
+    Assert.assertTrue(itemCreated, "Item not created, id: " + dtnSystem.getId());
+    allowedIDs.add(dtnSystem.getId());
     for (TSystem sys : systems)
     {
-      boolean itemCreated = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      itemCreated = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
-      allowedIDs.add(sys.getId());//allowedIDs.add(itemId);
+      allowedIDs.add(sys.getId());
     }
     Thread.sleep(500);
     createEnd = TapisUtils.getUTCTimeNow();

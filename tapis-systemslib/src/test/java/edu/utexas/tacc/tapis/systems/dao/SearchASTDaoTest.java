@@ -137,14 +137,14 @@ public class SearchASTDaoTest
     class CaseData {public final int count; public final String sqlSearchStr; CaseData(int c, String s) { count = c; sqlSearchStr = s; }}
     var validCaseInputs = new HashMap<Integer, CaseData>();
     // Test basic types and operators
-    validCaseInputs.put( 1,new CaseData(1, "id = " + sys0Name)); // 1 has specific name
+    validCaseInputs.put( 1,new CaseData(1, "id = " + sq(sys0Name))); // 1 has specific name
 //    validCaseInputs.put( 2,new CaseData(1, "description = " + sys0.getDescription())); // TODO handle underscore character properly. how?
-    validCaseInputs.put( 3,new CaseData(1, "host = " + sys0.getHost()));
-    validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sys0.getBucketName()));
+    validCaseInputs.put( 3,new CaseData(1, "host = " + sq(sys0.getHost())));
+    validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sq(sys0.getBucketName())));
 //    validCaseInputs.put( 5,new CaseData(1, "root_dir = " + sys0.getRootDir())); // TODO underscore
-    validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sys0.getJobWorkingDir()));
-    validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sys0.getBatchScheduler()));
-    validCaseInputs.put( 8,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + "AND batch_default_logical_queue = " + sys0.getBatchDefaultLogicalQueue()));
+    validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sq(sys0.getJobWorkingDir())));
+    validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sq(sys0.getBatchScheduler())));
+    validCaseInputs.put( 8,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + "AND batch_default_logical_queue = " + sq(sys0.getBatchDefaultLogicalQueue())));
     validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner1)));  // Half owned by one user
     validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner2))); // and half owned by another
     validCaseInputs.put(12,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled

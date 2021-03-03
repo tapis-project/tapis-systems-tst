@@ -69,8 +69,8 @@ public class SearchDaoTest
   private static final String escapedCommaInListValue = "abc\\,def";
 
   // Strings for char relational testings
-  private static final String hostName1 = "host" + testKey + "_001";
-  private static final String hostName7 = "host" + testKey + "_007";
+  private static final String hostName1 = "host" + testKey + "001.test.org";
+  private static final String hostName7 = "host" + testKey + "007.test.org";
 
   int numSystems = 20;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey);
@@ -209,11 +209,11 @@ public class SearchDaoTest
     // Test wildcards
     validCaseInputs.put(80, new CaseData(numSystems, Arrays.asList("enabled.eq.true", "host.like.host" + testKey + "*")));
     validCaseInputs.put(81, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true", "host.nlike.host" + testKey + "*")));
-    validCaseInputs.put(82, new CaseData(9, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true", "host.like.host" + testKey + "_00!")));
-    validCaseInputs.put(83, new CaseData(11, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true", "host.nlike.host" + testKey + "_00!")));
+    validCaseInputs.put(82, new CaseData(9, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true", "host.like.host" + testKey + "00!.test.org")));
+    validCaseInputs.put(83, new CaseData(11, Arrays.asList("id.like." + sysNameLikeAll, "enabled.eq.true", "host.nlike.host" + testKey + "00!.test.org")));
     // Test that underscore and % get escaped as needed before being used as SQL
-    validCaseInputs.put(90, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "host.like.host" + testKey + "_00_")));
-    validCaseInputs.put(91, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "host.like.host" + testKey + "_00%")));
+    validCaseInputs.put(90, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "host.like.host" + testKey + "__")));
+    validCaseInputs.put(91, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "host.like.host" + testKey + "00%")));
     // Check various special characters in description. 7 special chars in value: ,()~*!\
     validCaseInputs.put(101, new CaseData(1, Arrays.asList("id.like." + sysNameLikeAll, "description.like." + specialChar7LikeSearchStr)));
     validCaseInputs.put(102, new CaseData(numSystems - 1, Arrays.asList("id.like." + sysNameLikeAll, "description.nlike." + specialChar7LikeSearchStr)));

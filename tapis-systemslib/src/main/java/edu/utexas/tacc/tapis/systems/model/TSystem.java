@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
+import org.apache.commons.validator.routines.DomainValidator;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 /*
  * Tapis System representing a server or collection of servers exposed through a
@@ -39,11 +41,15 @@ public final class TSystem
   public static final String TENANT_VAR = "${tenant}";
   public static final String EFFUSERID_VAR = "${effectiveUserId}";
 
+  private static final String[] ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
+
   // Attribute names, also used as field names in Json
   public static final String ID_FIELD = "id";
+  public static final String DESCRIPTION_FIELD = "description";
   public static final String NOTES_FIELD = "notes";
   public static final String SYSTEM_TYPE_FIELD = "systemType";
   public static final String HOST_FIELD = "host";
+  public static final String ROOTDIR_FIELD = "rootDir";
   public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
@@ -66,6 +72,25 @@ public final class TSystem
 
   // Message keys
   private static final String CREATE_MISSING_ATTR = "SYSLIB_CREATE_MISSING_ATTR";
+  private static final String INVALID_STR_ATTR = "SYSLIB_INVALID_STR_ATTR";
+  private static final String TOO_LONG_ATTR = "SYSLIB_TOO_LONG_ATTR";
+
+  // Validation patterns
+  //ID Must start alphabetic and contain only alphanumeric and 4 special characters: - . _ ~
+  private final String PATTERN_VALID_ID = "^[a-zA-Z]([a-zA-Z0-9]|[-\\._~])*";
+
+  // Validation constants
+  private final Integer MAX_ID_LEN = 80;
+  private final Integer MAX_DESCRIPTION_LEN = 2048;
+  private final Integer MAX_PATH_LEN = 4096;
+  private final Integer MAX_USERNAME_LEN = 60;
+  private final Integer MAX_BUCKETNAME_LEN = 63;
+  private final Integer MAX_SCHEDULERNAME_LEN = 64;
+  private final Integer MAX_QUEUENAME_LEN = 128;
+  private final Integer MAX_HPCQUEUENAME_LEN = 128;
+  private final Integer MAX_RUNTIME_VER_LEN = 128;
+  private final Integer MAX_CAPABILITYNAME_LEN = 128;
+  private final Integer MAX_TAG_LEN = 128;
 
   // ************************************************************************
   // *********************** Enums ******************************************
@@ -287,11 +312,52 @@ public final class TSystem
     }
     return system;
   }
+  /**
+   * Resolve variables for TSystem attributes
+   */
+  public void resolveVariables(String oboUser)
+  {
+    // Resolve owner if necessary. If empty or "${apiUserId}" then fill in oboUser.
+    // Note that for a user request oboUser and apiUserId are the same and for a service request we want oboUser here.
+    if (StringUtils.isBlank(owner) || owner.equalsIgnoreCase(APIUSERID_VAR)) setOwner(oboUser);
+
+    // Perform variable substitutions that happen at create time: bucketName, rootDir, jobWorkingDir
+    // NOTE: effectiveUserId is not processed. Var reference is retained and substitution done as needed when system is retrieved.
+    //    ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
+    String[] allVarSubstitutions = {oboUser, owner, tenant};
+    setBucketName(StringUtils.replaceEach(bucketName, ALL_VARS, allVarSubstitutions));
+    setRootDir(StringUtils.replaceEach(rootDir, ALL_VARS, allVarSubstitutions));
+    setJobWorkingDir(StringUtils.replaceEach(jobWorkingDir, ALL_VARS, allVarSubstitutions));
+  }
+
+  /**
+   * Validate an ID string.
+   * Must start alphabetic and contain only alphanumeric and 4 special characters: - . _ ~
+   * @param id - Id to check
+   * @return - true if valid
+   */
+  private boolean isValidId(String id) { return id.matches(PATTERN_VALID_ID); }
+
+
+  /**
+   * Validate a host string.
+   * Check if a string is a valid hostname or IP address.
+   * Use methods from org.apache.commons.validator.routines.
+   * @param host - string to check
+   * @return - true if valid
+   */
+  private boolean isValidHost(String host)
+  {
+    // First check for valid IP address, then for valid domain name
+    if (DomainValidator.getInstance().isValid(host) || InetAddressValidator.getInstance().isValid(host)) return true;
+    else return false;
+  }
 
   /**
    * Check constraints on TSystem attributes.
    * Make checks that do not require a dao or service call. Check only internal consistency.
-   *  systemId, host, authnMethod must be set.
+   *  Check for existence: systemId, host, authnMethod.
+   *  Check for valid strings: systemId, host
    *  effectiveUserId is restricted.
    *  If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
    *  If transfer mechanism S3 is supported then bucketName must be set.
@@ -306,7 +372,7 @@ public final class TSystem
    *
    * @return  list of error messages, empty list if no errors
    */
-  public List<String> checkAttributeConstraints()
+  public List<String> checkAttributeRestrictions()
   {
     String msg;
     var errMessages = new ArrayList<String>();
@@ -327,9 +393,43 @@ public final class TSystem
       msg = LibUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD);
       errMessages.add(msg);
     }
+    else if (!isValidHost(host))
+    {
+      msg = LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host);
+      errMessages.add(msg);
+    }
     if (defaultAuthnMethod == null)
     {
       msg = LibUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD);
+      errMessages.add(msg);
+    }
+
+    // If Id present make sure it is valid and not too long
+    if (!StringUtils.isBlank(id))
+    {
+      if (!isValidId(id))
+      {
+        msg = LibUtils.getMsg(INVALID_STR_ATTR, ID_FIELD, id);
+        errMessages.add(msg);
+      }
+      if (id.length() > MAX_ID_LEN)
+      {
+        msg = LibUtils.getMsg(TOO_LONG_ATTR, ID_FIELD, MAX_ID_LEN);
+        errMessages.add(msg);
+      }
+    }
+
+    // If description present make sure it is not too long
+    if (!StringUtils.isBlank(description) && description.length() > MAX_DESCRIPTION_LEN)
+    {
+      msg = LibUtils.getMsg(TOO_LONG_ATTR, DESCRIPTION_FIELD, MAX_DESCRIPTION_LEN);
+      errMessages.add(msg);
+    }
+
+    // If rootDir present make sure it is not too long
+    if (!StringUtils.isBlank(rootDir) && rootDir.length() > MAX_PATH_LEN)
+    {
+      msg = LibUtils.getMsg(TOO_LONG_ATTR, ROOTDIR_FIELD, MAX_PATH_LEN);
       errMessages.add(msg);
     }
 

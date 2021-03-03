@@ -309,17 +309,17 @@ public class SystemsDaoTest
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList1, tags, notes);
     patchSys.setTenant(tenantName);
     patchSys.setId(fakeSystemName);
-    TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabled,
+    TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabledTrue,
             "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtn, canExec, "jobWorkDir",
-            jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch, "batchScheduler", "batchDefaultLogicalQueue",
-            tags, notes, null, isDeleted, created, updated);
+            dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, isDtnFalse, canExecTrue, "jobWorkDir",
+            jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue, "batchScheduler", "batchDefaultLogicalQueue",
+            tags, notes, null, isDeletedFalse, createdNull, updatedNull);
     // Make sure system does not exist
     Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, true));
     Assert.assertFalse(dao.checkForTSystem(tenantName, fakeSystemName, false));

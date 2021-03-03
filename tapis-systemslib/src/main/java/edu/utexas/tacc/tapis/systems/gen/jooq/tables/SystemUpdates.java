@@ -37,7 +37,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
 
-    private static final long serialVersionUID = 1272455588;
+    private static final long serialVersionUID = -1823118019;
 
     /**
      * The reference instance of <code>tapis_sys.system_updates</code>
@@ -65,22 +65,22 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     /**
      * The column <code>tapis_sys.system_updates.system_tenant</code>. Tenant of system being updated
      */
-    public final TableField<SystemUpdatesRecord, String> SYSTEM_TENANT = createField(DSL.name("system_tenant"), org.jooq.impl.SQLDataType.VARCHAR(24).nullable(false), this, "Tenant of system being updated");
+    public final TableField<SystemUpdatesRecord, String> SYSTEM_TENANT = createField(DSL.name("system_tenant"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Tenant of system being updated");
 
     /**
      * The column <code>tapis_sys.system_updates.system_id</code>. Id of system being updated
      */
-    public final TableField<SystemUpdatesRecord, String> SYSTEM_ID = createField(DSL.name("system_id"), org.jooq.impl.SQLDataType.VARCHAR(80).nullable(false), this, "Id of system being updated");
+    public final TableField<SystemUpdatesRecord, String> SYSTEM_ID = createField(DSL.name("system_id"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Id of system being updated");
 
     /**
      * The column <code>tapis_sys.system_updates.user_tenant</code>. Tenant of user who requested the update
      */
-    public final TableField<SystemUpdatesRecord, String> USER_TENANT = createField(DSL.name("user_tenant"), org.jooq.impl.SQLDataType.VARCHAR(24).nullable(false), this, "Tenant of user who requested the update");
+    public final TableField<SystemUpdatesRecord, String> USER_TENANT = createField(DSL.name("user_tenant"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Tenant of user who requested the update");
 
     /**
      * The column <code>tapis_sys.system_updates.user_name</code>. Name of user who requested the update
      */
-    public final TableField<SystemUpdatesRecord, String> USER_NAME = createField(DSL.name("user_name"), org.jooq.impl.SQLDataType.VARCHAR(60).nullable(false), this, "Name of user who requested the update");
+    public final TableField<SystemUpdatesRecord, String> USER_NAME = createField(DSL.name("user_name"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Name of user who requested the update");
 
     /**
      * The column <code>tapis_sys.system_updates.operation</code>. Type of update operation
@@ -95,7 +95,7 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     /**
      * The column <code>tapis_sys.system_updates.upd_text</code>. Text data supplied by client - secrets should be scrubbed
      */
-    public final TableField<SystemUpdatesRecord, String> UPD_TEXT = createField(DSL.name("upd_text"), org.jooq.impl.SQLDataType.VARCHAR, this, "Text data supplied by client - secrets should be scrubbed");
+    public final TableField<SystemUpdatesRecord, String> UPD_TEXT = createField(DSL.name("upd_text"), org.jooq.impl.SQLDataType.CLOB, this, "Text data supplied by client - secrets should be scrubbed");
 
     /**
      * The column <code>tapis_sys.system_updates.created</code>. UTC time for when record was created

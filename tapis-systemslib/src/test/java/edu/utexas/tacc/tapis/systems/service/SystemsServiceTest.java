@@ -144,6 +144,9 @@ public class SystemsServiceTest
 
     // Cleanup anything leftover from previous failed run
     tearDown();
+
+    // Create a DTN system for other systems to reference. Otherwise some system definitions are not valid.
+    svc.createSystem(authenticatedOwner1, dtnSystem, scrubbedJson);
   }
 
   @AfterSuite
@@ -167,6 +170,7 @@ public class SystemsServiceTest
     {
       svcImpl.hardDeleteSystem(authenticatedAdminUser, systems[i].getId());
     }
+    svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem.getId());
 
     TSystem tmpSys = svc.getSystem(authenticatedAdminUser, systems[0].getId(), false, null, false);
     Assert.assertNull(tmpSys, "System not deleted. System name: " + systems[0].getId());
@@ -240,10 +244,10 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList1);
     String createText = "{\"testUpdate\": \"0-create\"}";
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
-    PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
+    PatchSystem patchSystem = new PatchSystem("description PATCHED", hostPatchedId, false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList2, tags2, notes2);
     patchSystem.setId(sys0.getId());
     patchSystem.setTenant(tenantName);
@@ -264,7 +268,7 @@ public class SystemsServiceTest
     // Update original system definition with patched values
     sys0.setJobCapabilities(capList2);
     sys0.setDescription("description PATCHED");
-    sys0.setHost("hostPATCHED");
+    sys0.setHost(hostPatchedId);
     sys0.setEnabled(false);
     sys0.setEffectiveUserId("effUserPATCHED");
     sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
@@ -644,8 +648,8 @@ public class SystemsServiceTest
     TSystem sys0 = systems[12];
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatch, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList2, tags2, notes2);
     patchSys.setId(sys0.getId());
     patchSys.setTenant(tenantName);

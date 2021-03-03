@@ -10,7 +10,6 @@ import static edu.utexas.tacc.tapis.systems.model.Credential.TOP_LEVEL_SECRET_NA
 import static edu.utexas.tacc.tapis.systems.model.TSystem.APIUSERID_VAR;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_EFFECTIVEUSERID;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.OWNER_VAR;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.TENANT_VAR;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,7 +75,6 @@ public class SystemsServiceImpl implements SystemsService
   // Tracing.
   private static final Logger _log = LoggerFactory.getLogger(SystemsServiceImpl.class);
 
-  private static final String[] ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
   private static final Set<Permission> ALL_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY, Permission.EXECUTE));
   private static final Set<Permission> READMODIFY_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
   private static final String PERM_SPEC_PREFIX = "system";
@@ -166,13 +164,12 @@ public class SystemsServiceImpl implements SystemsService
     String effectiveUserId = system.getEffectiveUserId();
 
     // ----------------- Resolve variables for any attributes that might contain them --------------------
-    resolveVariables(system, authenticatedUser.getOboUser());
+    system.resolveVariables(authenticatedUser.getOboUser());
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, system.getId(), system.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
-    TSystem.setDefaults(system);
     validateTSystem(authenticatedUser, system);
 
     // Construct Json string representing the TSystem (without credentials) about to be created
@@ -1438,27 +1435,6 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
-   * Resolve variables for TSystem attributes
-   * @param system - the TSystem to process
-   */
-  private static void resolveVariables(TSystem system, String oboUser)
-  {
-    // Resolve owner if necessary. If empty or "${apiUserId}" then fill in oboUser.
-    // Note that for a user request oboUser and apiUserId are the same and for a service request we want oboUser here.
-    String owner = system.getOwner();
-    if (StringUtils.isBlank(owner) || owner.equalsIgnoreCase(APIUSERID_VAR)) owner = oboUser;
-    system.setOwner(owner);
-
-    // Perform variable substitutions that happen at create time: bucketName, rootDir, jobWorkingDir
-    // NOTE: effectiveUserId is not processed. Var reference is retained and substitution done as needed when system is retrieved.
-    //    ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
-    String[] allVarSubstitutions = {oboUser, owner, system.getTenant()};
-    system.setBucketName(StringUtils.replaceEach(system.getBucketName(), ALL_VARS, allVarSubstitutions));
-    system.setRootDir(StringUtils.replaceEach(system.getRootDir(), ALL_VARS, allVarSubstitutions));
-    system.setJobWorkingDir(StringUtils.replaceEach(system.getJobWorkingDir(), ALL_VARS, allVarSubstitutions));
-  }
-
-  /**
    * Check constraints on TSystem attributes.
    * If DTN is used verify that dtnSystemId exists with isDtn = true
    * Collect and report as many errors as possible so they can all be fixed before next attempt
@@ -1468,7 +1444,7 @@ public class SystemsServiceImpl implements SystemsService
   private void validateTSystem(AuthenticatedUser authenticatedUser, TSystem tSystem1) throws IllegalStateException
   {
     String msg;
-    List<String> errMessages = tSystem1.checkAttributeConstraints();
+    List<String> errMessages = tSystem1.checkAttributeRestrictions();
 
     // If DTN is used (i.e. dtnSystemId is set) verify that dtnSystemId exists with isDtn = true
     if (!StringUtils.isBlank(tSystem1.getDtnSystemId()))

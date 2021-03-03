@@ -1285,7 +1285,7 @@ public class SystemResource
     String msg;
 
     // Make call for lib level validation
-    List<String> errMessages = tSystem1.checkAttributeConstraints();
+    List<String> errMessages = tSystem1.checkAttributeRestrictions();
 
     // Now validate attributes that have special handling at API level.
 

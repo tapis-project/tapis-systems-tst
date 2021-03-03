@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = -1677829507;
+    private static final long serialVersionUID = 1500958841;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -60,12 +60,12 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     /**
      * The column <code>tapis_sys.logical_queues.name</code>. Name of logical queue
      */
-    public final TableField<LogicalQueuesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Name of logical queue");
+    public final TableField<LogicalQueuesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Name of logical queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.hpc_queue_name</code>. Name of the associated hpc queue
      */
-    public final TableField<LogicalQueuesRecord, String> HPC_QUEUE_NAME = createField(DSL.name("hpc_queue_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.field("''::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "Name of the associated hpc queue");
+    public final TableField<LogicalQueuesRecord, String> HPC_QUEUE_NAME = createField(DSL.name("hpc_queue_name"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Name of the associated hpc queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_jobs</code>. Maximum total number of jobs that can be queued or running in this queue at a given time.

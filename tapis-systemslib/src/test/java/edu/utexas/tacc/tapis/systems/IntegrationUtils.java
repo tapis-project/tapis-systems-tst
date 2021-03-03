@@ -28,13 +28,24 @@ public final class IntegrationUtils
   public static final Gson gson =  TapisGsonUtils.getGson();
   public static final List<TransferMethod> txfrMethodsList = new ArrayList<>(List.of(TransferMethod.SFTP, TransferMethod.S3));
   public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
-  public static final boolean isEnabled = true;
-  public static final boolean isDtn = false;
-  public static final boolean canExec = true;
-  public static final String dtnSystemId = "fakeDTNSystem";
+  public static final boolean isEnabledTrue = true;
+  public static final boolean isDtnTrue = true;
+  public static final boolean isDtnFalse = false;
+  public static final boolean canExecTrue = true;
+  public static final boolean canExecFalse = false;
+  public static final String hostPatchedId = "patched.system.org";
+  public static final String hostMinimalId = "minimal.system.org";
+  public static TSystem dtnSystem;
+  public static final String dtnSystemId = "test-dtn-system";
+  public static final String dtnSystemIdNull = null;
+  public static final String dtnSystemIdValidHostname = "dtn.system.org";
+  public static final String dtnSystemIdFakeHostname = "fakeDTNSystem";
   public static final String dtnMountPoint = "/fake/mountpoint";
+  public static final String dtnMountPointNull = null;
   public static final String dtnMountSourcePath = "/fake/mountsourcepath";
+  public static final String dtnMountSourcePathNull = null;
   public static final String jobWorkingDir = "/fake/job/working_dir";
+  public static final String jobWorkingDirNull = null;
   public static final String batchScheduler = "SLURM";
   public static final String batchDefaultLogicalQueue = "fakeLogicalQueue";
 //  public static final KeyValuePair kv1 = new KeyValuePair("a","b");
@@ -42,7 +53,11 @@ public final class IntegrationUtils
 //  public static final KeyValuePair kv3 = new KeyValuePair("TMP","/tmp");
 //  public static final List<KeyValuePair> jobEnvVariables = new ArrayList<>(List.of(kv1,kv2,kv3));
   public static final String[] jobEnvVariables = {"a=b", "HOME=/home/testuser2", "TMP=/tmp"};
-  public static final boolean jobIsBatch = true;
+  public static final String[] jobEnvVariablesNull = null;
+  public static final String batchSchedulerNull = null;
+  public static final String queueNameNull = null;
+  public static final boolean jobIsBatchTrue = true;
+  public static final boolean jobIsBatchFalse = false;
   public static final int jobMaxJobs = -1;
   public static final int jobMaxJobsPerUser = -1;
   public static final String[] tags = {"value1", "value2", "a",
@@ -83,10 +98,10 @@ public final class IntegrationUtils
           Capability.Datatype.STRING, Capability.DEFAULT_PRECEDENCE, null);
   public static final List<Capability> capList2 = new ArrayList<>(List.of(capA1, capB1, capC1, capD1));
 
-  public static final boolean isDeleted = false;
+  public static final boolean isDeletedFalse = false;
   public static final String importRefId = null;
-  public static final Instant created = null;
-  public static final Instant updated = null;
+  public static final Instant createdNull = null;
+  public static final Instant updatedNull = null;
   public static final int qMaxJobs = -1;
   public static final int qMaxJobsPerUser = -1;
   public static final int qMaxNodeCount = -1;
@@ -105,18 +120,27 @@ public final class IntegrationUtils
   public static TSystem[] makeSystems(int n, String key)
   {
     TSystem[] systems = new TSystem[n];
+    // Create a DTN system for other systems to reference. Otherwise some system definitions are not valid.
+    dtnSystem = new TSystem(-1, tenantName, dtnSystemId, "DTN System for tests", TSystem.SystemType.LINUX, owner1,
+            dtnSystemIdValidHostname, isEnabledTrue,"effUserDtn", prot1.getAuthnMethod(), "bucketDtn", "/root/dtn",
+            prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
+            dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
+            canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,
+            batchSchedulerNull, queueNameNull, tags, notes, importRefId , isDeletedFalse, createdNull, updatedNull);
     for (int i = 0; i < n; i++)
     {
       // Suffix which should be unique for each system within each integration test
-      String suffix = key + "_" + String.format("%03d", i+1);
+      String iStr = String.format("%03d", i+1);
+      String suffix = key + "_" + iStr;
       String name = getSysName(key, i+1);
+      String hostName = "host" + key + iStr + ".test.org";
       // Constructor initializes all attributes except for JobCapabilities and Credential
       systems[i] = new TSystem(-1, tenantName, name, "description "+suffix, TSystem.SystemType.LINUX, owner1,
-              "host"+suffix, isEnabled,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
+              hostName, isEnabledTrue,"effUser"+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
-              dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtn,
-              canExec, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
-              "batchScheduler"+suffix, queueA1.getName(), tags, notes, importRefId , isDeleted, created, updated);
+              dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtnFalse,
+              canExecTrue, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue,
+              "batchScheduler"+suffix, queueA1.getName(), tags, notes, importRefId , isDeletedFalse, createdNull, updatedNull);
       systems[i].setJobRuntimes(runtimeList1);
       systems[i].setBatchLogicalQueues(queueList1);
       systems[i].setJobCapabilities(capList1);
@@ -132,11 +156,11 @@ public final class IntegrationUtils
   public static TSystem makeMinimalSystem(TSystem tSys)
   {
     return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
-              "hostMinimal", isEnabled, null, tSys.getDefaultAuthnMethod(), null, null,
+              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, null,
               null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
-              null, null, null, isDtn,
-              canExec, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
-              null, null, null, null, null, isDeleted, null, null);
+              null, null, null, isDtnFalse,
+              canExecFalse, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,
+              null, null, null, null, null, isDeletedFalse, null, null);
   }
 
   public static String getSysName(String key, int idx)
