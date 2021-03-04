@@ -16,9 +16,6 @@ public final class ResultLogicalQueue
   public int maxMemoryMB;
   public int maxMinutes;
 
-// TODO needed?  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-//  public ResultLogicalQueue() { }
-//
   public ResultLogicalQueue(LogicalQueue q)
   {
     name = q.getName();

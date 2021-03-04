@@ -10,6 +10,7 @@ import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -55,9 +56,6 @@ public final class ResultSystem
   public Object notes;
   public String refImportId;
 
-  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-//TODO  public ResultSystem() { }
-
   public ResultSystem(TSystem s)
   {
     // Convert jobEnvVariables from array of "key=value" to list of KeyValuePair
@@ -91,8 +89,9 @@ public final class ResultSystem
     jobMaxJobsPerUser = s.getJobMaxJobsPerUser();
     jobIsBatch = s.getJobIsBatch();
     batchScheduler = s.getBatchScheduler();
+    batchLogicalQueues = new ArrayList<>();
     if (s.getBatchLogicalQueues() != null )
-        for (LogicalQueue q : s.getBatchLogicalQueues()) { batchLogicalQueues.add(new ResultLogicalQueue(q)); }
+      for (LogicalQueue q : s.getBatchLogicalQueues()) { batchLogicalQueues.add(new ResultLogicalQueue(q)); }
     batchDefaultLogicalQueue = s.getBatchDefaultLogicalQueue();
     jobCapabilities = s.getJobCapabilities();
     tags = s.getTags();
