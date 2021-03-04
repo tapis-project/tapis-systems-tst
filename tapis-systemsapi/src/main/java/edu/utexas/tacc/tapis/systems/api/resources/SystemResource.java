@@ -207,7 +207,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) _log.trace(ApiUtils.getMsgAuth("SYSAPI_CREATE_TRACE", authenticatedUser, scrubbedJson));
 
     // Fill in defaults and check constraints on TSystem attributes
-    TSystem.setDefaults(tSystem);
+    tSystem = TSystem.setDefaults(tSystem);
     resp = validateTSystem(tSystem, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
 
@@ -472,7 +472,7 @@ public class SystemResource
     TSystem system = null; //createTSystemFromSGCIImportRequest(req, systemId);
     system.setImportRefId(req.sgciResourceId);
     // Fill in defaults and check constraints on TSystem attributes
-    TSystem.setDefaults(system);
+    system = TSystem.setDefaults(system);
     resp = validateTSystem(system, authenticatedUser, prettyPrint);
     if (resp != null) return resp;
 

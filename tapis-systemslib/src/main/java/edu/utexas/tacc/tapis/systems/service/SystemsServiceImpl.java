@@ -160,7 +160,7 @@ public class SystemsServiceImpl implements SystemsService
     // Make sure owner, effectiveUserId, notes and tags are all set
     // Note that this is done before auth so owner can get resolved and used during auth check.
     system.setTenant(systemTenantName);
-    TSystem.setDefaults(system);
+    system = TSystem.setDefaults(system);
     String effectiveUserId = system.getEffectiveUserId();
 
     // ----------------- Resolve variables for any attributes that might contain them --------------------
@@ -300,7 +300,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, origTSystem.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
-    TSystem.setDefaults(patchedTSystem);
+    patchedTSystem = TSystem.setDefaults(patchedTSystem);
     validateTSystem(authenticatedUser, patchedTSystem);
 
     // Construct Json string representing the PatchSystem about to be used to update the system

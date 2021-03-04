@@ -35,6 +35,7 @@ public final class IntegrationUtils
   public static final boolean canExecFalse = false;
   public static final String hostPatchedId = "patched.system.org";
   public static final String hostMinimalId = "minimal.system.org";
+  public static final String rootDir = "/root/dir";
   public static TSystem dtnSystem;
   public static final String dtnSystemId = "test-dtn-system";
   public static final String dtnSystemIdNull = null;
@@ -151,12 +152,13 @@ public final class IntegrationUtils
   /**
    * Create a TSystem in memory with minimal attributes set based on TSystem given
    *   id, systemType, host, defaultAuthnMethod, canExec
+   *   and since sytemType is LINUX must also set rootDir
    * NOTE: many args to constructor are primitives so cannot be set to null.
    */
   public static TSystem makeMinimalSystem(TSystem tSys)
   {
     return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
-              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, null,
+              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir,
               null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
               null, null, null, isDtnFalse,
               canExecFalse, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,

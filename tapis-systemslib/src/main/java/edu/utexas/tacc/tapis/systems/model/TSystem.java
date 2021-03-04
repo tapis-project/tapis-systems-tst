@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +45,14 @@ public final class TSystem
   // Attribute names, also used as field names in Json
   public static final String ID_FIELD = "id";
   public static final String DESCRIPTION_FIELD = "description";
+  public static final String OWNER_FIELD = "owner";
+  public static final String EFFUSRID_FIELD = "effectiveUserId";
+  public static final String BUCKETNAME_FIELD = "bucketName";
+  public static final String DTNSYSID_FIELD = "dtnSystemId";
+  public static final String DTNMOUNTPOINT_FIELD = "dtnMountPoint";
+  public static final String DTNMOUNTSRCPATH_FIELD = "dtnMountSourcePath";
+  public static final String JOBWRKDIR_FIELD = "jobWorkingDir";
+  public static final String BATCHSCHED_FIELD = "batchScheduler";
   public static final String NOTES_FIELD = "notes";
   public static final String SYSTEM_TYPE_FIELD = "systemType";
   public static final String HOST_FIELD = "host";
@@ -85,7 +92,7 @@ public final class TSystem
   private final Integer MAX_PATH_LEN = 4096;
   private final Integer MAX_USERNAME_LEN = 60;
   private final Integer MAX_BUCKETNAME_LEN = 63;
-  private final Integer MAX_SCHEDULERNAME_LEN = 64;
+  private final Integer MAX_SCHEDNAME_LEN = 64;
   private final Integer MAX_QUEUENAME_LEN = 128;
   private final Integer MAX_HPCQUEUENAME_LEN = 128;
   private final Integer MAX_RUNTIME_VER_LEN = 128;
@@ -331,106 +338,223 @@ public final class TSystem
   }
 
   /**
-   * Validate an ID string.
-   * Must start alphabetic and contain only alphanumeric and 4 special characters: - . _ ~
-   * @param id - Id to check
-   * @return - true if valid
-   */
-  private boolean isValidId(String id) { return id.matches(PATTERN_VALID_ID); }
-
-
-  /**
-   * Validate a host string.
-   * Check if a string is a valid hostname or IP address.
-   * Use methods from org.apache.commons.validator.routines.
-   * @param host - string to check
-   * @return - true if valid
-   */
-  private boolean isValidHost(String host)
-  {
-    // First check for valid IP address, then for valid domain name
-    if (DomainValidator.getInstance().isValid(host) || InetAddressValidator.getInstance().isValid(host)) return true;
-    else return false;
-  }
-
-  /**
    * Check constraints on TSystem attributes.
-   * Make checks that do not require a dao or service call. Check only internal consistency.
-   *  Check for existence: systemId, host, authnMethod.
-   *  Check for valid strings: systemId, host
-   *  effectiveUserId is restricted.
-   *  If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
-   *  If transfer mechanism S3 is supported then bucketName must be set.
-   *  If effectiveUserId is dynamic then providing credentials is disallowed
-   *  If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
-   *  If isDtn is true then canExec must be false and the following attributes may not be set:
-   *    dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
-   *  If jobIsBatch is true then batchScheduler must be specified
-   *  If jobIsBatch is true then batchLogicalQueues must have at least one item
-   *  If jobIsBatch is true then and batchLogicalQueues has more then one item then batchDefaultLogicalQueue must be set
-   *  If jobIsBatch is true then batchDefaultLogicalQueue must be in the list of logical queueus.
+   * Make checks that do not require a dao or service call.
+   * Check only internal consistency and restrictions.
    *
    * @return  list of error messages, empty list if no errors
    */
   public List<String> checkAttributeRestrictions()
   {
-    String msg;
     var errMessages = new ArrayList<String>();
+    checkAttrRequired(errMessages);
+    checkAttrValidity(errMessages);
+    checkAttrStringLengths(errMessages);
+    if (canExec) checkAttrCanExec(errMessages);
+    if (isDtn) checkAttrIsDtn(errMessages);
+    if (jobIsBatch) checkAttrJobIsBatch(errMessages);
+    if (systemType == SystemType.OBJECT_STORE) checkAttrObjectStore(errMessages);
+    checkAttrMisc(errMessages);
+    return errMessages;
+  }
 
+  // ************************************************************************
+  // *********************** Private methods *********************************
+  // ************************************************************************
+
+  /**
+   * Check for missing required attributes
+   *   systemId, host, authnMethod.
+   */
+  private void checkAttrRequired(List<String> errMessages)
+  {
     // Id, type, host and defaultAuthn must be set
-    if (StringUtils.isBlank(id))
+    if (StringUtils.isBlank(id)) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD));
+    if (systemType == null) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD));
+    if (StringUtils.isBlank(host)) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD));
+    if (defaultAuthnMethod == null) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD));
+  }
+
+  /**
+   * Check for invalid attributes
+   *   systemId, host
+   */
+  private void checkAttrValidity(List<String> errMessages)
+  {
+    // If Id present make sure it is valid
+    if (!StringUtils.isBlank(id) && !isValidId(id)) errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, ID_FIELD, id));
+
+    // If host present make sure it is valid
+    if (!StringUtils.isBlank(host) && !isValidHost(host)) errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host));
+  }
+
+  /**
+   * Check for attribute strings that exceed limits
+   *   id, description, owner, effectiveUserId, bucketName, rootDir
+   *   dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir
+   *   batchScheduler
+   */
+  private void checkAttrStringLengths(List<String> errMessages)
+  {
+    if (!StringUtils.isBlank(id) && id.length() > MAX_ID_LEN)
     {
-      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD);
-      errMessages.add(msg);
-    }
-    if (systemType == null)
-    {
-      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD);
-      errMessages.add(msg);
-    }
-    if (StringUtils.isBlank(host))
-    {
-      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD);
-      errMessages.add(msg);
-    }
-    else if (!isValidHost(host))
-    {
-      msg = LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host);
-      errMessages.add(msg);
-    }
-    if (defaultAuthnMethod == null)
-    {
-      msg = LibUtils.getMsg(CREATE_MISSING_ATTR, DEFAULT_AUTHN_METHOD_FIELD);
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, ID_FIELD, MAX_ID_LEN));
     }
 
-    // If Id present make sure it is valid and not too long
-    if (!StringUtils.isBlank(id))
+    if (!StringUtils.isBlank(dtnSystemId) && dtnSystemId.length() > MAX_ID_LEN)
     {
-      if (!isValidId(id))
-      {
-        msg = LibUtils.getMsg(INVALID_STR_ATTR, ID_FIELD, id);
-        errMessages.add(msg);
-      }
-      if (id.length() > MAX_ID_LEN)
-      {
-        msg = LibUtils.getMsg(TOO_LONG_ATTR, ID_FIELD, MAX_ID_LEN);
-        errMessages.add(msg);
-      }
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNSYSID_FIELD, MAX_ID_LEN));
     }
 
-    // If description present make sure it is not too long
     if (!StringUtils.isBlank(description) && description.length() > MAX_DESCRIPTION_LEN)
     {
-      msg = LibUtils.getMsg(TOO_LONG_ATTR, DESCRIPTION_FIELD, MAX_DESCRIPTION_LEN);
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DESCRIPTION_FIELD, MAX_DESCRIPTION_LEN));
     }
 
-    // If rootDir present make sure it is not too long
+    if (!StringUtils.isBlank(owner) && owner.length() > MAX_USERNAME_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, OWNER_FIELD, MAX_USERNAME_LEN));
+    }
+
+    if (!StringUtils.isBlank(effectiveUserId) && effectiveUserId.length() > MAX_USERNAME_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, EFFUSRID_FIELD, MAX_USERNAME_LEN));
+    }
+
+    if (!StringUtils.isBlank(bucketName) && bucketName.length() > MAX_BUCKETNAME_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, BUCKETNAME_FIELD, MAX_BUCKETNAME_LEN));
+    }
+
     if (!StringUtils.isBlank(rootDir) && rootDir.length() > MAX_PATH_LEN)
     {
-      msg = LibUtils.getMsg(TOO_LONG_ATTR, ROOTDIR_FIELD, MAX_PATH_LEN);
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, ROOTDIR_FIELD, MAX_PATH_LEN));
+    }
+
+    if (!StringUtils.isBlank(dtnMountPoint) && dtnMountPoint.length() > MAX_PATH_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNMOUNTPOINT_FIELD, MAX_PATH_LEN));
+    }
+
+    if (!StringUtils.isBlank(dtnMountSourcePath) && dtnMountSourcePath.length() > MAX_PATH_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNMOUNTSRCPATH_FIELD, MAX_PATH_LEN));
+    }
+
+    if (!StringUtils.isBlank(jobWorkingDir) && jobWorkingDir.length() > MAX_PATH_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, JOBWRKDIR_FIELD, MAX_PATH_LEN));
+    }
+
+    if (!StringUtils.isBlank(batchScheduler) && batchScheduler.length() > MAX_SCHEDNAME_LEN)
+    {
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, BATCHSCHED_FIELD, MAX_SCHEDNAME_LEN));
+    }
+  }
+
+  /**
+   * Check attributes related to canExec
+   *  If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
+   */
+  private void checkAttrCanExec(List<String> errMessages)
+  {
+    if (StringUtils.isBlank(jobWorkingDir)) errMessages.add(LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBWORKINGDIR_INPUT"));
+    if (jobRuntimes == null || jobRuntimes.isEmpty()) errMessages.add(LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBRUNTIME_INPUT"));
+  }
+
+  /**
+   * Check attributes related to isDtn
+   *  If isDtn is true then canExec must be false and the following attributes may not be set:
+   *    dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+   */
+  private void checkAttrIsDtn(List<String> errMessages)
+  {
+    if (canExec) errMessages.add(LibUtils.getMsg("SYSLIB_DTN_CANEXEC"));
+
+    if (!StringUtils.isBlank(dtnSystemId) || !StringUtils.isBlank(dtnMountPoint) ||
+            !StringUtils.isBlank(dtnMountSourcePath))
+    {
+      errMessages.add(LibUtils.getMsg("SYSLIB_DTN_DTNATTRS"));
+    }
+    if (!StringUtils.isBlank(jobWorkingDir) ||
+              !(jobCapabilities == null || jobCapabilities.isEmpty()) ||
+              !(jobRuntimes == null || jobRuntimes.isEmpty()) ||
+              !(jobEnvVariables == null || jobEnvVariables.length == 0) ||
+              !StringUtils.isBlank(batchScheduler) ||
+              !StringUtils.isBlank(batchDefaultLogicalQueue) ||
+              !(batchLogicalQueues == null || batchLogicalQueues.isEmpty()) )
+    {
+      errMessages.add(LibUtils.getMsg("SYSLIB_DTN_JOBATTRS"));
+    }
+  }
+
+  /**
+   * Check attributes related to jobIsBatch
+   * If jobIsBatch is true
+   *   batchScheduler must be specified
+   *   batchLogicalQueues must not be empty
+   *   batchLogicalDefaultQueue must be set
+   *   batchLogicalDefaultQueue must be in the list of queues
+   *   If batchLogicalQueues has more then one item then batchDefaultLogicalQueue must be set
+   *   batchDefaultLogicalQueue must be in the list of logical queues.
+   */
+  private void checkAttrJobIsBatch(List<String> errMessages)
+  {
+    if (StringUtils.isBlank(batchScheduler)) errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_NOSCHED"));
+
+    if (batchLogicalQueues == null || batchLogicalQueues.isEmpty())
+    {
+      errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_NOQUEUES"));
+    }
+
+    if (StringUtils.isBlank(batchDefaultLogicalQueue)) errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_NODEFAULTQ"));
+
+    // Check that default queue is in the list of queues
+    if (!StringUtils.isBlank(batchDefaultLogicalQueue))
+    {
+      boolean inList = false;
+      if (batchLogicalQueues != null)
+      {
+        for (LogicalQueue lq : batchLogicalQueues)
+        {
+          if (batchDefaultLogicalQueue.equals(lq.getName()))
+          {
+            inList = true;
+            break;
+          }
+        }
+      }
+      if (!inList) errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_DEFAULTQ_NOTINLIST", batchDefaultLogicalQueue));
+    }
+  }
+
+  /**
+   * Check attributes related to systems of type OBJECT_STORE
+   *  If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
+   */
+  private void checkAttrObjectStore(List<String> errMessages)
+  {
+    // bucketName must be set
+    if (StringUtils.isBlank(bucketName)) errMessages.add(LibUtils.getMsg("SYSLIB_OBJSTORE_NOBUCKET_INPUT"));
+    // canExec must be false
+    if (canExec) errMessages.add(LibUtils.getMsg("SYSLIB_OBJSTORE_CANEXEC_INPUT"));
+    // isDtn must be false
+    if (isDtn) errMessages.add(LibUtils.getMsg("SYSLIB_OBJSTORE_ISDTN_INPUT"));
+  }
+
+  /**
+   * Check misc attribute restrictions
+   *  If systemType is LINUX then rootDir is required.
+   *  effectiveUserId is restricted.
+   *  If transfer mechanism S3 is supported then bucketName must be set.
+   *  If effectiveUserId is dynamic then providing credentials is disallowed
+   */
+  private void checkAttrMisc(List<String> errMessages)
+  {
+    // LINUX system requires rootDir
+    if (systemType == SystemType.LINUX && StringUtils.isBlank(rootDir))
+    {
+      errMessages.add(LibUtils.getMsg("SYSLIB_LINUX_NOROOTDIR"));
     }
 
     // For CERT authn the effectiveUserId cannot be static string other than owner
@@ -440,134 +564,39 @@ public final class TSystem
             !StringUtils.isBlank(owner) &&
             !effectiveUserId.equals(owner))
     {
-      msg = LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If type is OBJECT_STORE then bucketName must be set
-    if (systemType == TSystem.SystemType.OBJECT_STORE && StringUtils.isBlank(bucketName))
-    {
-      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_NOBUCKET_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If type is OBJECT_STORE then canExec must be false
-    if (systemType == TSystem.SystemType.OBJECT_STORE && canExec)
-    {
-      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_CANEXEC_INPUT");
-      errMessages.add(msg);
-    }
-
-    // If type is OBJECT_STORE then isDtn must be false
-    if (systemType == TSystem.SystemType.OBJECT_STORE && isDtn)
-    {
-      msg = LibUtils.getMsg("SYSLIB_OBJSTORE_ISDTN_INPUT");
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT"));
     }
 
     // For S3 support bucketName must be set
     if (transferMethods != null && transferMethods.contains(TransferMethod.S3) &&
             StringUtils.isBlank(bucketName))
     {
-      msg = LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT");
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT"));
     }
 
     // If effectiveUserId is dynamic then providing credentials is disallowed
-    if (authnCredential != null && effectiveUserId.equals(TSystem.APIUSERID_VAR))
+    if (effectiveUserId.equals(TSystem.APIUSERID_VAR) && authnCredential != null)
     {
-      msg = LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT");
-      errMessages.add(msg);
+      errMessages.add(LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT"));
     }
+  }
 
-    // If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry
-    if (canExec)
-    {
-      if (StringUtils.isBlank(jobWorkingDir))
-      {
-        msg = LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBWORKINGDIR_INPUT");
-        errMessages.add(msg);
-      }
-      if (jobRuntimes == null || jobRuntimes.isEmpty())
-      {
-        msg = LibUtils.getMsg("SYSLIB_CANEXEC_NO_JOBRUNTIME_INPUT");
-        errMessages.add(msg);
-      }
-    }
+  /**
+   * Validate an ID string.
+   * Must start alphabetic and contain only alphanumeric and 4 special characters: - . _ ~
+   */
+  private boolean isValidId(String id) { return id.matches(PATTERN_VALID_ID); }
 
-    // If isDtn is true then canExec must be false and the following attributes may not be set:
-    //   dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
-    if (isDtn)
-    {
-      if (canExec)
-      {
-        msg = LibUtils.getMsg("SYSLIB_DTN_CANEXEC");
-        errMessages.add(msg);
-      }
-      if (!StringUtils.isBlank(dtnSystemId) || !StringUtils.isBlank(dtnMountPoint) ||
-          !StringUtils.isBlank(dtnMountSourcePath))
-      {
-        msg = LibUtils.getMsg("SYSLIB_DTN_DTNATTRS");
-        errMessages.add(msg);
-      }
-      if (!StringUtils.isBlank(jobWorkingDir) ||
-          !(jobCapabilities == null || jobCapabilities.isEmpty()) ||
-          !(jobRuntimes == null || jobRuntimes.isEmpty()) ||
-          !(jobEnvVariables == null || jobEnvVariables.length == 0) ||
-          !StringUtils.isBlank(batchScheduler) ||
-          !StringUtils.isBlank(batchDefaultLogicalQueue) ||
-          !(batchLogicalQueues == null || batchLogicalQueues.isEmpty()) )
-      {
-        msg = LibUtils.getMsg("SYSLIB_DTN_JOBATTRS");
-        errMessages.add(msg);
-      }
-    }
-
-    // If jobIsBatch is true
-    //   * batchScheduler must be specified
-    //   * batchLogicalQueues must not be empty
-    //   * batchLogicalDefaultQueue must be set
-    //   * batchLogicalDefaultQueue must be in the list of queues
-    if (jobIsBatch)
-    {
-      if (StringUtils.isBlank(batchScheduler))
-      {
-        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NOSCHED");
-        errMessages.add(msg);
-      }
-      if (batchLogicalQueues == null || batchLogicalQueues.isEmpty())
-      {
-        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NOQUEUES");
-        errMessages.add(msg);
-      }
-      if (StringUtils.isBlank(batchDefaultLogicalQueue))
-      {
-        msg = LibUtils.getMsg("SYSLIB_ISBATCH_NODEFAULTQ");
-        errMessages.add(msg);
-      }
-      if (!StringUtils.isBlank(batchDefaultLogicalQueue))
-      {
-        boolean inList = false;
-        if (batchLogicalQueues != null)
-        {
-          for (LogicalQueue lq : batchLogicalQueues)
-          {
-            if (batchDefaultLogicalQueue.equals(lq.getName()))
-            {
-              inList = true;
-              break;
-            }
-          }
-        }
-        if (!inList)
-        {
-          msg = LibUtils.getMsg("SYSLIB_ISBATCH_DEFAULTQ_NOTINLIST", batchDefaultLogicalQueue);
-          errMessages.add(msg);
-        }
-      }
-    }
-
-    return errMessages;
+  /**
+   * Validate a host string.
+   * Check if a string is a valid hostname or IP address.
+   * Use methods from org.apache.commons.validator.routines.
+   */
+  private boolean isValidHost(String host)
+  {
+    // First check for valid IP address, then for valid domain name
+    if (DomainValidator.getInstance().isValid(host) || InetAddressValidator.getInstance().isValid(host)) return true;
+    else return false;
   }
 
   // ************************************************************************
