@@ -75,6 +75,9 @@ public class CredentialResource
   public static final String ACCESS_SECRET_FIELD = "accessSecret";
   public static final String CERTIFICATE_FIELD = "certificate";
 
+  // Always return a nicely formatted response
+  private static final boolean PRETTY = true;
+
   // ************************************************************************
   // *********************** Fields *****************************************
   // ************************************************************************
@@ -124,10 +127,9 @@ public class CredentialResource
 
     // ------------------------- Retrieve and validate thread context -------------------------
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
-    boolean prettyPrint = threadContext.getPrettyPrint();
     // Check that we have all we need from the context, tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    Response resp = ApiUtils.checkContext(threadContext, prettyPrint);
+    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
@@ -135,7 +137,7 @@ public class CredentialResource
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, prettyPrint, "createUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "createUserCredential");
     if (resp != null) return resp;
 
     // ------------------------- Extract and validate payload -------------------------
@@ -146,7 +148,7 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_JSON_ERROR", authenticatedUser, systemName, userName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
     // Create validator specification and validate the json against the schema
     JsonValidatorSpec spec = new JsonValidatorSpec(json, FILE_CRED_REQUEST);
@@ -155,7 +157,7 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_JSON_INVALID",authenticatedUser, systemName, userName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // Populate credential from payload
@@ -163,11 +165,11 @@ public class CredentialResource
     Credential credential = new Credential(req.password, req.privateKey, req.publicKey, req.accessKey, req.accessSecret, req.certificate);
 
     // If one of PKI keys is missing then reject
-    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AuthnMethod.PKI_KEYS.name(), PRIVATE_KEY_FIELD, PUBLIC_KEY_FIELD,
+    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, PRETTY, AuthnMethod.PKI_KEYS.name(), PRIVATE_KEY_FIELD, PUBLIC_KEY_FIELD,
                                  credential.getPrivateKey(), credential.getPublicKey());
     if (resp != null) return resp;
     // If one of Access key or Access secret is missing then reject
-    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, prettyPrint, AuthnMethod.ACCESS_KEY.name(), ACCESS_KEY_FIELD, ACCESS_SECRET_FIELD,
+    resp = ApiUtils.checkSecrets(authenticatedUser, systemName, userName, PRETTY, AuthnMethod.ACCESS_KEY.name(), ACCESS_KEY_FIELD, ACCESS_SECRET_FIELD,
                                  credential.getAccessKey(), credential.getAccessSecret());
     if (resp != null) return resp;
 
@@ -185,14 +187,14 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_ERROR", authenticatedUser, systemName, userName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // ---------------------------- Success -------------------------------
     RespBasic resp1 = new RespBasic();
     return Response.status(Status.CREATED)
       .entity(TapisRestUtils.createSuccessResponse(ApiUtils.getMsgAuth("SYSAPI_CRED_UPDATED", authenticatedUser, systemName, userName),
-                                                   prettyPrint, resp1))
+                                                   PRETTY, resp1))
       .build();
   }
 
@@ -212,7 +214,6 @@ public class CredentialResource
   {
     String msg;
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
-    boolean prettyPrint = threadContext.getPrettyPrint();
 
     // Trace this request.
     if (_log.isTraceEnabled())
@@ -224,7 +225,7 @@ public class CredentialResource
 
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    Response resp = ApiUtils.checkContext(threadContext, prettyPrint);
+    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
@@ -232,7 +233,7 @@ public class CredentialResource
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, prettyPrint, "getUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "getUserCredential");
     if (resp != null) return resp;
 
     // Check that authnMethodStr is valid if it is passed in
@@ -242,7 +243,7 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_ACCMETHOD_ENUM_ERROR", authenticatedUser, systemName, authnMethodStr, e.getMessage());
       _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // ------------------------- Perform the operation -------------------------
@@ -253,7 +254,7 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_ERROR", authenticatedUser, systemName, userName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // Resource was not found.
@@ -261,14 +262,14 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_NOT_FOUND", authenticatedUser, systemName, userName);
       _log.warn(msg);
-      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the information.
     RespCredential resp1 = new RespCredential(credential);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth("SYSAPI_CRED_FOUND", authenticatedUser, systemName, userName), prettyPrint, resp1)).build();
+            ApiUtils.getMsgAuth("SYSAPI_CRED_FOUND", authenticatedUser, systemName, userName), PRETTY, resp1)).build();
   }
 
   /**
@@ -285,7 +286,6 @@ public class CredentialResource
   {
     String msg;
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
-    boolean prettyPrint = threadContext.getPrettyPrint();
 
     // Trace this request.
     if (_log.isTraceEnabled())
@@ -297,7 +297,7 @@ public class CredentialResource
 
     // Check that we have all we need from the context, tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    Response resp = ApiUtils.checkContext(threadContext, prettyPrint);
+    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
@@ -305,7 +305,7 @@ public class CredentialResource
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, prettyPrint, "removeUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "removeUserCredential");
     if (resp != null) return resp;
 
     // ------------------------- Perform the operation -------------------------
@@ -318,14 +318,14 @@ public class CredentialResource
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_ERROR", authenticatedUser, systemName, userName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
+      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // ---------------------------- Success -------------------------------
     RespBasic resp1 = new RespBasic();
     return Response.status(Status.CREATED)
       .entity(TapisRestUtils.createSuccessResponse(ApiUtils.getMsgAuth("SYSAPI_CRED_DELETED", authenticatedUser, systemName,
-                                                                       userName), prettyPrint, resp1))
+                                                                       userName), PRETTY, resp1))
       .build();
   }
 

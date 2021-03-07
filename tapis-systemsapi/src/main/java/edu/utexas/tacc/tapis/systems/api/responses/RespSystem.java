@@ -8,8 +8,8 @@ public final class RespSystem extends RespAbstract
 {
   public ResultSystem result;
 
-  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public RespSystem() { }
+//TODO needed?  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
+//  public RespSystem() { }
 
   public RespSystem(TSystem s)
   {

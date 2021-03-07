@@ -20,7 +20,7 @@ public final class RespSystemsSearch extends RespSearch
   public List<TSystem> results;
 
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public RespSystemsSearch() { }
+// TODO needed?  public RespSystemsSearch() { }
 
   public RespSystemsSearch(List<TSystem> sList, int limit, String sortBy, int skip, String startAfter, int totalCount)
   {

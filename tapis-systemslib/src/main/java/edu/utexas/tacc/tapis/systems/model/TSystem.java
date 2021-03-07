@@ -61,15 +61,15 @@ public final class TSystem
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
   // Default values
+  public static final String[] EMPTY_STR_ARRAY = new String[0];
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
-  public static final String[] DEFAULT_JOBENV_VARIABLES = new String[0];
+  public static final String[] DEFAULT_JOBENV_VARIABLES = EMPTY_STR_ARRAY;
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
-  public static final String[] DEFAULT_TAGS = new String[0];
+  public static final String[] DEFAULT_TAGS = EMPTY_STR_ARRAY;
   public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
   public static final String EMPTY_TRANSFER_METHODS_STR = "{}";
-  public static final String[] EMPTY_STR_ARRAY = {};
   public static final int DEFAULT_PORT = -1;
   public static final boolean DEFAULT_USEPROXY = false;
   public static final String DEFAULT_PROXYHOST = "";
@@ -164,7 +164,7 @@ public final class TSystem
    * NOTE: Adding a default constructor changes jOOQ behavior such that when Record.into() uses the default mapper
    *       the column names and POJO attribute names must match (with convention an_attr -> anAttr).
    */
-  public TSystem() { }
+// TODO needed?  public TSystem() { }
 
   /**
    * Constructor using only required attributes.
@@ -364,11 +364,10 @@ public final class TSystem
 
   /**
    * Check for missing required attributes
-   *   systemId, host, authnMethod.
+   *   systemId, systemType, host, authnMethod.
    */
   private void checkAttrRequired(List<String> errMessages)
   {
-    // Id, type, host and defaultAuthn must be set
     if (StringUtils.isBlank(id)) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, ID_FIELD));
     if (systemType == null) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, SYSTEM_TYPE_FIELD));
     if (StringUtils.isBlank(host)) errMessages.add(LibUtils.getMsg(CREATE_MISSING_ATTR, HOST_FIELD));
@@ -381,11 +380,10 @@ public final class TSystem
    */
   private void checkAttrValidity(List<String> errMessages)
   {
-    // If Id present make sure it is valid
     if (!StringUtils.isBlank(id) && !isValidId(id)) errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, ID_FIELD, id));
 
-    // If host present make sure it is valid
-    if (!StringUtils.isBlank(host) && !isValidHost(host)) errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host));
+    if (!StringUtils.isBlank(host) && !isValidHost(host))
+      errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host));
   }
 
   /**

@@ -11,7 +11,7 @@ public final class RespSystemsArray extends RespAbstract
 {
   public List<ResultSystem> result;
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public RespSystemsArray() { }
+// TODO needed?  public RespSystemsArray() { }
 
   public RespSystemsArray(List<TSystem> sList)
   {

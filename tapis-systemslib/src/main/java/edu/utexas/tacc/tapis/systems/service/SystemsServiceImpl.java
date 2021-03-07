@@ -1730,7 +1730,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    // TODO: Remove this when admin access is available
+    // TODO: Remove this when admin access is available Jira cic-3964
     if ("testuser9".equalsIgnoreCase(userName)) return true;
     var skClient = getSKClient(authenticatedUser);
     return skClient.isAdmin(tenantName, userName);
@@ -1768,7 +1768,7 @@ public class SystemsServiceImpl implements SystemsService
     for (Permission perm : perms) {
       permSpecs.add(getPermSpecStr(tenantName, systemId, perm));
     }
-    return skClient.isPermittedAny(tenantName, userName, permSpecs.toArray(new String[0]));
+    return skClient.isPermittedAny(tenantName, userName, permSpecs.toArray(TSystem.EMPTY_STR_ARRAY));
   }
 
   /**

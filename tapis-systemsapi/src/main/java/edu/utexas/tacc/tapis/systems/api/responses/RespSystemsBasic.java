@@ -18,7 +18,7 @@ public final class RespSystemsBasic extends RespSearch
   public List<SystemBasic> results;
 
   // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-  public RespSystemsBasic() { }
+//TODO needed?  public RespSystemsBasic() { }
 
   public RespSystemsBasic(List<SystemBasic> tmpResults, int limit, String sortBy, int skip, String startAfter, int totalCount)
   {
