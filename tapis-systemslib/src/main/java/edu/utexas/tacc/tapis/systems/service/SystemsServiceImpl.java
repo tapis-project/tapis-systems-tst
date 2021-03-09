@@ -1232,6 +1232,14 @@ public class SystemsServiceImpl implements SystemsService
     {
       throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     }
+
+    // If private SSH key is set check that we have a compatible key.
+    if (!StringUtils.isBlank(credential.getPrivateKey()) && !credential.isValidPrivateSshKey())
+    {
+      String msg = LibUtils.getMsgAuth("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY2", authenticatedUser, systemId, userName);
+      throw new IllegalArgumentException(msg);
+    }
+
     // Get the Security Kernel client
     var skClient = getSKClient(authenticatedUser);
 

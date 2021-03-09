@@ -173,6 +173,13 @@ public class CredentialResource
                                  credential.getAccessKey(), credential.getAccessSecret());
     if (resp != null) return resp;
 
+    // If PKI private key is not compatible with Tapis then reject
+    if (!StringUtils.isBlank(credential.getPrivateKey()) && !credential.isValidPrivateSshKey())
+    {
+      msg = ApiUtils.getMsgAuth("SYSAPI_CRED_INVALID_PRIVATE_SSHKEY", authenticatedUser, systemName, userName);
+      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
     // Create json with secrets masked out. This is recorded by the service as part of the update record.
     Credential maskedCredential = Credential.createMaskedCredential(credential);
     String updateJsonStr = TapisGsonUtils.getGson().toJson(maskedCredential);

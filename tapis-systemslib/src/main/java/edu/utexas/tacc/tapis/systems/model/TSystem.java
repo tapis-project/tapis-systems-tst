@@ -546,6 +546,7 @@ public final class TSystem
    *  effectiveUserId is restricted.
    *  If transfer mechanism S3 is supported then bucketName must be set.
    *  If effectiveUserId is dynamic then providing credentials is disallowed
+   *  If credential is provided and contains ssh keys then validate them
    */
   private void checkAttrMisc(List<String> errMessages)
   {
@@ -576,6 +577,13 @@ public final class TSystem
     if (effectiveUserId.equals(TSystem.APIUSERID_VAR) && authnCredential != null)
     {
       errMessages.add(LibUtils.getMsg("SYSLIB_CRED_DISALLOWED_INPUT"));
+    }
+
+    // If credential is provided and contains ssh keys then validate private key format
+    if (authnCredential != null && !StringUtils.isBlank(authnCredential.getPrivateKey()))
+    {
+      if (!authnCredential.isValidPrivateSshKey())
+        errMessages.add(LibUtils.getMsg("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY1"));
     }
   }
 

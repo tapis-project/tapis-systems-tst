@@ -3,6 +3,8 @@ package edu.utexas.tacc.tapis.systems.model;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 /*
  * Credential class representing an authn credential stored in the Security Kernel.
  * Credentials are not persisted by the Systems Service. Actual secrets are managed by
@@ -79,7 +81,25 @@ public final class Credential
     return new Credential(password, privateKey, publicKey, accessKey, accessSecret, cert);
   }
 
-  /* ********************************************************************** */
+  /**
+   * Check if private key is compatible with Tapis.
+   * SSH key-pairs that have a private key starting with: --- BEGIN OPENSSH PRIVATE KEY ---
+   * cannot be used in in TapisV3. the Jsch library does not yet support them.
+   * Instead a private key starting with:{{ — BEGIN RSA PRIVATE KEY ---}}
+   * should be used. Recent openssh versions generate OPENSSH type keys.
+   * To generate compatible keys one should use the option -m PEM with ssh-keygen, e.g.
+   * ssh-keygen -t rsa -b 4096 -m PEM
+   *
+   * @return  true if private key is compatible
+   */
+  public boolean isValidPrivateSshKey()
+  {
+    if (StringUtils.isBlank(privateKey)) return false;
+    if (privateKey.contains("BEGIN OPENSSH PRIVATE KEY")) return false;
+    return true;
+  }
+
+    /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
   public String getPassword() { return password; }

@@ -90,7 +90,7 @@ public class SystemsServiceTest
   int skip = 0;
   String startAfer= "";
 
-  int numSystems = 19;
+  int numSystems = 20;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -462,6 +462,37 @@ public class SystemsServiceTest
     Assert.assertTrue(svc.checkForSystem(authenticatedOwner1, sys0.getId()));
     // Now attempt to create again, should get IllegalStateException with msg SYSLIB_SYS_EXISTS
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+  }
+
+  // Check that if credential contains invalid private key then create/update fails.
+  @Test
+  public void testInvalidPrivateSshKey() throws Exception
+  {
+    TSystem sys0 = systems[19];
+    sys0.setAuthnCredential(credInvalidPrivateSshKey);
+    // Test system create
+    boolean pass = false;
+    try {
+      svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+      Assert.fail("System create call should have thrown an exception when private ssh key is invalid");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY1"));
+      pass = true;
+    }
+    Assert.assertTrue(pass, "System create call should fail when private ssh key is invalid");
+
+    // Test credential update
+    sys0.setAuthnCredential(null);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+    pass = false;
+    try {
+      svc.createUserCredential(authenticatedOwner1, sys0.getId(), sys0.getOwner(), credInvalidPrivateSshKey, scrubbedJson);
+      Assert.fail("Credential update call should have thrown an exception when private ssh key is invalid");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY2"));
+      pass = true;
+    }
+    Assert.assertTrue(pass, "Credential update call should fail when private ssh key is invalid");
   }
 
   // Test creating, reading and deleting user permissions for a system
@@ -928,6 +959,10 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
   }
+
+  // ************************************************************************
+  // *********************** Private Methods ********************************
+  // ************************************************************************
 
   /**
    * Check common attributes after creating and retrieving a system

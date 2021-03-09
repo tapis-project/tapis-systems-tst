@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
+import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
@@ -110,6 +111,11 @@ public final class IntegrationUtils
   public static final int qMaxMemoryMB = -1;
   public static final int qMaxMinutes = -1;
 
+  public static final String invalidPrivateSshKey = "-----BEGIN OPENSSH PRIVATE KEY-----";
+  public static final String invalidPublicSshKey = "testPubSshKey";
+
+  public static final Credential credInvalidPrivateSshKey =
+          new Credential(null, invalidPrivateSshKey, invalidPublicSshKey, null, null, null);
   /**
    * Create an array of TSystem objects in memory
    * Names will be of format TestSys_K_NNN where K is the key and NNN runs from 000 to 999
