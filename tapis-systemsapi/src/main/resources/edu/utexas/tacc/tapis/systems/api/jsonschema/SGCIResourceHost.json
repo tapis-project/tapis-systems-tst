@@ -11,7 +11,6 @@
     "host": { "$ref": "#/definitions/hostName" },
     "name": { "$ref": "#/definitions/resourceName" },
     "description": { "type": "string", "maxLength": 2048 },
-    "connection": { "$ref": "#/definitions/connectionDefinition" },
     "storageResources": { "$ref": "#/definitions/storageDefinitionList" },
     "computeResources": { "$ref": "#/definitions/computeDefinitionList" }
   },
@@ -26,6 +25,7 @@
         "connectionProtocol": { "type": "string", "enum": ["SSH","GLOBUS","HTTP","HTTPS","SFTP","SCP","IRODS"] },
         "securityProtocol": { "type": "string", "enum": ["PASSWORDS","SSHKEYS","APIKEYS","X509","OAUTH2"] },
         "port": { "type":  "integer" },
+        "useProxy": { "type":  "boolean" },
         "proxyHost": { "$ref": "#/definitions/hostName" },
         "proxyPort": { "type": "integer" }
       }
@@ -41,7 +41,7 @@
     },
     "storageDefinition": {
       "type": "object",
-      "required": ["storageType", "fileSystems"],
+      "required": ["storageType", "connections", "fileSystems"],
       "properties": {
         "storageType": { "type": "string", "enum": ["POSIX","S3","IRODS"] },
         "connections": {
@@ -67,6 +67,7 @@
         "mountDir": { "$ref": "#/definitions/dirPath" },
         "homeDir": { "$ref": "#/definitions/dirPath" },
         "scratchDir": { "$ref": "#/definitions/dirPath" },
+        "workDir": { "$ref": "#/definitions/dirPath" },
         "capacity": {
           "type": "object",
           "properties": {
@@ -78,13 +79,17 @@
     "computeDefinition": {
       "type": "object",
       "oneOf": [
-        { "required": ["schedulerType","batchSystem"] },
-        { "required": ["schedulerType","forkSystem"] }
+        { "required": ["schedulerType","connections","batchSystem"] },
+        { "required": ["schedulerType","connections","forkSystem"] }
 
       ],
       "properties": {
         "schedulerType": { "type": "string", "enum": ["FORK", "BATCH", "ON_DEMAND"] },
-        "connection": { "$ref": "#/definitions/connectionDefinition" },
+        "connections": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/connectionDefinition" }
+        },
         "executionCommands": {
           "type": "array",
           "items": { "$ref": "#/definitions/executionCommandDefinition" }

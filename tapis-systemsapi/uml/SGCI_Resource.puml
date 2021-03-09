@@ -2,10 +2,6 @@
 !include theme/base-skin.iuml
 
 note as N1
-ResourceType
-  STORAGE
-  COMPUTE
-- - - - - - - - - - - - -
 StorageType
   POSIX
   S3
@@ -21,36 +17,28 @@ SystemType
   WINDOWS
 end note
 
-
 class SGCIResource {
   schemaVersion! : string
-  id! : ID
+  host! : string
   name! : string
   description : string
-  resourceType! : ResourceType
-  resource! : OneOf Storage,Compute
-  host :
-  connection :
+  storageResources! : StorageResource[]
+  computeResources : ComputeResource[]
 }
 
-class Storage {
+class StorageResource {
   storageType! : enum
-  fileSystem! : FileSystem
-  connection :
-  capacity :
-  defaultQuota :
+  connections! : Connection[]
+  fileSystems! : FileSystem[]
+  defaultQuota : object
 }
 
-class Compute {
+class ComputeResource {
   schedulerType! : Enum
+  connections! : Connection[]
   batchSystem! : BatchSystem
   forkSystem! : ForkSystem
-  execCommands! : ExecCommand[]
-  connection : Connection
-}
-
-class Host {
-  host! : string
+  executionCommands! : ExecutionCommand[]
 }
 
 class Connection {
@@ -63,14 +51,14 @@ class Connection {
 }
 
 class FileSystem {
-  rootDir : string
+  mountDir : string
   homeDir : string
   scratchDir : string
   workDir : string
-  archiveDir : string
+  capacity : object
 }
 
-class ExecCommand {
+class ExecutionCommand {
   commandType! : string
   commandPrefix : string
   homeDir : string
@@ -89,11 +77,16 @@ class ForkSystem {
   nodeHardware : NodeHardware
 }
 
+class CommandPath {
+  name! : string
+  path! : string
+}
+
 class Partition {
   name! : string
   totalNodes : integer
-  nodeHardware :
-  computeQuotas :
+  nodeHardware : NodeHardware
+  computeQuotas : object
 }
 
 class NodeHardware {
@@ -105,19 +98,17 @@ class NodeHardware {
   memorySize : string
 }
 
-SGCIResource *-- "0,1" Storage : OneOf
-SGCIResource *-- "0,1" Compute : OneOf
-SGCIResource *-- "1" Host
-SGCIResource *-- "1" Connection
-Storage *-- "1" Connection
-Storage *-- "1" FileSystem
-Compute *-- "1" Storage
-Compute *-- "0,1" BatchSystem : OneOf
-Compute *-- "0,1" ForkSystem : OneOf
-Compute *-- "1" Connection
-Compute *-- "N" ExecCommand
+SGCIResource *-- "1..N" StorageResource
+SGCIResource *-- "0..N" ComputeResource
+StorageResource *-- "N" Connection
+StorageResource *-- "N" FileSystem
+ComputeResource *-- "0,1" BatchSystem : OneOf
+ComputeResource *-- "0,1" ForkSystem : OneOf
+ComputeResource *-- "N" Connection
+ComputeResource *-- "N" ExecutionCommand
+BatchSystem *-- "N" CommandPath
 BatchSystem *-- "N" Partition
-Partition *-- NodeHardware
-ForkSystem *-- NodeHardware
+Partition *-- "1" NodeHardware
+ForkSystem *-- "1" NodeHardware
 
 @enduml

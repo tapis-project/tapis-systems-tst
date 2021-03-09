@@ -1,0 +1,55 @@
+@startuml
+!include theme/base-skin.iuml
+
+class SGCIResource {
+  schemaVersion! : string
+  host! : string
+  name! : string
+  storageResources! : StorageResource[]
+  computeResources : ComputeResource[]
+}
+
+class StorageResource {
+}
+
+class ComputeResource {
+}
+
+class Connection {
+}
+
+class FileSystem {
+}
+
+class ExecutionCommand {
+}
+
+class BatchSystem {
+}
+
+class ForkSystem {
+}
+
+class CommandPath {
+}
+
+class Partition {
+}
+
+class NodeHardware {
+}
+
+SGCIResource *-- "1..N" StorageResource
+SGCIResource *-- "0..N" ComputeResource
+StorageResource *-- "N" Connection
+StorageResource *-- "N" FileSystem
+ComputeResource *-- "0,1" BatchSystem : OneOf
+ComputeResource *-- "0,1" ForkSystem : OneOf
+ComputeResource *-- "N" Connection
+ComputeResource *-- "N" ExecutionCommand
+BatchSystem *-- "N" CommandPath
+BatchSystem *-- "N" Partition
+Partition *-- "1" NodeHardware
+ForkSystem *-- "1" NodeHardware
+
+@enduml
