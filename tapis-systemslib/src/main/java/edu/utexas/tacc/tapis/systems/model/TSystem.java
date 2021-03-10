@@ -3,7 +3,9 @@ package edu.utexas.tacc.tapis.systems.model;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.gson.JsonObject;
@@ -33,6 +35,9 @@ public final class TSystem
   // ************************************************************************
   // *********************** Constants **************************************
   // ************************************************************************
+
+  // Set of reserved system names
+  public static final Set<String> RESERVED_ID_SET = new HashSet<>(Set.of("HEALTHCHECK", "READYCHECK", "SEARCH"));
 
   public static final String PERMISSION_WILDCARD = "*";
   // Allowed substitution variables

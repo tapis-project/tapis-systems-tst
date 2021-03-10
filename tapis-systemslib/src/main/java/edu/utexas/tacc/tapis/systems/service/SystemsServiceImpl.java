@@ -130,7 +130,6 @@ public class SystemsServiceImpl implements SystemsService
           throws TapisException, TapisClientException, IllegalStateException, IllegalArgumentException, NotAuthorizedException
   {
     SystemOperation op = SystemOperation.create;
-    _log.trace(LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, scrubbedText));
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (system == null) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
     _log.trace(LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, scrubbedText));
@@ -168,6 +167,9 @@ public class SystemsServiceImpl implements SystemsService
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, system.getId(), system.getOwner(), null, null);
+
+    // ---------------- Check for reserved names ------------------------
+    checkReservedIds(authenticatedUser, system.getId());
 
     // ---------------- Check constraints on TSystem attributes ------------------------
     validateTSystem(authenticatedUser, system);
@@ -1440,6 +1442,22 @@ public class SystemsServiceImpl implements SystemsService
       throw new TapisException(msg, e);
     }
     return skClient;
+  }
+
+  /**
+   * Check for reserved names.
+   * Endpoints defined lead to certain names that are not valid.
+   * Invalid names: healthcheck, readycheck, search
+   * @param id - the id to check
+   * @throws IllegalStateException - if attempt to create a resource with a reserved name
+   */
+  private void checkReservedIds(AuthenticatedUser authenticatedUser, String id) throws IllegalStateException
+  {
+    if (TSystem.RESERVED_ID_SET.contains(id.toUpperCase()))
+    {
+      String msg = LibUtils.getMsgAuth("SYSLIB_CREATE_RESERVED", authenticatedUser, id);
+      throw new IllegalStateException(msg);
+    }
   }
 
   /**

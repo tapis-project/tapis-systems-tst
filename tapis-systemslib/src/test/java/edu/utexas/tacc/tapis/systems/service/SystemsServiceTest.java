@@ -90,7 +90,7 @@ public class SystemsServiceTest
   int skip = 0;
   String startAfer= "";
 
-  int numSystems = 20;
+  int numSystems = 21;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -462,6 +462,31 @@ public class SystemsServiceTest
     Assert.assertTrue(svc.checkForSystem(authenticatedOwner1, sys0.getId()));
     // Now attempt to create again, should get IllegalStateException with msg SYSLIB_SYS_EXISTS
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+  }
+
+  // Check that reserved names are honored.
+  // Because of endpoints certain IDs should not be allowed: healthcheck, readycheck, search
+  @Test
+  public void testReservedNames() throws Exception
+  {
+    TSystem sys0 = systems[20];
+    boolean pass;
+    for (String id : TSystem.RESERVED_ID_SET)
+    {
+      System.out.println("Testing create fail for reserved ID: " + id);
+      sys0.setId(id);
+      pass = false;
+      try
+      {
+        svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+        Assert.fail("System create call should have thrown an exception when using a reserved ID. Id: " + id);
+      } catch (Exception e)
+      {
+        Assert.assertTrue(e.getMessage().contains("SYSLIB_CREATE_RESERVED"));
+        pass = true;
+      }
+      Assert.assertTrue(pass, "System create call should fail when using a reserved ID. Id: " + id);
+    }
   }
 
   // Check that if credential contains invalid private key then create/update fails.
@@ -1071,5 +1096,7 @@ public class SystemsServiceTest
       Assert.assertTrue(runtimeVersionsFound.contains(runtimeSeedItem.getVersion()),
               "List of jobRuntimes did not contain a runtime with version: " + runtimeSeedItem.getVersion());
     }
+    Assert.assertNotNull(tmpSys.getCreated(), "Fetched created timestamp should not be null");
+    Assert.assertNotNull(tmpSys.getUpdated(), "Fetched updated timestamp should not be null");
   }
 }

@@ -302,7 +302,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Persist update record
       String updateJsonStr = TapisGsonUtils.getGson().toJson(newOwnerName);
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
-                getSystemUUIDUsingDb(db, tenant, id));
+                getUUIDUsingDb(db, tenant, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
@@ -348,7 +348,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // Persist update record
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.softDelete, EMPTY_JSON, null,
-                getSystemUUIDUsingDb(db, tenant, id));
+                getUUIDUsingDb(db, tenant, id));
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1209,7 +1209,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, op, upd_json, upd_text,
-                getSystemUUIDUsingDb(db, tenant, id));
+                getUUIDUsingDb(db, tenant, id));
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1819,7 +1819,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param id - Id of system
    * @return - uuid
    */
-  private static UUID getSystemUUIDUsingDb(DSLContext db, String tenant, String id)
+  private static UUID getUUIDUsingDb(DSLContext db, String tenant, String id)
   {
     return db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.UUID);
   }

@@ -877,7 +877,7 @@ public class SystemResource
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
-  @Path("search/systems")
+  @Path("search")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
@@ -969,7 +969,7 @@ public class SystemResource
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @POST
-  @Path("search/systems")
+  @Path("search")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,

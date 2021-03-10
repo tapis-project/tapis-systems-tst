@@ -172,6 +172,8 @@ public class SystemsDaoTest
       Assert.assertTrue(runtimeVersionsFound.contains(runtimeSeedItem.getVersion()),
               "List of jobRuntimes did not contain a runtime with version: " + runtimeSeedItem.getVersion());
     }
+    Assert.assertNotNull(tmpSys.getCreated(), "Fetched created timestamp should not be null");
+    Assert.assertNotNull(tmpSys.getUpdated(), "Fetched updated timestamp should not be null");
   }
 
   // Test retrieving all system names
