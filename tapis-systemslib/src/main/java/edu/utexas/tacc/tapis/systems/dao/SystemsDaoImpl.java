@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -145,6 +146,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, system.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
+              .set(SYSTEMS.UUID, system.getUuid())
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne();
       // Generated sequence id
@@ -163,7 +165,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // Persist update record
       addUpdate(db, authenticatedUser, system.getTenant(), system.getId(), seqId, SystemOperation.create,
-                createJsonStr, scrubbedText);
+                createJsonStr, scrubbedText, system.getUuid());
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -257,7 +259,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       }
 
       // Persist update record
-      addUpdate(db, authenticatedUser, tenant, id, seqId, SystemOperation.modify, updateJsonStr, scrubbedText);
+      addUpdate(db, authenticatedUser, tenant, id, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
+                patchedSystem.getUuid());
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -298,7 +301,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       db.update(SYSTEMS).set(SYSTEMS.OWNER, newOwnerName).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = TapisGsonUtils.getGson().toJson(newOwnerName);
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null);
+      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
+                getSystemUUIDUsingDb(db, tenant, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
@@ -343,7 +347,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       rows = db.update(SYSTEMS).set(SYSTEMS.DELETED, true).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
 
       // Persist update record
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.softDelete, EMPTY_JSON, null);
+      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.softDelete, EMPTY_JSON, null,
+                getSystemUUIDUsingDb(db, tenant, id));
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1203,7 +1208,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, op, upd_json, upd_text);
+      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, op, upd_json, upd_text,
+                getSystemUUIDUsingDb(db, tenant, id));
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1240,7 +1246,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param upd_text - Text data supplied by client - secrets should be scrubbed
    */
   private void addUpdate(DSLContext db, AuthenticatedUser authenticatedUser, String tenant, String id, int seqId,
-                         SystemOperation op, String upd_json, String upd_text)
+                         SystemOperation op, String upd_json, String upd_text, UUID uuid)
   {
     String updJsonStr = (StringUtils.isBlank(upd_json)) ? EMPTY_JSON : upd_json;
     if (seqId < 1)
@@ -1257,6 +1263,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
             .set(SYSTEM_UPDATES.OPERATION, op)
             .set(SYSTEM_UPDATES.UPD_JSON, TapisGsonUtils.getGson().fromJson(updJsonStr, JsonElement.class))
             .set(SYSTEM_UPDATES.UPD_TEXT, upd_text)
+            .set(SYSTEM_UPDATES.UUID, uuid)
             .execute();
   }
 
@@ -1804,6 +1811,19 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     Capability cap = new Capability(category, name, datatype, precedence, rValue);
     return cap;
   }
+
+  /**
+   * Given an sql connection retrieve the system uuid.
+   * @param db - jooq context
+   * @param tenant - name of tenant
+   * @param id - Id of system
+   * @return - uuid
+   */
+  private static UUID getSystemUUIDUsingDb(DSLContext db, String tenant, String id)
+  {
+    return db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.UUID);
+  }
+
 
   /**
    * Given an sql connection, a tenant, a list of Category names and a list of system IDs to consider,

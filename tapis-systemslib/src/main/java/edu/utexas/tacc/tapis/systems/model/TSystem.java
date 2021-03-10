@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -149,6 +150,7 @@ public final class TSystem
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   private String[] tags; // List of arbitrary tags as strings
   private Object notes;   // Simple metadata as json.
+  private UUID uuid;
   private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;
 
@@ -176,6 +178,7 @@ public final class TSystem
     host = host1;
     defaultAuthnMethod = defaultAuthnMethod1;
     canExec = canExec1;
+    uuid = UUID.randomUUID();
   }
 
   /**
@@ -189,7 +192,8 @@ public final class TSystem
                  String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, boolean isDtn1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
                  int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
-                 String[] tags1, Object notes1, String importRefId1, boolean deleted1, Instant created1, Instant updated1)
+                 String[] tags1, Object notes1, UUID uuid1, String importRefId1, boolean deleted1,
+                 Instant created1, Instant updated1)
   {
     seqId = seqId1;
     tenant = tenant1;
@@ -240,6 +244,7 @@ public final class TSystem
     batchDefaultLogicalQueue = batchDefaultLogicalQueue1;
     tags = (tags1 == null) ? DEFAULT_TAGS : tags1.clone();
     notes = notes1;
+    uuid = (uuid == null) ? UUID.randomUUID() : uuid1;
     importRefId = importRefId1;
     deleted = deleted1;
     created = created1;
@@ -290,6 +295,7 @@ public final class TSystem
     jobCapabilities = t.getJobCapabilities();
     tags = (t.getTags() == null) ? DEFAULT_TAGS : t.getTags().clone();
     notes = t.getNotes();
+    uuid = t.getUuid();
     importRefId = t.getImportRefId();
     deleted = t.isDeleted();
   }
@@ -744,6 +750,9 @@ public final class TSystem
 
   public Object getNotes() { return notes; }
   public TSystem setNotes(Object n) { notes = n; return this; }
+
+  public UUID getUuid() { return uuid; }
+  public TSystem setUuid(UUID u) { uuid = u; return this; }
 
   public String getImportRefId() { return importRefId; }
   public TSystem setImportRefId(String s) { importRefId = s; return this; }

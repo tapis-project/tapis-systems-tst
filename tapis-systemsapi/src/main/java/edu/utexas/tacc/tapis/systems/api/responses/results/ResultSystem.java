@@ -12,6 +12,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /*
     Class representing a TSystem result to be returned
@@ -54,7 +55,7 @@ public final class ResultSystem
   // Json objects require special serializer for Jackson to handle properly in outgoing response.
   @JsonSerialize(using = JsonObjectSerializer.class)
   public Object notes;
-  public String refImportId;
+  public UUID uuid;
 
   public ResultSystem(TSystem s)
   {
@@ -96,7 +97,7 @@ public final class ResultSystem
     jobCapabilities = s.getJobCapabilities();
     tags = s.getTags();
     notes = s.getNotes();
-    refImportId = s.getImportRefId();
+    uuid = s.getUuid();
     // Check for -1 in max values and return Integer.MAX_VALUE instead.
     //   As requested by Jobs service.
     if (jobMaxJobs < 0) jobMaxJobs = Integer.MAX_VALUE;

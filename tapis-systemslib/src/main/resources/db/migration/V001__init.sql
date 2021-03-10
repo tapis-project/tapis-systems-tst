@@ -82,6 +82,7 @@ CREATE TABLE systems
   batch_default_logical_queue TEXT,
   tags       TEXT[] NOT NULL,
   notes      JSONB NOT NULL,
+  uuid uuid NOT NULL,
   import_ref_id TEXT,
   deleted    BOOLEAN NOT NULL DEFAULT false,
   created    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
@@ -141,6 +142,7 @@ CREATE TABLE system_updates
     operation operation_type NOT NULL,
     upd_json JSONB NOT NULL,
     upd_text TEXT,
+    uuid uuid NOT NULL,
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
 );
 ALTER TABLE system_updates OWNER TO tapis_sys;

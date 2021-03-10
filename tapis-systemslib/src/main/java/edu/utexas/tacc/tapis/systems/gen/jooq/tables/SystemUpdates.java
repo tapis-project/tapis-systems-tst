@@ -15,13 +15,14 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row10;
+import org.jooq.Row11;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -37,7 +38,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
 
-    private static final long serialVersionUID = -1823118019;
+    private static final long serialVersionUID = -57819640;
 
     /**
      * The reference instance of <code>tapis_sys.system_updates</code>
@@ -96,6 +97,11 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
      * The column <code>tapis_sys.system_updates.upd_text</code>. Text data supplied by client - secrets should be scrubbed
      */
     public final TableField<SystemUpdatesRecord, String> UPD_TEXT = createField(DSL.name("upd_text"), org.jooq.impl.SQLDataType.CLOB, this, "Text data supplied by client - secrets should be scrubbed");
+
+    /**
+     * The column <code>tapis_sys.system_updates.uuid</code>.
+     */
+    public final TableField<SystemUpdatesRecord, UUID> UUID = createField(DSL.name("uuid"), org.jooq.impl.SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>tapis_sys.system_updates.created</code>. UTC time for when record was created
@@ -191,11 +197,11 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row11 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<Integer, Integer, String, String, String, String, SystemOperation, JsonElement, String, LocalDateTime> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row11<Integer, Integer, String, String, String, String, SystemOperation, JsonElement, String, UUID, LocalDateTime> fieldsRow() {
+        return (Row11) super.fieldsRow();
     }
 }

@@ -1232,7 +1232,7 @@ public class SystemResource
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
-                       req.batchDefaultLogicalQueue, req.tags, req.notes, req.importRefId, false, null, null);
+                       req.batchDefaultLogicalQueue, req.tags, req.notes, null, req.importRefId, false, null, null);
     tSystem.setAuthnCredential(req.authnCredential);
     tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
     tSystem.setJobRuntimes(req.jobRuntimes);

@@ -17,6 +17,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -39,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 1251552488;
+    private static final long serialVersionUID = -1489184075;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -208,6 +209,11 @@ public class Systems extends TableImpl<SystemsRecord> {
      * The column <code>tapis_sys.systems.notes</code>. Notes for general information stored as JSON
      */
     public final TableField<SystemsRecord, JsonElement> NOTES = createField(DSL.name("notes"), org.jooq.impl.SQLDataType.JSONB.nullable(false), this, "Notes for general information stored as JSON", new JSONBToJsonElementBinding());
+
+    /**
+     * The column <code>tapis_sys.systems.uuid</code>.
+     */
+    public final TableField<SystemsRecord, UUID> UUID = createField(DSL.name("uuid"), org.jooq.impl.SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>tapis_sys.systems.import_ref_id</code>. Optional reference ID for systems created via import
