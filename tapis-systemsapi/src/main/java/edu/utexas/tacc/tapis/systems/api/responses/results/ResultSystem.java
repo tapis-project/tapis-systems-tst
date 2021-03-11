@@ -10,6 +10,7 @@ import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -56,6 +57,9 @@ public final class ResultSystem
   @JsonSerialize(using = JsonObjectSerializer.class)
   public Object notes;
   public UUID uuid;
+  public boolean deleted;
+  public Instant created;
+  public Instant updated;
 
   public ResultSystem(TSystem s)
   {
@@ -98,6 +102,9 @@ public final class ResultSystem
     tags = s.getTags();
     notes = s.getNotes();
     uuid = s.getUuid();
+    deleted = s.isDeleted();
+    created = s.getCreated();
+    updated = s.getUpdated();
     // Check for -1 in max values and return Integer.MAX_VALUE instead.
     //   As requested by Jobs service.
     if (jobMaxJobs < 0) jobMaxJobs = Integer.MAX_VALUE;

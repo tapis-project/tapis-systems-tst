@@ -1187,7 +1187,7 @@ public class SystemResource
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
     // If confirmDelete is false then return error response
-    if (confirmDelete)
+    if (!confirmDelete)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NOCONFIRM", authenticatedUser, systemId);
       _log.warn(msg);
