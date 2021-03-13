@@ -29,6 +29,12 @@ public interface SystemsService
   void updateSystem(AuthenticatedUser authenticatedUser, PatchSystem patchSystem, String scrubbedText)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException;
 
+  int enableSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
+
+  int disableSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
+
   int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemId, String newOwnerName)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
 

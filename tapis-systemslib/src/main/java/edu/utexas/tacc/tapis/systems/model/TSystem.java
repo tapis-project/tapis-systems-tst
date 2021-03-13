@@ -109,8 +109,8 @@ public final class TSystem
   // *********************** Enums ******************************************
   // ************************************************************************
   public enum SystemType {LINUX, OBJECT_STORE}
-  public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, getPerms,
-                               grantPerms, revokePerms, setCred, removeCred, getCred}
+  public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, enable, disable,
+                               getPerms, grantPerms, revokePerms, setCred, removeCred, getCred}
   public enum Permission {READ, MODIFY, EXECUTE}
   public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
   public enum TransferMethod {SFTP, S3, FTP, IRODS}

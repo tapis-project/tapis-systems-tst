@@ -29,6 +29,7 @@ import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.meta.derby.sys.Sys;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -312,6 +313,44 @@ public class SystemsServiceImpl implements SystemsService
     // No distributed transactions so no distributed rollback needed
     // ------------------- Make Dao call to persist the system -----------------------------------
     dao.updateTSystem(authenticatedUser, patchedTSystem, patchSystem, updateJsonStr, scrubbedText);
+  }
+
+  /**
+   * Update enabled to true for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - App not found
+   */
+  @Override
+  public int enableSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    return updateEnabled(authenticatedUser, systemId, SystemOperation.enable);
+  }
+
+  /**
+   * Update enabled to false for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - App not found
+   */
+  @Override
+  public int disableSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    return updateEnabled(authenticatedUser, systemId, SystemOperation.disable);
   }
 
   /**
@@ -1407,6 +1446,51 @@ public class SystemsServiceImpl implements SystemsService
   // ************************************************************************
   // **************************  Private Methods  ***************************
   // ************************************************************************
+
+  /**
+   * Update enabled attribute for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @param sysOp - operation, enable or disable
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - App not found
+   */
+  private int updateEnabled(AuthenticatedUser authenticatedUser, String systemId, SystemOperation sysOp)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
+    if (StringUtils.isBlank(systemId))
+      throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
+    // Extract various names for convenience
+    String tenantName = authenticatedUser.getTenantId();
+    String apiUserId = authenticatedUser.getName();
+    String appTenantName = tenantName;
+    // For service request use oboTenant for tenant associated with the app
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) appTenantName = authenticatedUser.getOboTenantId();
+
+    // ---------------------------- Check inputs ------------------------------------
+    if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId))
+      throw new IllegalArgumentException(LibUtils.getMsgAuth("APPLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
+
+    // App must already exist and not be soft deleted
+    if (!dao.checkForTSystem(appTenantName, systemId, false))
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+
+    // ------------------------- Check service level authorization -------------------------
+    checkAuth(authenticatedUser, sysOp, systemId, null, null, null);
+
+    // ----------------- Make update --------------------
+    if (sysOp == SystemOperation.enable)
+      dao.updateEnabled(authenticatedUser, systemId, true);
+    else
+      dao.updateEnabled(authenticatedUser, systemId, false);
+    return 1;
+  }
 
   /**
    * Get Security Kernel client associated with specified tenant

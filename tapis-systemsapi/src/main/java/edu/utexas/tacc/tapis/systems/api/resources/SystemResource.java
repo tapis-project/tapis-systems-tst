@@ -114,6 +114,12 @@ public class SystemResource
   // Format strings
   private static final String SYS_CNT_STR = "%d systems";
 
+  // Operation names
+  private static final String OP_ENABLE = "enableSystem";
+  private static final String OP_DISABLE = "disableSystem";
+  private static final String OP_CHANGEOWNER = "changeSystemOwner";
+  private static final String OP_DELETE = "deleteSystem";
+
   // Always return a nicely formatted response
   private static final boolean PRETTY = true;
 
@@ -368,7 +374,7 @@ public class SystemResource
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
       }
@@ -376,13 +382,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
@@ -393,7 +399,7 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), PRETTY, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), PRETTY, resp1)).build();
   }
 
   // TODO cic-2658. If SGCI endpoint not finalized before production then remove.
@@ -639,7 +645,7 @@ public class SystemResource
       else
       {
         // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
       }
@@ -647,13 +653,13 @@ public class SystemResource
     catch (IllegalArgumentException e)
     {
       // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
@@ -664,7 +670,39 @@ public class SystemResource
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), PRETTY, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), PRETTY, resp1)).build();
+  }
+
+  /**
+   * Enable a system
+   * @param systemId - name of system
+   * @param securityContext - user identity
+   * @return - response with change count as the result
+   */
+  @POST
+  @Path("{systemId}/enable")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response enableApp(@PathParam("systemId") String systemId,
+                            @Context SecurityContext securityContext)
+  {
+    return postSystemSingleUpdate(OP_ENABLE, systemId, null, false, securityContext);
+  }
+
+  /**
+   * Disable a system
+   * @param systemId - name of the system
+   * @param securityContext - user identity
+   * @return - response with change count as the result
+   */
+  @POST
+  @Path("{systemId}/disable")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response disableApp(@PathParam("systemId") String systemId,
+                             @Context SecurityContext securityContext)
+  {
+    return postSystemSingleUpdate(OP_DISABLE, systemId, null, false, securityContext);
   }
 
   /**
@@ -682,72 +720,7 @@ public class SystemResource
                                     @PathParam("userName") String userName,
                                     @Context SecurityContext securityContext)
   {
-    String opName = "changeSystemOwner";
-    // Trace this request.
-    if (_log.isTraceEnabled()) logRequest(opName);
-
-    // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
-    // Check that we have all we need from the context, the tenant name and apiUserId
-    // Utility method returns null if all OK and appropriate error response if there was a problem.
-    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
-    if (resp != null) return resp;
-
-    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
-    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
-
-    // ---------------------------- Make service call to update the system -------------------------------
-    int changeCount;
-    String msg;
-    try
-    {
-      changeCount = systemsService.changeSystemOwner(authenticatedUser, systemId, userName);
-    }
-    catch (NotFoundException e)
-    {
-      msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
-      _log.warn(msg);
-      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-    catch (IllegalStateException e)
-    {
-      if (e.getMessage().contains(LIB_UNAUTH))
-      {
-        // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
-        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
-        _log.warn(msg);
-        return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-      }
-      else
-      {
-        // IllegalStateException indicates an Invalid PatchSystem was passed in
-        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
-        _log.error(msg);
-        return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-      }
-    }
-    catch (IllegalArgumentException e)
-    {
-      // IllegalArgumentException indicates somehow a bad argument made it this far
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
-      _log.error(msg);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-    catch (Exception e)
-    {
-      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, e.getMessage());
-      _log.error(msg, e);
-      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-
-    // ---------------------------- Success -------------------------------
-    // Success means updates were applied
-    // Return the number of objects impacted.
-    ResultChangeCount count = new ResultChangeCount();
-    count.changes = changeCount;
-    RespChangeCount resp1 = new RespChangeCount(count);
-    return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId), PRETTY, resp1)).build();
+    return postSystemSingleUpdate(OP_CHANGEOWNER, systemId, userName, false, securityContext);
   }
 
   /**
@@ -1185,52 +1158,107 @@ public class SystemResource
                                @QueryParam("confirm") @DefaultValue("false") boolean confirmDelete,
                                @Context SecurityContext securityContext)
   {
-    String opName = "deleteSystem";
+    return postSystemSingleUpdate(OP_DELETE, systemId, null, confirmDelete, securityContext);
+  }
+
+  /* **************************************************************************** */
+  /*                                Private Methods                               */
+  /* **************************************************************************** */
+
+  /**
+   * changeOwner, enable, disable and delete follow same pattern
+   * Note that userName only used for changeOwner and confirmDelete only used for delete
+   * @param opName Name of operation.
+   * @param systemId Id of app to update
+   * @param userName new owner name for op changeOwner
+   * @param confirmDelete confirmation flag for op delete
+   * @param securityContext Security context from client call
+   * @return Response to be returned to the client.
+   */
+  private Response postSystemSingleUpdate(String opName, String systemId, String userName, boolean confirmDelete,
+                                       SecurityContext securityContext)
+  {
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
+    // ------------------------- Retrieve and validate thread context -------------------------
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    // If confirmDelete is false then return error response
-    if (!confirmDelete)
+    // If operation is delete and confirmDelete is false then return error response
+    if (OP_DELETE.equals(opName) && !confirmDelete)
     {
       String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NOCONFIRM", authenticatedUser, systemId);
       _log.warn(msg);
       return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
+    // ---------------------------- Make service call to update the app -------------------------------
     int changeCount;
+    String msg;
     try
     {
-      changeCount = systemsService.softDeleteSystem(authenticatedUser, systemId);
+      if (OP_ENABLE.equals(opName))
+        changeCount = systemsService.enableSystem(authenticatedUser, systemId);
+      else if (OP_DISABLE.equals(opName))
+        changeCount = systemsService.disableSystem(authenticatedUser, systemId);
+      else if (OP_DELETE.equals(opName))
+        changeCount = systemsService.softDeleteSystem(authenticatedUser, systemId);
+      else
+        changeCount = systemsService.changeSystemOwner(authenticatedUser, systemId, userName);
+    }
+    catch (NotFoundException e)
+    {
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
+      _log.warn(msg);
+      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    catch (IllegalStateException e)
+    {
+      if (e.getMessage().contains("SYSLIB_UNAUTH"))
+      {
+        // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
+        msg = ApiUtils.getMsgAuth("SYSAPI_SYS_UNAUTH", authenticatedUser, systemId, opName);
+        _log.warn(msg);
+        return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+      }
+      else
+      {
+        // IllegalStateException indicates an Invalid PatchApp was passed in
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
+        _log.error(msg);
+        return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+      }
+    }
+    catch (IllegalArgumentException e)
+    {
+      // IllegalArgumentException indicates somehow a bad argument made it this far
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
+      _log.error(msg);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NAME_ERROR", authenticatedUser, systemId, e.getMessage());
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg, e);
-      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // ---------------------------- Success -------------------------------
-    // Success means we deleted the system.
+    // Success means updates were applied
     // Return the number of objects impacted.
     ResultChangeCount count = new ResultChangeCount();
     count.changes = changeCount;
     RespChangeCount resp1 = new RespChangeCount(count);
     return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-      MsgUtils.getMsg("TAPIS_DELETED", "System", systemId), PRETTY, resp1)).build();
+            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), PRETTY, resp1)).build();
   }
-
-  /* **************************************************************************** */
-  /*                                Private Methods                               */
-  /* **************************************************************************** */
 
   /**
    * Create a TSystem from a ReqCreateSystem

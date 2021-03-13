@@ -279,6 +279,48 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * Update attribute enabled for a system given system Id and value
+   */
+  @Override
+  public void updateEnabled(AuthenticatedUser authenticatedUser, String id, boolean enabled) throws TapisException
+  {
+    String opName = "updateEnabled";
+    // ------------------------- Check Input -------------------------
+    if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
+
+    String tenant = authenticatedUser.getOboTenantId();
+
+    // AppOperation needed for recording the update
+    SystemOperation systemOp = enabled ? SystemOperation.enable : SystemOperation.disable;
+
+    // ------------------------- Call SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+      db.update(SYSTEMS).set(SYSTEMS.ENABLED, enabled).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      // Persist update record
+      String updateJsonStr = "{\"enabled\":" +  enabled + "}";
+      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+                getUUIDUsingDb(db, tenant, id));
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "apps", id);
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+  }
+
+  /**
    * Update owner of a system given system Id and new owner name
    *
    */

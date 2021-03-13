@@ -38,7 +38,7 @@ SET search_path TO tapis_sys;
 -- Types
 CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
 CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
-                                    'grantPerms', 'revokePerms', 'setCred', 'removeCred');
+                                    'enable', 'disable', 'grantPerms', 'revokePerms', 'setCred', 'removeCred');
 CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
 CREATE TYPE authn_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
 CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');

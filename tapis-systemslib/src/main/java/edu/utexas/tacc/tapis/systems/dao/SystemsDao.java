@@ -22,6 +22,8 @@ public interface SystemsDao
 
   void updateSystemOwner(AuthenticatedUser authenticatedUser, String id, String newOwnerName) throws TapisException;
 
+  void updateEnabled(AuthenticatedUser authenticatedUser, String id, boolean enabled) throws TapisException;
+
   int softDeleteTSystem(AuthenticatedUser authenticatedUser, String systemId) throws TapisException;
 
   void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenant, String id, SystemOperation op,
