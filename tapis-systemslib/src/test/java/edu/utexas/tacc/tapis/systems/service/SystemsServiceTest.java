@@ -85,7 +85,7 @@ public class SystemsServiceTest
 
   List<String> searchListNull = null;
   int limit = -1;
-  String sortBy = "";
+  String orderBy = "";
   String sortDirection = "";
   int skip = 0;
   String startAfer= "";
@@ -396,7 +396,7 @@ public class SystemsServiceTest
   {
     TSystem sys0 = systems[4];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, orderBy, sortDirection, skip, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -418,7 +418,7 @@ public class SystemsServiceTest
     sys0 = systems[18];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // When retrieving systems as testUser4 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, sortBy, sortDirection, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, orderBy, sortDirection, skip, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
     for (TSystem system : systems)
     {

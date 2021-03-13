@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.shared.exceptions.TapisJSONException;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.schema.JsonValidator;
 import edu.utexas.tacc.tapis.shared.schema.JsonValidatorSpec;
+import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadLocal;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
@@ -148,7 +149,7 @@ public class SystemBasicResource
   /**
    * getSystemsBasic
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, sortBy, skip, startAfter are all handled in the filter
+   * NOTE: The query parameters pretty, search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of basic systems accessible by requester and matching search conditions.
@@ -173,10 +174,12 @@ public class SystemBasicResource
 
     // ------------------------- Retrieve records -----------------------------
     List<SystemBasic> systems;
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystemsBasic(authenticatedUser, threadContext.getSearchList(), threadContext.getLimit(),
-                                               threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                               threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystemsBasic(authenticatedUser, srchParms.getSearchList(), srchParms.getLimit(),
+                                               srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                               srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -189,10 +192,10 @@ public class SystemBasicResource
 
     // ------------------------- Get total count if limit/skip ignored --------------------------
     int totalCount = -1;
-    if (threadContext.getComputeTotal())
+    if (srchParms.getComputeTotal())
     {
       // If there was no limit we already have the count, else we need to get the count
-      if (threadContext.getLimit() <= 0)
+      if (srchParms.getLimit() <= 0)
       {
         totalCount = systems.size();
       }
@@ -200,9 +203,9 @@ public class SystemBasicResource
       {
         try
         {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                  threadContext.getSortBy(), threadContext.getSortByDirection(),
-                  threadContext.getStartAfter());
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -215,8 +218,8 @@ public class SystemBasicResource
     // ---------------------------- Success -------------------------------
     // TODO Use of metadata in response for non-dedicated search endpoints is TBD
     //      See SystemResource
-    RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                                  threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    RespSystemsBasic resp1 = new RespSystemsBasic(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+                                                  srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }
@@ -265,10 +268,12 @@ public class SystemBasicResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<SystemBasic> systems;
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystemsBasic(authenticatedUser, searchList, threadContext.getLimit(),
-                                          threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystemsBasic(authenticatedUser, searchList, srchParms.getLimit(),
+                                          srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                          srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -281,10 +286,10 @@ public class SystemBasicResource
 
     // ------------------------- Get total count if limit/skip ignored --------------------------
     int totalCount = -1;
-    if (threadContext.getComputeTotal())
+    if (srchParms.getComputeTotal())
     {
       // If there was no limit we already have the count, else we need to get the count
-      if (threadContext.getLimit() <= 0)
+      if (srchParms.getLimit() <= 0)
       {
         totalCount = systems.size();
       }
@@ -292,9 +297,9 @@ public class SystemBasicResource
       {
         try
         {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                  threadContext.getSortBy(), threadContext.getSortByDirection(),
-                  threadContext.getStartAfter());
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -305,8 +310,8 @@ public class SystemBasicResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    RespSystemsBasic resp1 = new RespSystemsBasic(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + " systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }
@@ -378,10 +383,12 @@ public class SystemBasicResource
 
     // ------------------------- Retrieve all records -----------------------------
     List<SystemBasic> systems;
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
-                                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                                           threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
+                                                           srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                                           srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -394,10 +401,10 @@ public class SystemBasicResource
 
     // ------------------------- Get total count if limit/skip ignored --------------------------
     int totalCount = -1;
-    if (threadContext.getComputeTotal())
+    if (srchParms.getComputeTotal())
     {
       // If there was no limit we already have the count, else we need to get the count
-      if (threadContext.getLimit() <= 0)
+      if (srchParms.getLimit() <= 0)
       {
         totalCount = systems.size();
       }
@@ -405,9 +412,9 @@ public class SystemBasicResource
       {
         try
         {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                  threadContext.getSortBy(), threadContext.getSortByDirection(),
-                  threadContext.getStartAfter());
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getStartAfter());
         } catch (Exception e)
         {
           msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -418,8 +425,8 @@ public class SystemBasicResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystemsBasic resp1 = new RespSystemsBasic(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                                  threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    RespSystemsBasic resp1 = new RespSystemsBasic(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+                                                  srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = systems.size() + "systems";
     return createSuccessResponse(MsgUtils.getMsg("TAPIS_FOUND", "SystemsBasic", itemCountStr), resp1);
   }

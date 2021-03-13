@@ -33,6 +33,7 @@ import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
@@ -153,6 +154,11 @@ public class SystemResource
                                @Context SecurityContext securityContext)
   {
     String opName = "createSystem";
+
+    // Note that although the following approximately 30 lines of code is very similar for many endpoints the slight
+    //   variations and use of fetched data makes it difficult to refactor into common routines. Common routines
+    //   might make the code even more complex and difficult to follow.
+
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
@@ -814,7 +820,7 @@ public class SystemResource
   /**
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, sortBy, skip, startAfter are all handled in the filter
+   * NOTE: The query parameters pretty, search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
@@ -837,7 +843,9 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    List<String> searchList = threadContext.getSearchList();
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
+    List<String> searchList = srchParms.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
     // TODO: cic-3939 Support filtering
@@ -847,9 +855,9 @@ public class SystemResource
     // ------------------------- Retrieve all records -----------------------------
     List<TSystem> systems;
     try {
-      systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
-                                          threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
+                                          srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                          srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -864,8 +872,8 @@ public class SystemResource
     RespSystemsArray resp1 = new RespSystemsArray(systems);
 //    // TODO Get total count
 //    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
-//    RespSystems resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
-//                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+//    RespSystems resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+//                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = String.format(SYS_CNT_STR, systems.size());
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
@@ -914,10 +922,12 @@ public class SystemResource
 
     // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystems(authenticatedUser, searchList, threadContext.getLimit(),
-                                          threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                          threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
+                                          srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                          srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -930,10 +940,10 @@ public class SystemResource
 
     // ------------------------- Get total count if limit/skip ignored --------------------------
     int totalCount = -1;
-    if (threadContext.getComputeTotal())
+    if (srchParms.getComputeTotal())
     {
       // If there was no limit we already have the count, else we need to get the count
-      if (threadContext.getLimit() <= 0)
+      if (srchParms.getLimit() <= 0)
       {
         totalCount = systems.size();
       }
@@ -941,9 +951,9 @@ public class SystemResource
       {
         try
         {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                  threadContext.getSortBy(), threadContext.getSortByDirection(),
-                  threadContext.getStartAfter());
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
@@ -954,8 +964,8 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = String.format(SYS_CNT_STR, systems.size());
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
@@ -1027,10 +1037,12 @@ public class SystemResource
 
     // ------------------------- Retrieve records -----------------------------
     List<TSystem> systems;
+    // ThreadContext designed to never return null for SearchParameters
+    SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, threadContext.getLimit(),
-                                                           threadContext.getSortBy(), threadContext.getSortByDirection(),
-                                                           threadContext.getSkip(), threadContext.getStartAfter());
+      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
+                                                           srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                                           srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -1043,10 +1055,10 @@ public class SystemResource
 
     // ------------------------- Get total count if limit/skip ignored --------------------------
     int totalCount = -1;
-    if (threadContext.getComputeTotal())
+    if (srchParms.getComputeTotal())
     {
       // If there was no limit we already have the count, else we need to get the count
-      if (threadContext.getLimit() <= 0)
+      if (srchParms.getLimit() <= 0)
       {
         totalCount = systems.size();
       }
@@ -1054,9 +1066,9 @@ public class SystemResource
       {
         try
         {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, threadContext.getSearchList(),
-                  threadContext.getSortBy(), threadContext.getSortByDirection(),
-                  threadContext.getStartAfter());
+          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getStartAfter());
         } catch (Exception e)
         {
           msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
@@ -1067,8 +1079,8 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystemsSearch resp1 = new RespSystemsSearch(systems, threadContext.getLimit(), threadContext.getSortBy(),
-                                        threadContext.getSkip(), threadContext.getStartAfter(), totalCount);
+    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = String.format(SYS_CNT_STR, systems.size());
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }

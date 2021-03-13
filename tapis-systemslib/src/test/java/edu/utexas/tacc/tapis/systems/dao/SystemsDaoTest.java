@@ -22,7 +22,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
-import static edu.utexas.tacc.tapis.search.SearchUtils.*;
+import static edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters.*;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.*;
 
 /**
@@ -201,8 +201,8 @@ public class SystemsDaoTest
     TSystem sys0 = systems[4];
     boolean itemCreated = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    List<TSystem> systems = dao.getTSystems(tenantName, null, null, null, DEFAULT_LIMIT, DEFAULT_SORTBY,
-                                            DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
+    List<TSystem> systems = dao.getTSystems(tenantName, null, null, null, DEFAULT_LIMIT, DEFAULT_ORDERBY,
+                                            DEFAULT_ORDERBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -222,8 +222,8 @@ public class SystemsDaoTest
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     sysIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
-    List<TSystem> systems = dao.getTSystems(tenantName, null, null, sysIdList, DEFAULT_LIMIT, DEFAULT_SORTBY,
-                                            DEFAULT_SORTBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
+    List<TSystem> systems = dao.getTSystems(tenantName, null, null, sysIdList, DEFAULT_LIMIT, DEFAULT_ORDERBY,
+                                            DEFAULT_ORDERBY_DIRECTION, DEFAULT_SKIP, DEFAULT_STARTAFTER);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(sysIdList.contains(system.getId()));

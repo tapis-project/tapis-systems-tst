@@ -8,7 +8,6 @@
   "properties": {
     "description": { "type": "string", "maxLength": 2048 },
     "host": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/HostName" },
-    "enabled": { "type": "boolean", "default": true },
     "effectiveUserId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/UserName" },
     "defaultAuthnMethod": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/AuthnMethodEnum" },
     "transferMethods": {

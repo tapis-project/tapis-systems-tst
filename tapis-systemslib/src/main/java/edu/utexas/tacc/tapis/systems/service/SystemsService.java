@@ -42,15 +42,15 @@ public interface SystemsService
                     boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, String sortBy,
+  int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, String orderBy,
                            String sortDirection, String startAfter) throws TapisException, TapisClientException;
 
   List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                           String sortBy, String sortDirection, int skip, String startAfter)
+                           String orderBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                            String sortBy, String sortDirection, int skip, String startAfter)
+                                            String orderBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)
@@ -60,11 +60,11 @@ public interface SystemsService
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                    String sortBy, String sortDirection, int skip, String startAfter)
+                                    String orderBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<SystemBasic> getSystemsBasicUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                                     String sortBy, String sortDirection, int skip, String startAfter)
+                                                     String orderBy, String sortDirection, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   Set<String> getSystemIDs(AuthenticatedUser authenticatedUser) throws TapisException;
