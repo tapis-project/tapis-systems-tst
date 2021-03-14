@@ -1754,6 +1754,8 @@ public class SystemsServiceImpl implements SystemsService
     }
     switch(operation) {
       case create:
+      case enable:
+      case disable:
       case softDelete:
       case changeOwner:
       case grantPerms:

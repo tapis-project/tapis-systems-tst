@@ -35,7 +35,7 @@ public class SystemsDaoTest
   private AuthenticatedUser authenticatedUser;
 
   // Test data
-  int numSystems = 11;
+  int numSystems = 12;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Dao");
 
   @BeforeSuite
@@ -229,6 +229,24 @@ public class SystemsDaoTest
       Assert.assertTrue(sysIdList.contains(system.getId()));
     }
     Assert.assertEquals(sysIdList.size(), systems.size());
+  }
+
+  // Test enable/disable
+  @Test
+  public void testEnableDisable() throws Exception {
+    TSystem sys0 = systems[11];
+    boolean itemCreated = dao.createTSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
+    System.out.println("Created item, id: " + sys0.getId() + " enabled: " + sys0.isEnabled());
+    // Enabled should start off true, then become false and finally true again.
+    TSystem tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertTrue(tmpSys.isEnabled());
+    dao.updateEnabled(authenticatedUser, sys0.getId(), false);
+    tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertFalse(tmpSys.isEnabled());
+    dao.updateEnabled(authenticatedUser, sys0.getId(), true);
+    tmpSys = dao.getTSystem(sys0.getTenant(), sys0.getId());
+    Assert.assertTrue(tmpSys.isEnabled());
   }
 
   // Test change system owner

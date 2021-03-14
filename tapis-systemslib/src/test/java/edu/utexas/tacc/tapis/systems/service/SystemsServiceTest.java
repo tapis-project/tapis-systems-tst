@@ -90,7 +90,7 @@ public class SystemsServiceTest
   int skip = 0;
   String startAfer= "";
 
-  int numSystems = 21;
+  int numSystems = 22;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -426,6 +426,25 @@ public class SystemsServiceTest
       Assert.assertTrue(system.getId().equals(sys1Name) || system.getId().equalsIgnoreCase(sys2Name));
     }
     Assert.assertEquals(systems.size(), 2);
+  }
+
+  @Test
+  public void testEnableDisable() throws Exception
+  {
+    // Create the app
+    TSystem sys0 = systems[21];
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+    // Enabled should start off true, then become false and finally true again.
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(),false, null, false);
+    Assert.assertTrue(tmpSys.isEnabled());
+    int changeCount = svc.disableSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertFalse(tmpSys.isEnabled());
+    changeCount = svc.enableSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertTrue(tmpSys.isEnabled());
   }
 
   @Test
