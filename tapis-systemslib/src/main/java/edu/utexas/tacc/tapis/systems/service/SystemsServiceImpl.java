@@ -81,9 +81,10 @@ public class SystemsServiceImpl implements SystemsService
   private static final String PERM_SPEC_PREFIX = "system";
 
   private static final String FILES_SERVICE = TapisConstants.SERVICE_NAME_FILES;
+  private static final String APPS_SERVICE = TapisConstants.SERVICE_NAME_APPS;
   private static final String JOBS_SERVICE = TapisConstants.SERVICE_NAME_JOBS;
   private static final Set<String> SVCLIST_GETCRED = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
-  private static final Set<String> SVCLIST_READ = new HashSet<>(Set.of(FILES_SERVICE, JOBS_SERVICE));
+  private static final Set<String> SVCLIST_READ = new HashSet<>(Set.of(FILES_SERVICE, APPS_SERVICE, JOBS_SERVICE));
 
   // Message keys
   private static final String ERROR_ROLLBACK = "SYSLIB_ERROR_ROLLBACK";
