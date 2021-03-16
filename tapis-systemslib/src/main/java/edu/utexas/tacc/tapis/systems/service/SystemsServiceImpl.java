@@ -29,7 +29,6 @@ import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.meta.derby.sys.Sys;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +79,7 @@ public class SystemsServiceImpl implements SystemsService
   private static final Set<Permission> READMODIFY_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
   private static final String PERM_SPEC_PREFIX = "system";
 
+  private static final String SERVICE_NAME = TapisConstants.SERVICE_NAME_SYSTEMS;
   private static final String FILES_SERVICE = TapisConstants.SERVICE_NAME_FILES;
   private static final String APPS_SERVICE = TapisConstants.SERVICE_NAME_APPS;
   private static final String JOBS_SERVICE = TapisConstants.SERVICE_NAME_JOBS;
@@ -185,13 +185,12 @@ public class SystemsServiceImpl implements SystemsService
     // Creation of system, perms and creds not in single DB transaction.
     // Use try/catch to rollback any writes in case of failure.
     boolean itemCreated = false;
-    String systemsPermSpecR = getPermSpecStr(systemTenantName, systemId, Permission.READ);
     String systemsPermSpecALL = getPermSpecAllStr(systemTenantName, systemId);
     // TODO remove filesPermSpec related code (jira cic-3071)
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
 
     // Get SK client now. If we cannot get this rollback not needed.
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     try {
       // ------------------- Make Dao call to persist the system -----------------------------------
       itemCreated = dao.createTSystem(authenticatedUser, system, createJsonStr, scrubbedText);
@@ -403,7 +402,7 @@ public class SystemsServiceImpl implements SystemsService
     // Changes not in single DB transaction.
     // Use try/catch to rollback any changes in case of failure.
     // Get SK client now. If we cannot get this rollback not needed.
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     String systemsPermSpec = getPermSpecAllStr(systemTenantName, systemId);
     // TODO remove addition of files related permSpec (jira cic-3071)
     String filesPermSpec = "files:" + systemTenantName + ":*:" + systemId;
@@ -1080,7 +1079,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> permSpecSet = getPermSpecSet(systemTenantName, systemId, permissions);
 
     // Get the Security Kernel client
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
 
     // Assign perms to user.
     // Start of updates. Will need to rollback on failure.
@@ -1158,7 +1157,7 @@ public class SystemsServiceImpl implements SystemsService
     // Revoke of READ implies revoke of MODIFY
     if (permissions.contains(Permission.READ)) permissions.add(Permission.MODIFY);
 
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     int changeCount;
     // Determine current set of user permissions
     var userPermSet = getUserPermSet(skClient, userName, systemTenantName, systemId);
@@ -1227,7 +1226,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
 
     // Use Security Kernel client to check for each permission in the enum list
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     return getUserPermSet(skClient, userName, systemTenantName, systemId);
   }
 
@@ -1283,7 +1282,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Get the Security Kernel client
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
 
     // Create credential
     // If this throws an exception we do not try to rollback. Attempting to track which secrets
@@ -1344,7 +1343,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     }
     // Get the Security Kernel client
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
 
     // Delete credential
     // If this throws an exception we do not try to rollback. Attempting to track which secrets
@@ -1411,7 +1410,7 @@ public class SystemsServiceImpl implements SystemsService
     try
     {
       // Get the Security Kernel client
-      var skClient = getSKClient(authenticatedUser);
+      var skClient = getSKClient();
       // Construct basic SK secret parameters
       var sParms = new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
       sParms.setTenant(systemTenantName).setSysId(systemId).setSysUser(userName);
@@ -1494,36 +1493,23 @@ public class SystemsServiceImpl implements SystemsService
   }
 
   /**
-   * Get Security Kernel client associated with specified tenant
-   * @param authenticatedUser - name of tenant
+   * Get Security Kernel client
+   * Note: The service always calls SK as itself.
    * @return SK client
    * @throws TapisException - for Tapis related exceptions
    */
-  private SKClient getSKClient(AuthenticatedUser authenticatedUser) throws TapisException
+  private SKClient getSKClient() throws TapisException
   {
     SKClient skClient;
-    String tenantName;
-    String userName;
-    // If service request use oboTenant and oboUser in OBO headers
-    // else for user request use authenticated user name and tenant in OBO headers
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
-    {
-      tenantName = authenticatedUser.getOboTenantId();
-      userName = authenticatedUser.getOboUser();
-    }
-    else
-    {
-      tenantName = authenticatedUser.getTenantId();
-      userName = authenticatedUser.getName();
-    }
+    String tenantName = TapisConstants.PRIMARY_SITE_TENANT;
+    String userName = SERVICE_NAME;
     try
     {
       skClient = serviceClients.getClient(userName, tenantName, SKClient.class);
     }
     catch (Exception e)
     {
-      String msg = MsgUtils.getMsg("TAPIS_CLIENT_NOT_FOUND", TapisConstants.SERVICE_NAME_SECURITY,
-                                   authenticatedUser.getTenantId(), authenticatedUser.getName());
+      String msg = MsgUtils.getMsg("TAPIS_CLIENT_NOT_FOUND", TapisConstants.SERVICE_NAME_SECURITY, tenantName, userName);
       throw new TapisException(msg, e);
     }
     return skClient;
@@ -1814,7 +1800,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()) ||
         hasAdminRole(authenticatedUser, null, null)) return null;
     var sysIDs = new HashSet<String>();
-    var userPerms = getSKClient(authenticatedUser).getUserPerms(systemTenantName, authenticatedUser.getOboUser());
+    var userPerms = getSKClient().getUserPerms(systemTenantName, authenticatedUser.getOboUser());
     // Check each perm to see if it allows user READ access.
     for (String userPerm : userPerms)
     {
@@ -1845,7 +1831,7 @@ public class SystemsServiceImpl implements SystemsService
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
     // TODO: Remove this when admin access is available Jira cic-3964
     if ("testuser9".equalsIgnoreCase(userName)) return true;
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     return skClient.isAdmin(tenantName, userName);
   }
 
@@ -1860,7 +1846,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     String permSpecStr = getPermSpecStr(tenantName, systemId, perm);
     return skClient.isPermitted(tenantName, userName, permSpecStr);
   }
@@ -1876,7 +1862,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
     var permSpecs = new ArrayList<String>();
     for (Permission perm : perms) {
       permSpecs.add(getPermSpecStr(tenantName, systemId, perm));
@@ -2019,7 +2005,7 @@ public class SystemsServiceImpl implements SystemsService
     String systemTenantName = authenticatedUser.getTenantId();
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
-    var skClient = getSKClient(authenticatedUser);
+    var skClient = getSKClient();
 
     // Use Security Kernel client to find all users with perms associated with the system.
     String permSpec = PERM_SPEC_PREFIX + ":" + systemTenantName + ":%:" + systemId;

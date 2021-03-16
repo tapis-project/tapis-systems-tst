@@ -201,13 +201,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
     if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
     if (authenticatedUser == null) LibUtils.logAndThrowNullParmException(opName, "authenticatedUser");
-    if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
-    if (StringUtils.isBlank(patchedSystem.getTenant())) LibUtils.logAndThrowNullParmException(opName, "tenant");
-    if (StringUtils.isBlank(patchedSystem.getId())) LibUtils.logAndThrowNullParmException(opName, "systemId");
-    if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
     // Pull out some values for convenience
     String tenant = patchedSystem.getTenant();
-    String id = patchedSystem.getId();
+    String systemId = patchedSystem.getId();
+    if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
+    if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
+    if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
+    if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
 
     // Convert transferMethods into array of strings
     String[] transferMethodsStrArray = LibUtils.getTransferMethodsAsStringArray(patchedSystem.getTransferMethods());
@@ -225,8 +225,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       DSLContext db = DSL.using(conn);
 
       // Check to see if system exists and has not been soft deleted. If no then throw IllegalStateException
-      boolean doesExist = checkForSystem(db, tenant, id, false);
-      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, id));
+      boolean doesExist = checkForSystem(db, tenant, systemId, false);
+      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
 
       // Make sure effectiveUserId, notes and tags are all set
       String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
@@ -249,7 +249,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.PROXY_PORT, patchedSystem.getProxyPort())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id))
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne().getValue(SYSTEMS.SEQ_ID);
 
@@ -260,7 +260,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       }
 
       // Persist update record
-      addUpdate(db, authenticatedUser, tenant, id, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
+      addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
                 patchedSystem.getUuid());
 
       // Close out and commit

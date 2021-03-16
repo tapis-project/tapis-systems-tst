@@ -489,22 +489,18 @@ public class SystemsServiceTest
   public void testReservedNames() throws Exception
   {
     TSystem sys0 = systems[20];
-    boolean pass;
     for (String id : TSystem.RESERVED_ID_SET)
     {
       System.out.println("Testing create fail for reserved ID: " + id);
       sys0.setId(id);
-      pass = false;
       try
       {
         svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
         Assert.fail("System create call should have thrown an exception when using a reserved ID. Id: " + id);
-      } catch (Exception e)
+      } catch (IllegalStateException e)
       {
         Assert.assertTrue(e.getMessage().contains("SYSLIB_CREATE_RESERVED"));
-        pass = true;
       }
-      Assert.assertTrue(pass, "System create call should fail when using a reserved ID. Id: " + id);
     }
   }
 
