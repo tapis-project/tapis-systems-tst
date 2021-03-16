@@ -479,7 +479,7 @@ public class SystemResource
     }
     // TODO Create a TSystem from the request
     TSystem system = null; //createTSystemFromSGCIImportRequest(req, systemId);
-    system.setImportRefId(req.sgciResourceId);
+//    system.setImport???RefId(req.sgciResourceId);
     // Fill in defaults and check constraints on TSystem attributes
     system = TSystem.setDefaults(system);
     resp = validateTSystem(system, authenticatedUser);
@@ -1272,7 +1272,7 @@ public class SystemResource
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
-                       req.batchDefaultLogicalQueue, req.tags, req.notes, null, req.importRefId, false, null, null);
+                       req.batchDefaultLogicalQueue, req.tags, req.notes, null, false, null, null);
     tSystem.setAuthnCredential(req.authnCredential);
     tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
     tSystem.setJobRuntimes(req.jobRuntimes);

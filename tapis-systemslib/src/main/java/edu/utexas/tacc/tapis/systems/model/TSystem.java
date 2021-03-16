@@ -156,7 +156,6 @@ public final class TSystem
   private String[] tags; // List of arbitrary tags as strings
   private Object notes;   // Simple metadata as json.
   private UUID uuid;
-  private String importRefId; // Optional reference ID for systems created via import
   private boolean deleted;
 
   private Instant created; // UTC time for when record was created
@@ -197,7 +196,7 @@ public final class TSystem
                  String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, boolean isDtn1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
                  int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
-                 String[] tags1, Object notes1, UUID uuid1, String importRefId1, boolean deleted1,
+                 String[] tags1, Object notes1, UUID uuid1, boolean deleted1,
                  Instant created1, Instant updated1)
   {
     seqId = seqId1;
@@ -250,7 +249,6 @@ public final class TSystem
     tags = (tags1 == null) ? DEFAULT_TAGS : tags1.clone();
     notes = notes1;
     uuid = (uuid == null) ? UUID.randomUUID() : uuid1;
-    importRefId = importRefId1;
     deleted = deleted1;
     created = created1;
     updated = updated1;
@@ -301,7 +299,6 @@ public final class TSystem
     tags = (t.getTags() == null) ? DEFAULT_TAGS : t.getTags().clone();
     notes = t.getNotes();
     uuid = t.getUuid();
-    importRefId = t.getImportRefId();
     deleted = t.isDeleted();
   }
 
@@ -758,9 +755,6 @@ public final class TSystem
 
   public UUID getUuid() { return uuid; }
   public TSystem setUuid(UUID u) { uuid = u; return this; }
-
-  public String getImportRefId() { return importRefId; }
-  public TSystem setImportRefId(String s) { importRefId = s; return this; }
 
   public boolean isDeleted() { return deleted; }
 }

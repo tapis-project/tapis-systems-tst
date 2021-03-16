@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -1489184075;
+    private static final long serialVersionUID = -245522709;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -214,11 +214,6 @@ public class Systems extends TableImpl<SystemsRecord> {
      * The column <code>tapis_sys.systems.uuid</code>.
      */
     public final TableField<SystemsRecord, UUID> UUID = createField(DSL.name("uuid"), org.jooq.impl.SQLDataType.UUID.nullable(false), this, "");
-
-    /**
-     * The column <code>tapis_sys.systems.import_ref_id</code>. Optional reference ID for systems created via import
-     */
-    public final TableField<SystemsRecord, String> IMPORT_REF_ID = createField(DSL.name("import_ref_id"), org.jooq.impl.SQLDataType.CLOB, this, "Optional reference ID for systems created via import");
 
     /**
      * The column <code>tapis_sys.systems.deleted</code>. Indicates if system has been soft deleted

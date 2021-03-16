@@ -64,5 +64,4 @@ public final class ReqCreateSystem
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system
   public String[] tags = DEFAULT_TAGS;       // List of arbitrary tags as strings
   public Object notes = DEFAULT_NOTES;      // Simple metadata as json
-  public String importRefId; // Optional reference ID for systems created via import
 }

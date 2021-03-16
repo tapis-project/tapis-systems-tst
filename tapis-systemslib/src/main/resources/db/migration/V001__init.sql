@@ -83,7 +83,6 @@ CREATE TABLE systems
   tags       TEXT[] NOT NULL,
   notes      JSONB NOT NULL,
   uuid uuid NOT NULL,
-  import_ref_id TEXT,
   deleted    BOOLEAN NOT NULL DEFAULT false,
   created    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
   updated    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
@@ -124,7 +123,6 @@ COMMENT ON COLUMN systems.batch_scheduler IS 'Type of scheduler used when runnin
 COMMENT ON COLUMN systems.batch_default_logical_queue IS 'Default logical batch queue for the system';
 COMMENT ON COLUMN systems.tags IS 'Tags for user supplied key:value pairs';
 COMMENT ON COLUMN systems.notes IS 'Notes for general information stored as JSON';
-COMMENT ON COLUMN systems.import_ref_id IS 'Optional reference ID for systems created via import';
 COMMENT ON COLUMN systems.deleted IS 'Indicates if system has been soft deleted';
 COMMENT ON COLUMN systems.created IS 'UTC time for when record was created';
 COMMENT ON COLUMN systems.updated IS 'UTC time for when record was last updated';

@@ -54,7 +54,6 @@ public class TSystem
   public List<Capability> jobCapabilities;
   public String[] tags;
   public Object notes;
-  public String importRefId;
   public boolean deleted;
   public Instant created;
   public Instant updated;

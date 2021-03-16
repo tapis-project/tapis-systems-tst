@@ -102,9 +102,7 @@ public final class IntegrationUtils
   public static final List<Capability> capList2 = new ArrayList<>(List.of(capA1, capB1, capC1, capD1));
 
   public static final UUID uuidNull = null;
-  public static final String importRefIdNull = null;
   public static final boolean isDeletedFalse = false;
-  public static final String importRefId = null;
   public static final Instant createdNull = null;
   public static final Instant updatedNull = null;
   public static final int qMaxJobs = -1;
@@ -136,7 +134,7 @@ public final class IntegrationUtils
             prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,
-            batchSchedulerNull, queueNameNull, tags, notes, uuidNull, importRefId , isDeletedFalse, createdNull, updatedNull);
+            batchSchedulerNull, queueNameNull, tags, notes, uuidNull , isDeletedFalse, createdNull, updatedNull);
     for (int i = 0; i < n; i++)
     {
       // Suffix which should be unique for each system within each integration test
@@ -150,7 +148,7 @@ public final class IntegrationUtils
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
               dtnSystemId, dtnMountPoint, dtnMountSourcePath, isDtnFalse,
               canExecTrue, "jobWorkDir"+suffix, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue,
-              "batchScheduler"+suffix, queueA1.getName(), tags, notes, uuidNull, importRefId , isDeletedFalse, createdNull, updatedNull);
+              "batchScheduler"+suffix, queueA1.getName(), tags, notes, uuidNull, isDeletedFalse, createdNull, updatedNull);
       systems[i].setJobRuntimes(runtimeList1);
       systems[i].setBatchLogicalQueues(queueList1);
       systems[i].setJobCapabilities(capList1);
@@ -171,7 +169,7 @@ public final class IntegrationUtils
               null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
               null, null, null, isDtnFalse,
               canExecFalse, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,
-              null, null, null, null, uuidNull, null, isDeletedFalse, null, null);
+              null, null, null, null, uuidNull, isDeletedFalse, null, null);
   }
 
   public static String getSysName(String key, int idx)
