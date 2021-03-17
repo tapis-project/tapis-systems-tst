@@ -720,6 +720,11 @@ public class SystemsServiceImpl implements SystemsService
       }
     }
 
+    // TODO REMOVE DEBUG SKClient token refresh problem
+    String msg = LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, " ******************* TMP DEBUG ***");
+    _log.error(msg);
+    // TODO REMOVE
+
     // Get list of IDs of systems for which requester has READ permission.
     // This is either all systems (null) or a list of IDs.
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
@@ -1831,8 +1836,9 @@ public class SystemsServiceImpl implements SystemsService
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
     // TODO: Remove this when admin access is available Jira cic-3964
     if ("testuser9".equalsIgnoreCase(userName)) return true;
-    var skClient = getSKClient();
-    return skClient.isAdmin(tenantName, userName);
+//    var skClient = getSKClient();
+//    return skClient.isAdmin(tenantName, userName);
+    return false;
   }
 
   /**
