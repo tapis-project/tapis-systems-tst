@@ -58,6 +58,8 @@ public class SystemsApplication extends ResourceConfig
   // We must be running on a specific site and this will never change
   private static String siteId;
   public static String getSiteId() {return siteId;}
+  private static String siteAdminTenantId;
+  public static String getSiteAdminTenantId() {return siteAdminTenantId;}
 
   // For all logging use println or similar so we do not have a dependency on a logging subsystem.
   public SystemsApplication()
@@ -119,6 +121,9 @@ public class SystemsApplication extends ResourceConfig
       // Set site on which we are running. This is a required runtime parameter.
       siteId = runParms.getSiteId();
 
+      // Set admin tenant also, needed when building a client for calling other services (such as SK) as ourselves.
+      siteAdminTenantId = TenantManager.getInstance().getSiteAdminTenantId(siteId);
+
       // Initialize security filter used when processing a request.
       JWTValidateRequestFilter.setService(TapisConstants.SERVICE_NAME_SYSTEMS);
       JWTValidateRequestFilter.setSiteId(siteId);
@@ -175,7 +180,7 @@ public class SystemsApplication extends ResourceConfig
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
     // Call the main service init method
-    svcImpl.initService(RuntimeParameters.getInstance());
+    svcImpl.initService(RuntimeParameters.getInstance(), siteAdminTenantId);
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
     server.start();

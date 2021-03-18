@@ -20,7 +20,6 @@ public final class PatchSystem
   private String id;       // Name of the system
   private final String description; // Full description of the system
   private final String host;       // Host name or IP address
-  private final Boolean enabled; // Indicates if systems is currently enabled
   private final String effectiveUserId; // User to use when accessing system, may be static or dynamic
   private final AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
   private final List<TransferMethod> transferMethods; // Supported transfer methods, allowed values determined by system type
@@ -50,7 +49,7 @@ public final class PatchSystem
   /**
    * Constructor setting all final attributes.
    */
-  public PatchSystem(String description1, String host1, Boolean enabled1, String effectiveUserId1,
+  public PatchSystem(String description1, String host1, String effectiveUserId1,
                      AuthnMethod defaultAuthnMethod1, List<TransferMethod> transferMethods1,
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1,
                      String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, String jobWorkingDir1,
@@ -60,7 +59,6 @@ public final class PatchSystem
   {
     description = description1;
     host = host1;
-    enabled = enabled1;
     effectiveUserId = effectiveUserId1;
     defaultAuthnMethod = defaultAuthnMethod1;
     transferMethods = (transferMethods1 == null) ? null : new ArrayList<>(transferMethods1);
@@ -96,8 +94,6 @@ public final class PatchSystem
   public String getDescription() { return description; }
 
   public String getHost() { return host; }
-
-  public Boolean isEnabled() { return enabled; }
 
   public String getEffectiveUserId() { return effectiveUserId; }
 

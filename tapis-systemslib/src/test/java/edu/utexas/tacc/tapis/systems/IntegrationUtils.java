@@ -23,6 +23,7 @@ public final class IntegrationUtils
 {
   // Test data
   public static final String tenantName = "dev";
+  public static final String adminTenantName = "admin";
   public static final String owner1 = "owner1";
   public static final String owner2 = "owner2";
   public static final String apiUser = "testApiUser";
@@ -37,7 +38,8 @@ public final class IntegrationUtils
   public static final boolean canExecFalse = false;
   public static final String hostPatchedId = "patched.system.org";
   public static final String hostMinimalId = "minimal.system.org";
-  public static final String rootDir = "/root/dir";
+  public static final String rootDir1 = "/root/dir1";
+  public static final String rootDir2 = "/root/dir2";
   public static TSystem dtnSystem;
   public static final String dtnSystemId = "test-dtn-system";
   public static final String dtnSystemIdNull = null;
@@ -169,7 +171,7 @@ public final class IntegrationUtils
   public static TSystem makeMinimalSystem(TSystem tSys)
   {
     return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
-              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir,
+              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir1,
               null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
               null, null, null, isDtnFalse,
               canExecFalse, null, null, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,

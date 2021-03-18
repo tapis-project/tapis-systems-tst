@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.api.resources;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -210,7 +211,7 @@ public class SystemResource
     }
 
     // Create a TSystem from the request
-    TSystem tSystem = createTSystemFromRequest(req);
+    TSystem tSystem = createTSystemFromRequest(req, rawJson);
 
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
@@ -221,10 +222,6 @@ public class SystemResource
     tSystem = TSystem.setDefaults(tSystem);
     resp = validateTSystem(tSystem, authenticatedUser);
     if (resp != null) return resp;
-
-    // Extract Notes from the raw json.
-    Object notes = extractNotes(rawJson);
-    tSystem.setNotes(notes);
 
     // ---------------------------- Make service call to create the system -------------------------------
     // Update tenant name and pull out system name for convenience
@@ -342,11 +339,7 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
-    PatchSystem patchSystem = createPatchSystemFromRequest(req, authenticatedUser.getTenantId(), systemId);
-
-    // Extract Notes from the raw json.
-    Object notes = extractNotes(rawJson);
-    patchSystem.setNotes(notes);
+    PatchSystem patchSystem = createPatchSystemFromRequest(req, authenticatedUser.getTenantId(), systemId, rawJson);
 
     // No attributes are required. Constraints validated and defaults filled in on server side.
     // No secrets in PatchSystem so no need to scrub
@@ -1265,16 +1258,19 @@ public class SystemResource
   /**
    * Create a TSystem from a ReqCreateSystem
    */
-  private static TSystem createTSystemFromRequest(ReqCreateSystem req)
+  private static TSystem createTSystemFromRequest(ReqCreateSystem req, String rawJson)
   {
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
+    // Extract Notes from the raw json.
+    Object notes = extractNotes(rawJson);
+
     var tSystem = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
                        req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
-                       req.batchDefaultLogicalQueue, req.tags, req.notes, null, false, null, null);
+                       req.batchDefaultLogicalQueue, req.tags, notes, null, false, null, null);
     tSystem.setAuthnCredential(req.authnCredential);
     tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
     tSystem.setJobRuntimes(req.jobRuntimes);
@@ -1284,18 +1280,24 @@ public class SystemResource
 
   /**
    * Create a PatchSystem from a ReqUpdateSystem
+   * Note that tenant and id are for tracking and needed by the service call. They are not updated.
    * TODO cic-3940 allow for patch of jobRuntimes, others? verify update of jobCapabilities
    */
-  private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId)
+  private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId,
+                                                          String rawJson)
   {
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
-    PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.enabled, req.effectiveUserId,
+    var jobCapabilities = req.jobCapabilities;
+    if (jobCapabilities == null) jobCapabilities = new ArrayList<>();
+    // Extract Notes from the raw json.
+    Object notes = extractNotes(rawJson);
+    PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
                            req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
                            req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
-                           req.jobCapabilities, req.tags, req.notes);
+                           jobCapabilities, req.tags, notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);
     patchSystem.setId(systemId);

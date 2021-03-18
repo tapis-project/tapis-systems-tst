@@ -327,7 +327,7 @@ public class SystemsDaoTest
   @Test
   public void testMissingSystem() throws Exception {
     String fakeSystemName = "AMissingSystemName";
-    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
+    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,

@@ -108,6 +108,13 @@ public class SystemsServiceImpl implements SystemsService
   @Inject
   private ServiceContext serviceContext;
 
+  // We must be running on a specific site and this will never change
+  // There are initialized in method initService()
+  private static String siteId;
+  public static String getSiteId() {return siteId;}
+  private static String siteAdminTenantId;
+  public static String getSiteAdminTenantId() {return siteAdminTenantId;}
+
   // ************************************************************************
   // *********************** Public Methods *********************************
   // ************************************************************************
@@ -511,12 +518,18 @@ public class SystemsServiceImpl implements SystemsService
    *   init service context
    *   migrate DB
    */
-  public void initService(RuntimeParameters runParms) throws TapisException, TapisClientException
+  public void initService(RuntimeParameters runParms, String adminTenantId) throws TapisException, TapisClientException
   {
-    // Initialize service context
-    serviceContext.initServiceJWT(runParms.getSiteId(), SYSTEMS_SERVICE, runParms.getServicePassword());
+    // Initialize service context and site info
+    siteId = runParms.getSiteId();
+    siteAdminTenantId = adminTenantId;
+    serviceContext.initServiceJWT(siteId, SYSTEMS_SERVICE, runParms.getServicePassword());
     // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
+
+    // TODO REMOVE
+    //    get skclient at startup, trying to debug expiry of servicejwt
+    getSKClient();
   }
 
   /**
@@ -1511,7 +1524,7 @@ public class SystemsServiceImpl implements SystemsService
   private SKClient getSKClient() throws TapisException
   {
     SKClient skClient;
-    String tenantName = TapisConstants.PRIMARY_SITE_TENANT;
+    String tenantName = siteAdminTenantId;
     String userName = SERVICE_NAME;
     try
     {
@@ -1522,6 +1535,18 @@ public class SystemsServiceImpl implements SystemsService
       String msg = MsgUtils.getMsg("TAPIS_CLIENT_NOT_FOUND", TapisConstants.SERVICE_NAME_SECURITY, tenantName, userName);
       throw new TapisException(msg, e);
     }
+    // TODO REMOVE, debug of svc jwt expiry problem
+    try {
+      String msg = "*** SKCLIENT *************** TMP DEBUG ***\n" +
+             "SVC_JWT = " +  serviceContext.getAccessJWT(siteAdminTenantId, userName);
+      _log.error(msg);
+      msg = "*** SKCLIENT *************** TMP DEBUG ***\n" +
+              "Default role for testuser2: " + skClient.getDefaultUserRole("testuser2");
+      _log.error(msg);
+    } catch (Exception e) {
+      _log.error("*** SKCLIENT *************** TMP DEBUG *** EXCEPTION ERROR e=" + e);
+    }
+
     return skClient;
   }
 
@@ -2077,7 +2102,6 @@ public class SystemsServiceImpl implements SystemsService
     TSystem p1 = new TSystem(o);
     if (p.getDescription() != null) p1.setDescription(p.getDescription());
     if (p.getHost() != null) p1.setHost(p.getHost());
-    if (p.isEnabled() != null) p1.setEnabled(p.isEnabled());
     if (p.getEffectiveUserId() != null) {
       if (StringUtils.isBlank(p.getEffectiveUserId())) {
         p1.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);

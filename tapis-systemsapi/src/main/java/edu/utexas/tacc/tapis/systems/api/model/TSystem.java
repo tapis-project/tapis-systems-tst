@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.List;
 
 /*
- * Class for a TSystem for use in API module
+ * Class for a TSystem definition contained in a request.
  */
 @TSystemFilterView
 public class TSystem

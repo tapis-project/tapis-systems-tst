@@ -99,7 +99,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (StringUtils.isNotBlank(system.getOwner())) owner = system.getOwner();
     String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
     if (StringUtils.isNotBlank(system.getEffectiveUserId())) effectiveUserId = system.getEffectiveUserId();
-    String[] tagsStrArray = TSystem.DEFAULT_TAGS;
+    String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
     if (system.getTags() != null) tagsStrArray = system.getTags();
     JsonObject notesObj = TSystem.DEFAULT_NOTES;
     if (system.getNotes() != null) notesObj = (JsonObject) system.getNotes();
@@ -187,7 +187,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Update an existing system.
    * Following columns will be updated:
-   *  description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *  description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
    *  port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes
    * @throws TapisException - on error
    * @throws IllegalStateException - if system already exists
@@ -231,7 +231,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Make sure effectiveUserId, notes and tags are all set
       String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
       if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
-      String[] tagsStrArray = TSystem.DEFAULT_TAGS;
+      String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
       if (patchedSystem.getTags() != null) tagsStrArray = patchedSystem.getTags();
       JsonObject notesObj =  TSystem.DEFAULT_NOTES;
       if (patchedSystem.getNotes() != null) notesObj = (JsonObject) patchedSystem.getNotes();
@@ -619,18 +619,18 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
                               List<String> orderByAttrList, List<String> orderByDirList, String startAfter)
           throws TapisException
   {
-    // TODO - for now just use first item
-    String orderBy = null;
-    String sortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+    // TODO - for now just use the major (i.e. first in list) orderBy item.
+    String majorOrderBy = null;
+    String majorSortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
 
     // NOTE: Sort matters for the count even though we will not actually need to sort.
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
-    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(orderBy))
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
     {
       String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
       throw new TapisException(msg);
@@ -640,10 +640,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (setOfIDs != null && setOfIDs.isEmpty()) return 0;
 
     // Determine and check orderBy column
-    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(orderBy)));
-    if (!StringUtils.isBlank(orderBy) && colOrderBy == null)
+    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(majorOrderBy)));
+    if (!StringUtils.isBlank(majorOrderBy) && colOrderBy == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(orderBy));
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
 
@@ -666,8 +666,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       // Build search string so we can re-use code for checking and adding a condition
       String searchStr;
-      if (sortAsc) searchStr = orderBy + ".gt." + startAfter;
-      else searchStr = orderBy + ".lt." + startAfter;
+      if (sortAsc) searchStr = majorOrderBy + ".gt." + startAfter;
+      else searchStr = majorOrderBy + ".lt." + startAfter;
       whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
     }
 
@@ -727,11 +727,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
                                    int skip, String startAfter)
           throws TapisException
   {
-    // TODO - for now just use first item
-    String orderBy = null;
-    String sortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+    // TODO - for now just use the major (i.e. first in list) orderBy item.
+    String majorOrderBy = null;
+    String majorSortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
 
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
@@ -740,10 +740,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
-    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(orderBy))
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
     {
       String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
       throw new TapisException(msg);
@@ -763,10 +763,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 // DEBUG
 
     // Determine and check orderBy column
-    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(orderBy)));
-    if (!StringUtils.isBlank(orderBy) && colOrderBy == null)
+    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(majorOrderBy)));
+    if (!StringUtils.isBlank(majorOrderBy) && colOrderBy == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(orderBy));
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
 
@@ -789,8 +789,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       // Build search string so we can re-use code for checking and adding a condition
       String searchStr;
-      if (sortAsc) searchStr = orderBy + ".gt." + startAfter;
-      else searchStr = orderBy + ".lt." + startAfter;
+      if (sortAsc) searchStr = majorOrderBy + ".gt." + startAfter;
+      else searchStr = majorOrderBy + ".lt." + startAfter;
       whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
     }
 
@@ -810,13 +810,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
       org.jooq.SelectConditionStep<SystemsRecord> condStep = db.selectFrom(SYSTEMS).where(whereCondition);
-      if (!StringUtils.isBlank(orderBy) &&  limit >= 0)
+      if (!StringUtils.isBlank(majorOrderBy) &&  limit >= 0)
       {
         // We are ordering and limiting
         if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).limit(limit).offset(skip).fetch();
         else results = condStep.orderBy(colOrderBy.desc()).limit(limit).offset(skip).fetch();
       }
-      else if (!StringUtils.isBlank(orderBy))
+      else if (!StringUtils.isBlank(majorOrderBy))
       {
         // We are ordering but not limiting
         if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).fetch();
@@ -1017,11 +1017,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
                                            int skip, String startAfter)
           throws TapisException
   {
-    // TODO - for now just use first item
-    String orderBy = null;
-    String sortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+    // TODO - for now just use the major (i.e. first in list) orderBy item.
+    String majorOrderBy = null;
+    String majorSortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
 
     // The result list should always be non-null.
     var retList = new ArrayList<SystemBasic>();
@@ -1030,10 +1030,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
+    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
-    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(orderBy))
+    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
     {
       String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
       throw new TapisException(msg);
@@ -1043,10 +1043,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (setOfIDs != null && setOfIDs.isEmpty()) return retList;
 
     // Determine and check orderBy column
-    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(orderBy)));
-    if (!StringUtils.isBlank(orderBy) && colOrderBy == null)
+    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(majorOrderBy)));
+    if (!StringUtils.isBlank(majorOrderBy) && colOrderBy == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(orderBy));
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
 
@@ -1069,8 +1069,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       // Build search string so we can re-use code for checking and adding a condition
       String searchStr;
-      if (sortAsc) searchStr = orderBy + ".gt." + startAfter;
-      else searchStr = orderBy + ".lt." + startAfter;
+      if (sortAsc) searchStr = majorOrderBy + ".gt." + startAfter;
+      else searchStr = majorOrderBy + ".lt." + startAfter;
       whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
     }
 
@@ -1101,13 +1101,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
       org.jooq.SelectConditionStep condStep = db.select(fieldList).from(SYSTEMS).where(whereCondition);
-      if (!StringUtils.isBlank(orderBy) &&  limit >= 0)
+      if (!StringUtils.isBlank(majorOrderBy) &&  limit >= 0)
       {
         // We are ordering and limiting
         if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
         else results = condStep.orderBy(colOrderBy.desc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
       }
-      else if (!StringUtils.isBlank(orderBy))
+      else if (!StringUtils.isBlank(majorOrderBy))
       {
         // We are ordering but not limiting
         if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).fetchInto(SYSTEMS);

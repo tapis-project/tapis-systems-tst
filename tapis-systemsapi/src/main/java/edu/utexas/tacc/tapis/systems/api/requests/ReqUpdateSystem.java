@@ -18,7 +18,6 @@ public final class ReqUpdateSystem
 {
   public String description; // Full description of the system
   public String host;       // Host name or IP address
-  public Boolean enabled; // Indicates if systems is currently enabled
   public String effectiveUserId; // User to use when accessing system, may be static or dynamic
   public AuthnMethod defaultAuthnMethod; // How access authorization is handled by default
   public List<TransferMethod> transferMethods; // Supported transfer methods, allowed values determined by system type

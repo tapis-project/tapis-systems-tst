@@ -118,7 +118,7 @@ public class SystemsServiceTest
     // Initialize services
     svc = locator.getService(SystemsService.class);
     svcImpl = locator.getService(SystemsServiceImpl.class);
-    svcImpl.initService(RuntimeParameters.getInstance());
+    svcImpl.initService(RuntimeParameters.getInstance(), adminTenantName);
 
     // Initialize authenticated user and service
     authenticatedOwner1 = new AuthenticatedUser(owner1, tenantName, TapisThreadContext.AccountType.user.name(),
@@ -244,7 +244,7 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList1);
     String createText = "{\"testUpdate\": \"0-create\"}";
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
-    PatchSystem patchSystem = new PatchSystem("description PATCHED", hostPatchedId, false, "effUserPATCHED",
+    PatchSystem patchSystem = new PatchSystem("description PATCHED", hostPatchedId, "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
@@ -717,7 +717,7 @@ public class SystemsServiceTest
   {
     // NOTE: By default seed data has owner as owner1 == "owner1"
     TSystem sys0 = systems[12];
-    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
+    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
             prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,

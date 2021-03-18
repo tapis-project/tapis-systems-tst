@@ -63,7 +63,6 @@ public final class TSystem
   public static final String SYSTEM_TYPE_FIELD = "systemType";
   public static final String HOST_FIELD = "host";
   public static final String ROOTDIR_FIELD = "rootDir";
-  public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
   // Default values
@@ -71,9 +70,9 @@ public final class TSystem
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
+  public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
   public static final String[] DEFAULT_JOBENV_VARIABLES = EMPTY_STR_ARRAY;
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
-  public static final String[] DEFAULT_TAGS = EMPTY_STR_ARRAY;
   public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
   public static final String EMPTY_TRANSFER_METHODS_STR = "{}";
   public static final int DEFAULT_PORT = -1;
@@ -246,7 +245,7 @@ public final class TSystem
     jobIsBatch = jobIsBatch1;
     batchScheduler = batchScheduler1;
     batchDefaultLogicalQueue = batchDefaultLogicalQueue1;
-    tags = (tags1 == null) ? DEFAULT_TAGS : tags1.clone();
+    tags = (tags1 == null) ? EMPTY_STR_ARRAY : tags1.clone();
     notes = notes1;
     uuid = (uuid == null) ? UUID.randomUUID() : uuid1;
     deleted = deleted1;
@@ -296,7 +295,7 @@ public final class TSystem
     batchLogicalQueues = t.getBatchLogicalQueues();
     batchDefaultLogicalQueue = t.getBatchDefaultLogicalQueue();
     jobCapabilities = t.getJobCapabilities();
-    tags = (t.getTags() == null) ? DEFAULT_TAGS : t.getTags().clone();
+    tags = (t.getTags() == null) ? EMPTY_STR_ARRAY : t.getTags().clone();
     notes = t.getNotes();
     uuid = t.getUuid();
     deleted = t.isDeleted();
@@ -316,7 +315,7 @@ public final class TSystem
     if (system==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
     if (StringUtils.isBlank(system.getOwner())) system.setOwner(DEFAULT_OWNER);
     if (StringUtils.isBlank(system.getEffectiveUserId())) system.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
-    if (system.getTags() == null) system.setTags(DEFAULT_TAGS);
+    if (system.getTags() == null) system.setTags(EMPTY_STR_ARRAY);
     if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
     if (system.getTransferMethods() == null) system.setTransferMethods(DEFAULT_TRANSFER_METHODS);
     // If jobIsBatch and qlist has one value then set default q to that value
@@ -743,10 +742,10 @@ public final class TSystem
   }
 
   public String[] getTags() {
-    return (tags == null) ? DEFAULT_TAGS : tags.clone();
+    return (tags == null) ? EMPTY_STR_ARRAY : tags.clone();
   }
   public TSystem setTags(String[] t) {
-    tags = (t == null) ? DEFAULT_TAGS : t.clone();
+    tags = (t == null) ? EMPTY_STR_ARRAY : t.clone();
     return this;
   }
 

@@ -22,9 +22,9 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_OWNER;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PORT;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PROXYHOST;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PROXYPORT;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_TAGS;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_TRANSFER_METHODS;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_USEPROXY;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.EMPTY_STR_ARRAY;
 
 /*
  * Class representing all system attributes that can be set in an incoming create request json body
@@ -62,6 +62,6 @@ public final class ReqCreateSystem
   public List<LogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system
-  public String[] tags = DEFAULT_TAGS;       // List of arbitrary tags as strings
+  public String[] tags = EMPTY_STR_ARRAY;       // List of arbitrary tags as strings
   public Object notes = DEFAULT_NOTES;      // Simple metadata as json
 }
