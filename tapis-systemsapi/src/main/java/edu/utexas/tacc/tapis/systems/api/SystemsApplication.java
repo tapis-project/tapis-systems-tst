@@ -121,9 +121,6 @@ public class SystemsApplication extends ResourceConfig
       // Set site on which we are running. This is a required runtime parameter.
       siteId = runParms.getSiteId();
 
-      // Set admin tenant also, needed when building a client for calling other services (such as SK) as ourselves.
-      siteAdminTenantId = TenantManager.getInstance().getSiteAdminTenantId(siteId);
-
       // Initialize security filter used when processing a request.
       JWTValidateRequestFilter.setService(TapisConstants.SERVICE_NAME_SYSTEMS);
       JWTValidateRequestFilter.setSiteId(siteId);
@@ -179,6 +176,9 @@ public class SystemsApplication extends ResourceConfig
     InjectionManager im = handler.getInjectionManager();
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
+
+    // Set admin tenant also, needed when building a client for calling other services (such as SK) as ourselves.
+    siteAdminTenantId = "admin"; // TODO TenantManager.getInstance().getSiteAdminTenantId(siteId);
     // Call the main service init method
     svcImpl.initService(RuntimeParameters.getInstance(), siteAdminTenantId);
     // Create and start the server
