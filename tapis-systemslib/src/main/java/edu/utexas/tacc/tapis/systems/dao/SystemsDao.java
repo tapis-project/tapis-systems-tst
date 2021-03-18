@@ -42,17 +42,17 @@ public interface SystemsDao
   TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
   int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                       String orderBy, String sortDirection, String startAfter) throws TapisException;
+                       List<String> orderByAttrList, List<String> orderByDirList, String startAfter) throws TapisException;
 
   List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                            String orderBy, String sortDirection, int skip, String startAfter) throws TapisException;
+                            List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter) throws TapisException;
 
   List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;
 
   SystemBasic getSystemBasic(String tenant, String id) throws TapisException;
 
   List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                                    String orderBy, String sortDirection, int skip, String startAfter) throws TapisException;
+                                    List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter) throws TapisException;
 
   Set<String> getTSystemNames(String tenant) throws TapisException;
 

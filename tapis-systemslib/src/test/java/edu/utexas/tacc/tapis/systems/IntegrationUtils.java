@@ -112,6 +112,10 @@ public final class IntegrationUtils
   public static final int qMaxMemoryMB = -1;
   public static final int qMaxMinutes = -1;
 
+  public static final List<String> orderByNull = null;
+  public static final List<String> orderByDirNull = null;
+  public static final String startAfterNull = null;
+
   public static final String invalidPrivateSshKey = "-----BEGIN OPENSSH PRIVATE KEY-----";
   public static final String invalidPublicSshKey = "testPubSshKey";
 

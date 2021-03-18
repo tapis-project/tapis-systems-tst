@@ -821,6 +821,8 @@ public class SystemResource
     List<String> searchList = srchParms.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
+    if (srchParms.getLimit() == null) srchParms.setLimit(SearchParameters.DEFAULT_LIMIT);
+
     // TODO: cic-3939 Support filtering
 //    List<String> filterList = threadContext.getFilterList();
 //    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
@@ -829,7 +831,7 @@ public class SystemResource
     List<TSystem> systems;
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                          srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
                                           srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
@@ -899,7 +901,7 @@ public class SystemResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                          srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
                                           srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
@@ -925,7 +927,7 @@ public class SystemResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
                   srchParms.getStartAfter());
         } catch (Exception e)
         {
@@ -1014,7 +1016,7 @@ public class SystemResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
-                                                           srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                                                           srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
                                                            srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
@@ -1040,7 +1042,7 @@ public class SystemResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderBy(), srchParms.getOrderByDirection(),
+                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
                   srchParms.getStartAfter());
         } catch (Exception e)
         {

@@ -570,7 +570,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       else result = r.into(TSystem.class);
 
       // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
-      //       in one call which should improve performance.
+      //       in one call which might improve performance.
 
       // Retrieve and set jobRuntimes
       result.setJobRuntimes(retrieveJobRuntimes(db, result.getSeqId()));
@@ -608,16 +608,23 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
-   * @param orderBy - attribute and optional direction for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
+   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
    * @param startAfter - where to start when sorting, e.g. orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - count of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                              String orderBy, String sortDirection, String startAfter)
+                              List<String> orderByAttrList, List<String> orderByDirList, String startAfter)
           throws TapisException
   {
+    // TODO - for now just use first item
+    String orderBy = null;
+    String sortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+
     // NOTE: Sort matters for the count even though we will not actually need to sort.
     boolean sortAsc = true;
     if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(sortDirection)) sortAsc = false;
@@ -676,7 +683,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Execute the select including orderBy, startAfter
+      // Execute the select including orderByAttrList, startAfter
       count = db.selectCount().from(SYSTEMS).where(whereCondition).fetchOne(0,int.class);
 
       // Close out and commit
@@ -707,7 +714,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderBy - attribute and optional direction for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
+   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - list of TSystem objects
@@ -715,9 +723,16 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    */
   @Override
   public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                   int limit, String orderBy, String sortDirection, int skip, String startAfter)
+                                   int limit, List<String> orderByAttrList, List<String> orderByDirList,
+                                   int skip, String startAfter)
           throws TapisException
   {
+    // TODO - for now just use first item
+    String orderBy = null;
+    String sortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
 
@@ -790,7 +805,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Execute the select including limit, orderBy, skip and startAfter
+      // Execute the select including limit, orderByAttrList, skip and startAfter
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
@@ -822,7 +837,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // Fill in batch logical queues and job capabilities list from aux tables
       // TODO: Looks like jOOQ has fetchGroups() which should allow us to retrieve LogicalQueues and Capabilities
-      //       in one call which should improve performance.
+      //       in one call which might improve performance.
       for (SystemsRecord r : results)
       {
         TSystem s = r.into(TSystem.class);
@@ -989,7 +1004,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderBy - attribute and optional direction for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
+   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - list of SystemBasic objects
@@ -997,9 +1013,16 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    */
   @Override
   public List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                           int limit, String orderBy, String sortDirection, int skip, String startAfter)
+                                           int limit, List<String> orderByAttrList, List<String> orderByDirList,
+                                           int skip, String startAfter)
           throws TapisException
   {
+    // TODO - for now just use first item
+    String orderBy = null;
+    String sortDirection = "asc";
+    if (orderByAttrList != null && !orderByAttrList.isEmpty()) orderBy = orderByAttrList.get(0);
+    if (orderByDirList != null && !orderByDirList.isEmpty()) sortDirection = orderByDirList.get(0);
+
     // The result list should always be non-null.
     var retList = new ArrayList<SystemBasic>();
 
@@ -1073,7 +1096,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Execute the select including limit, orderBy, skip and startAfter
+      // Execute the select including limit, orderByAttrList, skip and startAfter
       // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
       //       Jooq claims to handle it well.
       Result<SystemsRecord> results;
