@@ -609,8 +609,8 @@ public class SystemResource
     PatchSystem patchSystem = null;// createPatchSystemFromSGCIRequest(req, authenticatedUser.getTenantId(), systemId);
 
     // Extract Notes from the raw json.
-    Object notes = extractNotes(rawJson);
-    patchSystem.setNotes(notes);
+//    Object notes = extractNotes(rawJson);
+//    patchSystem.setNotes(notes);
 
     // No attributes are required. Constraints validated and defaults filled in on server side.
     // No secrets in PatchSystem so no need to scrub
@@ -1286,13 +1286,18 @@ public class SystemResource
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
     var jobCapabilities = req.jobCapabilities;
     if (jobCapabilities == null) jobCapabilities = new ArrayList<>();
+    var batchLogicalQueues = req.batchLogicalQueues;
+    if (batchLogicalQueues == null) batchLogicalQueues = new ArrayList<>();
+    var jobRuntimes = req.jobRuntimes;
+    if (jobRuntimes == null) jobRuntimes = new ArrayList<>();
+
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
-                           req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
-                           req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
+                           jobRuntimes, req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
+                           req.jobIsBatch, req.batchScheduler, batchLogicalQueues, req.batchDefaultLogicalQueue,
                            jobCapabilities, req.tags, notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);

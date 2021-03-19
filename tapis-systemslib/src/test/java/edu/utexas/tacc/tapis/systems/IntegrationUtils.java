@@ -45,8 +45,8 @@ public final class IntegrationUtils
   public static TSystem dtnSystem;
   public static final String dtnSystemId = "test-dtn-system";
   public static final String dtnSystemIdNull = null;
-  public static final String dtnSystemIdValidHostname = "dtn.system.org";
-  public static final String dtnSystemIdFakeHostname = "fakeDTNSystem";
+  public static final String dtnSystemValidHostname = "dtn.system.org";
+  public static final String dtnSystemFakeHostname = "fakeDTNSystem";
   public static final String dtnMountPoint = "/fake/mountpoint";
   public static final String dtnMountPointNull = null;
   public static final String dtnMountSourcePath = "/fake/mountsourcepath";
@@ -139,7 +139,7 @@ public final class IntegrationUtils
     TSystem[] systems = new TSystem[n];
     // Create a DTN system for other systems to reference. Otherwise some system definitions are not valid.
     dtnSystem = new TSystem(-1, tenantName, dtnSystemId, "DTN System for tests", TSystem.SystemType.LINUX, owner1,
-            dtnSystemIdValidHostname, isEnabledTrue,"effUserDtn", prot1.getAuthnMethod(), "bucketDtn", "/root/dtn",
+            dtnSystemValidHostname, isEnabledTrue,"effUserDtn", prot1.getAuthnMethod(), "bucketDtn", "/root/dtn",
             prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchFalse,

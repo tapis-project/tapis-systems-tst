@@ -245,9 +245,10 @@ public class SystemsServiceTest
     String createText = "{\"testUpdate\": \"0-create\"}";
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
     PatchSystem patchSystem = new PatchSystem("description PATCHED", hostPatchedId, "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            prot2.getAuthnMethod(), prot2.getTransferMethods(),
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            dtnSystemId, dtnMountPoint, dtnMountSourcePath, runtimeList1, jobWorkingDir, jobEnvVariables,
+            jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList2, tags2, notes2);
     patchSystem.setId(sys0.getId());
     patchSystem.setTenant(tenantName);
@@ -717,8 +718,9 @@ public class SystemsServiceTest
     // NOTE: By default seed data has owner as owner1 == "owner1"
     TSystem sys0 = systems[12];
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
+            prot2.getAuthnMethod(), prot2.getTransferMethods(),
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            dtnSystemFakeHostname, dtnMountPoint, dtnMountSourcePath, runtimeList1, jobWorkingDir, jobEnvVariables, jobMaxJobs,
             jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList2, tags2, notes2);
     patchSys.setId(sys0.getId());

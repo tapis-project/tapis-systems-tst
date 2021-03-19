@@ -165,13 +165,6 @@ public final class TSystem
   // ************************************************************************
 
   /**
-   * Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-   * NOTE: Adding a default constructor changes jOOQ behavior such that when Record.into() uses the default mapper
-   *       the column names and POJO attribute names must match (with convention an_attr -> anAttr).
-   */
-// TODO needed?  public TSystem() { }
-
-  /**
    * Constructor using only required attributes.
    */
   public TSystem(String id1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
@@ -187,6 +180,7 @@ public final class TSystem
   /**
    * Constructor for jOOQ with input parameter matching order of columns in DB
    * Also useful for testing
+   * Note that jobRuntimes, batchLogicalQueues and jobCapabilities must be set separately.
    */
   public TSystem(int seqId1, String tenant1, String id1, String description1, SystemType systemType1,
                  String owner1, String host1, boolean enabled1, String effectiveUserId1, AuthnMethod defaultAuthnMethod1,

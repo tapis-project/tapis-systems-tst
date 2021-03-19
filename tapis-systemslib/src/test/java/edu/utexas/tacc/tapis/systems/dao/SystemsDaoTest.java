@@ -328,16 +328,17 @@ public class SystemsDaoTest
   public void testMissingSystem() throws Exception {
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
-            prot2.getProxyPort(), dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            prot2.getAuthnMethod(), prot2.getTransferMethods(),
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            dtnSystemFakeHostname, dtnMountPoint, dtnMountSourcePath, runtimeList1, jobWorkingDir, jobEnvVariables,
+            jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
             capList1, tags, notes);
     patchSys.setTenant(tenantName);
     patchSys.setId(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabledTrue,
             "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemIdFakeHostname, dtnMountPoint, dtnMountSourcePath, isDtnFalse, canExecTrue, "jobWorkDir",
+            dtnSystemFakeHostname, dtnMountPoint, dtnMountSourcePath, isDtnFalse, canExecTrue, "jobWorkDir",
             jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue, "batchScheduler", "batchDefaultLogicalQueue",
             tags, notes, uuidNull, isDeletedFalse, createdNull, updatedNull);
     // Make sure system does not exist
