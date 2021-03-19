@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.Credential;
@@ -13,6 +14,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -114,8 +116,9 @@ public final class IntegrationUtils
   public static final int qMaxMemoryMB = -1;
   public static final int qMaxMinutes = -1;
 
-  public static final List<String> orderByNull = null;
-  public static final List<String> orderByDirNull = null;
+  public static final List<OrderBy> orderByListNull = null;
+  public static final List<OrderBy> orderByListAsc = Collections.singletonList(new OrderBy("id", OrderBy.OrderByDir.ASC));
+  public static final List<OrderBy> orderByListDesc = Collections.singletonList(new OrderBy("id", OrderBy.OrderByDir.DESC));
   public static final String startAfterNull = null;
 
   public static final String invalidPrivateSshKey = "-----BEGIN OPENSSH PRIVATE KEY-----";

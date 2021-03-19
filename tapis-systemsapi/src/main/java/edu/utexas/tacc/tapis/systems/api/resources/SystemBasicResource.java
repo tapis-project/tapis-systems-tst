@@ -178,8 +178,7 @@ public class SystemBasicResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystemsBasic(authenticatedUser, srchParms.getSearchList(), srchParms.getLimit(),
-                                               srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                               srchParms.getSkip(), srchParms.getStartAfter());
+                                           srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -204,8 +203,7 @@ public class SystemBasicResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                  srchParms.getStartAfter());
+                  srchParms.getOrderByList(), srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -272,8 +270,7 @@ public class SystemBasicResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystemsBasic(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                          srchParms.getSkip(), srchParms.getStartAfter());
+                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -298,7 +295,7 @@ public class SystemBasicResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(), srchParms.getStartAfter());
+                  srchParms.getOrderByList(), srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());
@@ -386,8 +383,7 @@ public class SystemBasicResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
-                                                           srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                                           srchParms.getSkip(), srchParms.getStartAfter());
+                                            srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -412,7 +408,7 @@ public class SystemBasicResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(), srchParms.getStartAfter());
+                  srchParms.getOrderByList(), srchParms.getStartAfter());
         } catch (Exception e)
         {
           msg = ApiUtils.getMsgAuth("SYSAPI_SELECT_ERROR", authenticatedUser, e.getMessage());

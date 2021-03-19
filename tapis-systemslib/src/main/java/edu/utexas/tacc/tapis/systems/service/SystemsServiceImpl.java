@@ -27,6 +27,7 @@ import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.jvnet.hk2.annotations.Service;
@@ -639,15 +640,14 @@ public class SystemsServiceImpl implements SystemsService
    * Get count of all systems matching certain criteria and for which user has READ permission
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param startAfter - where to start when sorting, e.g. orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return Count of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList,
-                                  List<String> orderByAttrList, List<String> orderByDirList, String startAfter)
+                                  List<OrderBy> orderByList, String startAfter)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -687,7 +687,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Count all allowed systems matching the search conditions
     return dao.getTSystemsCount(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
-                                orderByAttrList, orderByDirList, startAfter);
+                                orderByList, startAfter);
   }
 
   /**
@@ -695,8 +695,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
@@ -704,7 +703,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                  List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                  List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -746,7 +745,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
-                                            limit, orderByAttrList, orderByDirList, skip, startAfter);
+                                            limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
     {
@@ -762,8 +761,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param sqlSearchStr - string containing a valid SQL where clause
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
@@ -771,11 +769,11 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                                   List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                                   List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByAttrList, orderByDirList, skip, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip, startAfter);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -809,7 +807,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
-                                                          limit, orderByAttrList, orderByDirList, skip, startAfter);
+                                                          limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
     {
@@ -900,8 +898,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param searchList - optional list of conditions used for searching
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
@@ -909,7 +906,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                           List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                           List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -946,7 +943,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     return dao.getSystemsBasic(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
-                               limit, orderByAttrList, orderByDirList, skip, startAfter);
+                               limit, orderByList, skip, startAfter);
   }
 
   /**
@@ -955,8 +952,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param authenticatedUser - principal user containing tenant and user info
    * @param sqlSearchStr - string containing a valid SQL where clause
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return List of TSystem objects
@@ -964,11 +960,11 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<SystemBasic> getSystemsBasicUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                                            List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                                            List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystemsBasic()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystemsBasic(authenticatedUser, null, limit, orderByAttrList, orderByDirList, skip, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystemsBasic(authenticatedUser, null, limit, orderByList, skip, startAfter);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -992,7 +988,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     return dao.getSystemsBasic(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
-                                                    limit, orderByAttrList, orderByDirList, skip, startAfter);
+                                                    limit, orderByList, skip, startAfter);
   }
 
   /**

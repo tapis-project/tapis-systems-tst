@@ -269,7 +269,6 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList2);
     sys0.setDescription("description PATCHED");
     sys0.setHost(hostPatchedId);
-    sys0.setEnabled(false);
     sys0.setEffectiveUserId("effUserPATCHED");
     sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
     sys0.setTransferMethods(prot2.getTransferMethods());
@@ -396,7 +395,7 @@ public class SystemsServiceTest
   {
     TSystem sys0 = systems[4];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, orderByAttrList, orderByDirList, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, orderByListNull, skip, startAfer);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -418,7 +417,7 @@ public class SystemsServiceTest
     sys0 = systems[18];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // When retrieving systems as testUser4 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, orderByAttrList, orderByDirList, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, orderByListNull, skip, startAfer);
     System.out.println("Total number of systems retrieved: " + systems.size());
     for (TSystem system : systems)
     {
@@ -1018,7 +1017,6 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
     Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
     Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
-    Assert.assertEquals(tmpSys.isEnabled(), sys0.isEnabled());
     Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
     Assert.assertEquals(tmpSys.getDefaultAuthnMethod().name(), sys0.getDefaultAuthnMethod().name());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());

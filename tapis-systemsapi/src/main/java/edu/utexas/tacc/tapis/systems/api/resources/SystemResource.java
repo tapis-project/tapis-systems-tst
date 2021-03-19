@@ -824,8 +824,7 @@ public class SystemResource
     List<TSystem> systems;
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                          srchParms.getSkip(), srchParms.getStartAfter());
+                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -894,8 +893,7 @@ public class SystemResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                          srchParms.getSkip(), srchParms.getStartAfter());
+                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -920,8 +918,7 @@ public class SystemResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                  srchParms.getStartAfter());
+                  srchParms.getOrderByList(), srchParms.getStartAfter());
         } catch (Exception e)
         {
           String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
@@ -1009,8 +1006,8 @@ public class SystemResource
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
-                                                           srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                                                           srchParms.getSkip(), srchParms.getStartAfter());
+                                                           srchParms.getOrderByList(), srchParms.getSkip(),
+                                                           srchParms.getStartAfter());
     }
     catch (Exception e)
     {
@@ -1035,8 +1032,7 @@ public class SystemResource
         try
         {
           totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByAttrList(), srchParms.getOrderByDirList(),
-                  srchParms.getStartAfter());
+                                                           srchParms.getOrderByList(), srchParms.getStartAfter());
         } catch (Exception e)
         {
           msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());

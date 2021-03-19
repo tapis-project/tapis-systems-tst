@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.dao;
 
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.SystemBasic;
@@ -42,17 +43,17 @@ public interface SystemsDao
   TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
   int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                       List<String> orderByAttrList, List<String> orderByDirList, String startAfter) throws TapisException;
+                       List<OrderBy> orderByList, String startAfter) throws TapisException;
 
   List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                            List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter) throws TapisException;
+                            List<OrderBy> orderByList, int skip, String startAfter) throws TapisException;
 
   List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;
 
   SystemBasic getSystemBasic(String tenant, String id) throws TapisException;
 
   List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                                    List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter) throws TapisException;
+                                    List<OrderBy> orderByList, int skip, String startAfter) throws TapisException;
 
   Set<String> getTSystemNames(String tenant) throws TapisException;
 

@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.flywaydb.core.Flyway;
@@ -608,26 +609,28 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param startAfter - where to start when sorting, e.g. orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - count of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                              List<String> orderByAttrList, List<String> orderByDirList, String startAfter)
+                              List<OrderBy> orderByList, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
     String majorOrderBy = null;
-    String majorSortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
+    String majorSortDirection = "ASC";
+    if (orderByList != null && !orderByList.isEmpty())
+    {
+      majorOrderBy = orderByList.get(0).getOrderByAttr();
+      majorSortDirection = orderByList.get(0).getOrderByDir().name();
+    }
 
     // NOTE: Sort matters for the count even though we will not actually need to sort.
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
+    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
@@ -714,8 +717,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - list of TSystem objects
@@ -723,15 +725,17 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    */
   @Override
   public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                   int limit, List<String> orderByAttrList, List<String> orderByDirList,
-                                   int skip, String startAfter)
+                                   int limit, List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
     String majorOrderBy = null;
-    String majorSortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
+    String majorSortDirection = "ASC";
+    if (orderByList != null && !orderByList.isEmpty())
+    {
+      majorOrderBy = orderByList.get(0).getOrderByAttr();
+      majorSortDirection = orderByList.get(0).getOrderByDir().name();
+    }
 
     // The result list should always be non-null.
     var retList = new ArrayList<TSystem>();
@@ -740,7 +744,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
+    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
@@ -1004,8 +1008,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
    * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByAttrList - attributes for sorting, e.g. orderBy=created(desc).
-   * @param orderByDirList - directions for sorting, e.g. orderBy=created(desc). Default direction is (asc)
+   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
    * @return - list of SystemBasic objects
@@ -1013,15 +1016,17 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    */
   @Override
   public List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                           int limit, List<String> orderByAttrList, List<String> orderByDirList,
-                                           int skip, String startAfter)
+                                           int limit, List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
     String majorOrderBy = null;
-    String majorSortDirection = "asc";
-    if (orderByAttrList != null && !orderByAttrList.isEmpty()) majorOrderBy = orderByAttrList.get(0);
-    if (orderByDirList != null && !orderByDirList.isEmpty()) majorSortDirection = orderByDirList.get(0);
+    String majorSortDirection = "ASC";
+    if (orderByList != null && !orderByList.isEmpty())
+    {
+      majorOrderBy = orderByList.get(0).getOrderByAttr();
+      majorSortDirection = orderByList.get(0).getOrderByDir().name();
+    }
 
     // The result list should always be non-null.
     var retList = new ArrayList<SystemBasic>();
@@ -1030,7 +1035,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (SearchParameters.ORDERBY_DIRECTION_DESC.equalsIgnoreCase(majorSortDirection)) sortAsc = false;
+    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
 
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))

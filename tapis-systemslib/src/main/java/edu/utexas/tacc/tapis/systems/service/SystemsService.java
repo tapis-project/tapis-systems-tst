@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.service;
 
 import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
@@ -48,15 +49,15 @@ public interface SystemsService
                     boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, List<String> orderByAttrList,
-                           List<String> orderByDirList, String startAfter) throws TapisException, TapisClientException;
+  int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, List<OrderBy> orderByList,
+                           String startAfter) throws TapisException, TapisClientException;
 
   List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                           List<String> orderByAttrList, List<String> sortDirList, int skip, String startAfter)
+                           List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                            List<String> orderByAttrList, List<String> sortDirList, int skip, String startAfter)
+                                            List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)
@@ -66,11 +67,11 @@ public interface SystemsService
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                    List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                    List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<SystemBasic> getSystemsBasicUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                                     List<String> orderByAttrList, List<String> orderByDirList, int skip, String startAfter)
+                                                     List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   Set<String> getSystemIDs(AuthenticatedUser authenticatedUser) throws TapisException;
