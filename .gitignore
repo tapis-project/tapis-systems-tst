@@ -51,8 +51,6 @@ test-output
 !.idea/modules.xml
 !.idea/sqldialects.xml
 !.idea/tapis-java.iml
-!tapis-systemsapi/*.iml
-!tapis-systemslib/*.iml
 
 # Eclipse metadata files
 .project
