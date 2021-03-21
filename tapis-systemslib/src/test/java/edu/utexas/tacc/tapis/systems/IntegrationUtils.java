@@ -117,8 +117,8 @@ public final class IntegrationUtils
   public static final int qMaxMinutes = -1;
 
   public static final List<OrderBy> orderByListNull = null;
-  public static final List<OrderBy> orderByListAsc = Collections.singletonList(new OrderBy("id", OrderBy.OrderByDir.ASC));
-  public static final List<OrderBy> orderByListDesc = Collections.singletonList(new OrderBy("id", OrderBy.OrderByDir.DESC));
+  public static final List<OrderBy> orderByListAsc = Collections.singletonList(OrderBy.fromString("id(asc)"));
+  public static final List<OrderBy> orderByListDesc = Collections.singletonList(OrderBy.fromString("id(desc)"));
   public static final String startAfterNull = null;
 
   public static final String invalidPrivateSshKey = "-----BEGIN OPENSSH PRIVATE KEY-----";

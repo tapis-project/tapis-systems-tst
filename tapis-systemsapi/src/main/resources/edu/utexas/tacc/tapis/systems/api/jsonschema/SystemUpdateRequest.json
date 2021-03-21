@@ -21,6 +21,7 @@
     "dtnSystemId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/SystemId" },
     "dtnMountPoint": { "type": "string" },
     "dtnMountSourcePath": { "type": "string" },
+    "jobRuntimes": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/JobRuntimeList" },
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
     "jobEnvVariables": {
       "type": "array",

@@ -130,6 +130,8 @@ public class SystemsApplication extends ResourceConfig
       // Retrieve the tenant list from the tenant service now to fail fast if we cannot access the list.
       String url = runParms.getTenantsSvcURL();
       TenantManager.getInstance(url).getTenants();
+      // Set admin tenant also, needed when building a client for calling other services (such as SK) as ourselves.
+      siteAdminTenantId = TenantManager.getInstance(url).getSiteAdminTenantId(siteId);
 
       // Initialize bindings for HK2 dependency injection
       register(new AbstractBinder() {
@@ -177,10 +179,8 @@ public class SystemsApplication extends ResourceConfig
     ServiceLocator locator = im.getInstance(ServiceLocator.class);
     SystemsServiceImpl svcImpl = locator.getService(SystemsServiceImpl.class);
 
-    // Set admin tenant also, needed when building a client for calling other services (such as SK) as ourselves.
-    siteAdminTenantId = "admin"; // TODO TenantManager.getInstance().getSiteAdminTenantId(siteId);
     // Call the main service init method
-    svcImpl.initService(RuntimeParameters.getInstance(), siteAdminTenantId);
+    svcImpl.initService(siteId, siteAdminTenantId, RuntimeParameters.getInstance().getServicePassword());
     // Create and start the server
     final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
     server.start();

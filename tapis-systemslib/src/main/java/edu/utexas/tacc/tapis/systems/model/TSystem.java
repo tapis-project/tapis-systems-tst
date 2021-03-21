@@ -712,6 +712,7 @@ public final class TSystem
   public TSystem setJobMaxJobsPerUser(int i) { jobMaxJobsPerUser = i; return this; }
 
   public boolean getJobIsBatch() { return jobIsBatch; }
+  public TSystem setJobIsBatch(boolean b) { jobIsBatch = b; return this; }
 
   public String getBatchScheduler() { return batchScheduler; }
   public TSystem setBatchScheduler(String s) { batchScheduler = s; return this; }

@@ -1284,6 +1284,7 @@ public class SystemResource
   {
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
+
     var jobCapabilities = req.jobCapabilities;
     if (jobCapabilities == null) jobCapabilities = new ArrayList<>();
     var batchLogicalQueues = req.batchLogicalQueues;
@@ -1293,6 +1294,7 @@ public class SystemResource
 
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
+
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,

@@ -33,9 +33,9 @@ public final class PatchSystem
   private final List<JobRuntime> jobRuntimes;
   private final String jobWorkingDir;
   private final String[] jobEnvVariables;
-  private final int jobMaxJobs;
-  private final int jobMaxJobsPerUser;
-  private final boolean jobIsBatch;
+  private final Integer jobMaxJobs;
+  private final Integer jobMaxJobsPerUser;
+  private final Boolean jobIsBatch;
   private final String batchScheduler;
   private final List<LogicalQueue> batchLogicalQueues;
   private final String batchDefaultLogicalQueue;
@@ -55,7 +55,7 @@ public final class PatchSystem
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1,
                      String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1,
                      List<JobRuntime> jobRuntimes1, String jobWorkingDir1, String[] jobEnvVariables1,
-                     int jobMaxJobs1, int jobMaxJobsPerUser1, boolean jobIsBatch1,
+                     Integer jobMaxJobs1, Integer jobMaxJobsPerUser1, Boolean jobIsBatch1,
                      String batchScheduler1, List<LogicalQueue> batchLogicalQueues1, String batchDefaultLogicalQueue1,
                      List<Capability> jobCapabilities1, String[] tags1, Object notes1)
   {
@@ -130,11 +130,11 @@ public final class PatchSystem
     return (jobEnvVariables == null) ? null : jobEnvVariables.clone();
   }
 
-  public int getJobMaxJobs() { return jobMaxJobs; }
+  public Integer getJobMaxJobs() { return jobMaxJobs; }
 
-  public int getJobMaxJobsPerUser() { return jobMaxJobsPerUser; }
+  public Integer getJobMaxJobsPerUser() { return jobMaxJobsPerUser; }
 
-  public boolean getJobIsBatch() { return jobIsBatch; }
+  public Boolean getJobIsBatch() { return jobIsBatch; }
 
   public String getBatchScheduler() { return batchScheduler; }
 

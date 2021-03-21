@@ -110,7 +110,7 @@ public class SystemsServiceImpl implements SystemsService
   private ServiceContext serviceContext;
 
   // We must be running on a specific site and this will never change
-  // There are initialized in method initService()
+  // These are initialized in method initService()
   private static String siteId;
   public static String getSiteId() {return siteId;}
   private static String siteAdminTenantId;
@@ -263,10 +263,12 @@ public class SystemsServiceImpl implements SystemsService
    * Update a system object given a PatchSystem and the text used to create the PatchSystem.
    * Secrets in the text should be masked.
    * Attributes that can be updated:
-   *   description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
-   *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
+   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
    * Attributes that cannot be updated:
-   *   tenant, id, systemType, owner, authnCredential, bucketName, rootDir, canExec
+   *   tenant, id, systemType, owner, authnCredential, bucketName, rootDir, canExec, isDtn
    * @param authenticatedUser - principal user containing tenant and user info
    * @param patchSystem - Pre-populated PatchSystem object
    * @param scrubbedText - Text used to create the PatchSystem object - secrets should be scrubbed. Saved in update record.
@@ -519,18 +521,14 @@ public class SystemsServiceImpl implements SystemsService
    *   init service context
    *   migrate DB
    */
-  public void initService(RuntimeParameters runParms, String adminTenantId) throws TapisException, TapisClientException
+  public void initService(String siteId1, String siteAdminTenantId1, String svcPassword) throws TapisException, TapisClientException
   {
     // Initialize service context and site info
-    siteId = runParms.getSiteId();
-    siteAdminTenantId = adminTenantId;
-    serviceContext.initServiceJWT(siteId, SYSTEMS_SERVICE, runParms.getServicePassword());
+    siteId = siteId1;
+    siteAdminTenantId = siteAdminTenantId1;
+    serviceContext.initServiceJWT(siteId, SYSTEMS_SERVICE, svcPassword);
     // Make sure DB is present and updated to latest version using flyway
     dao.migrateDB();
-
-    // TODO REMOVE
-    //    get skclient at startup, trying to debug expiry of servicejwt
-    getSKClient();
   }
 
   /**
@@ -733,11 +731,6 @@ public class SystemsServiceImpl implements SystemsService
         throw new IllegalArgumentException(msg);
       }
     }
-
-    // TODO REMOVE DEBUG SKClient token refresh problem
-    String msg = LibUtils.getMsgAuth("SYSLIB_CREATE_TRACE", authenticatedUser, " ******************* TMP DEBUG ***");
-    _log.error(msg);
-    // TODO REMOVE
 
     // Get list of IDs of systems for which requester has READ permission.
     // This is either all systems (null) or a list of IDs.
@@ -1531,17 +1524,6 @@ public class SystemsServiceImpl implements SystemsService
       String msg = MsgUtils.getMsg("TAPIS_CLIENT_NOT_FOUND", TapisConstants.SERVICE_NAME_SECURITY, tenantName, userName);
       throw new TapisException(msg, e);
     }
-    // TODO REMOVE, debug of svc jwt expiry problem
-    try {
-      String msg = "*** SKCLIENT *************** TMP DEBUG ***\n" +
-             "SVC_JWT = " +  serviceContext.getAccessJWT(siteAdminTenantId, userName);
-      _log.error(msg);
-      msg = "*** SKCLIENT *************** TMP DEBUG ***\n" +
-              "Default role for testuser2: " + skClient.getDefaultUserRole("testuser2");
-      _log.error(msg);
-    } catch (Exception e) {
-      _log.error("*** SKCLIENT *************** TMP DEBUG *** EXCEPTION ERROR e=" + e);
-    }
 
     return skClient;
   }
@@ -2088,8 +2070,10 @@ public class SystemsServiceImpl implements SystemsService
   /**
    * Merge a patch into an existing TSystem
    * Attributes that can be updated:
-   *   description, host, enabled, effectiveUserId, defaultAuthnMethod, transferMethods,
-   *   port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes.
+   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
    * The only attribute that can be reset to default is effectiveUserId. It is reset when
    *   a blank string is passed in.
    */
@@ -2114,6 +2098,15 @@ public class SystemsServiceImpl implements SystemsService
     if (p.getDtnSystemId() != null) p1.setDtnSystemId(p.getDtnSystemId());
     if (p.getDtnMountPoint() != null) p1.setDtnMountPoint(p.getDtnMountPoint());
     if (p.getDtnMountSourcePath() != null) p1.setDtnMountSourcePath(p.getDtnMountSourcePath());
+    if (p.getJobRuntimes() != null) p1.setJobRuntimes(p.getJobRuntimes());
+    if (p.getJobWorkingDir() != null) p1.setJobWorkingDir(p.getJobWorkingDir());
+    if (p.getJobEnvVariables() != null) p1.setJobEnvVariables(p.getJobEnvVariables());
+    if (p.getJobMaxJobs() != null) p1.setJobMaxJobs(p.getJobMaxJobs());
+    if (p.getJobMaxJobsPerUser() != null) p1.setJobMaxJobsPerUser(p.getJobMaxJobsPerUser());
+    if (p.getJobIsBatch() != null) p1.setJobIsBatch(p.getJobIsBatch());
+    if (p.getBatchScheduler() != null) p1.setBatchScheduler(p.getBatchScheduler());
+    if (p.getBatchLogicalQueues() != null) p1.setBatchLogicalQueues(p.getBatchLogicalQueues());
+    if (p.getBatchDefaultLogicalQueue() != null) p1.setBatchDefaultLogicalQueue(p.getBatchDefaultLogicalQueue());
     if (p.getJobCapabilities() != null) p1.setJobCapabilities(p.getJobCapabilities());
     if (p.getTags() != null) p1.setTags(p.getTags());
     if (p.getNotes() != null) p1.setNotes(p.getNotes());

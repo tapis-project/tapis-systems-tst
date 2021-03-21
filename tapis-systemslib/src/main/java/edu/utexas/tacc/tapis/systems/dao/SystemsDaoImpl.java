@@ -12,7 +12,6 @@ import java.util.UUID;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
-import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
@@ -188,14 +187,16 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Update an existing system.
    * Following columns will be updated:
-   *  description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
-   *  port, useProxy, proxyHost, proxyPort, jobCapabilities, tags, notes
+   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
    * @throws TapisException - on error
    * @throws IllegalStateException - if system already exists
    */
   @Override
   public void updateTSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
-                           String updateJsonStr, String scrubbedText)
+                            String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "updateSystem";
     // ------------------------- Check Input -------------------------
@@ -217,6 +218,18 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     String proxyHost = TSystem.DEFAULT_PROXYHOST;
     if (patchedSystem.getProxyHost() != null) proxyHost = patchedSystem.getProxyHost();
 
+    // Make sure effectiveUserId, jobEnvVariables, notes and tags are all set
+    String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
+    if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
+
+    String[] jobEnvVariablesStrArray = TSystem.EMPTY_STR_ARRAY;
+    if (patchedSystem.getJobEnvVariables() != null) jobEnvVariablesStrArray = patchedSystem.getJobEnvVariables();
+
+    String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
+    if (patchedSystem.getTags() != null) tagsStrArray = patchedSystem.getTags();
+    JsonObject notesObj =  TSystem.DEFAULT_NOTES;
+    if (patchedSystem.getNotes() != null) notesObj = (JsonObject) patchedSystem.getNotes();
+
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
     try
@@ -225,22 +238,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Check to see if system exists and has not been soft deleted. If no then throw IllegalStateException
+      // Make sure system exists and has not been soft deleted.
       boolean doesExist = checkForSystem(db, tenant, systemId, false);
       if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
 
-      // Make sure effectiveUserId, notes and tags are all set
-      String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
-      if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
-      String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
-      if (patchedSystem.getTags() != null) tagsStrArray = patchedSystem.getTags();
-      JsonObject notesObj =  TSystem.DEFAULT_NOTES;
-      if (patchedSystem.getNotes() != null) notesObj = (JsonObject) patchedSystem.getNotes();
 
       int seqId = db.update(SYSTEMS)
               .set(SYSTEMS.DESCRIPTION, patchedSystem.getDescription())
               .set(SYSTEMS.HOST, patchedSystem.getHost())
-              .set(SYSTEMS.ENABLED, patchedSystem.isEnabled())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
               .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
               .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
@@ -248,17 +253,39 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
               .set(SYSTEMS.PROXY_HOST, proxyHost)
               .set(SYSTEMS.PROXY_PORT, patchedSystem.getProxyPort())
+              .set(SYSTEMS.DTN_SYSTEM_ID, patchedSystem.getDtnSystemId())
+              .set(SYSTEMS.DTN_MOUNT_POINT, patchedSystem.getDtnMountPoint())
+              .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, patchedSystem.getDtnMountSourcePath())
+              .set(SYSTEMS.JOB_WORKING_DIR, patchedSystem.getJobWorkingDir())
+              .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariablesStrArray)
+              .set(SYSTEMS.JOB_MAX_JOBS, patchedSystem.getJobMaxJobs())
+              .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, patchedSystem.getJobMaxJobsPerUser())
+              .set(SYSTEMS.JOB_IS_BATCH, patchedSystem.getJobIsBatch())
+              .set(SYSTEMS.BATCH_SCHEDULER, patchedSystem.getBatchScheduler())
+//              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
               .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne().getValue(SYSTEMS.SEQ_ID);
 
-      // If jobCapabilities updated then replace them
-      if (patchSystem.getJobCapabilities() != null) {
-        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-        persistJobCapabilities(db, patchedSystem, seqId);
-      }
+//      // If jobRuntimes updated then replace them
+//      if (patchSystem.getJobRuntimes() != null) {
+//        db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistJobRuntimes(db, patchedSystem, seqId);
+//      }
+//
+//      // If batchLogicalQueues updated then replace them
+//      if (patchSystem.getBatchLogicalQueues() != null) {
+//        db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistLogicalQueues(db, patchedSystem, seqId);
+//      }
+//
+//      // If jobCapabilities updated then replace them
+//      if (patchSystem.getJobCapabilities() != null) {
+//        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistJobCapabilities(db, patchedSystem, seqId);
+//      }
 
       // Persist update record
       addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,

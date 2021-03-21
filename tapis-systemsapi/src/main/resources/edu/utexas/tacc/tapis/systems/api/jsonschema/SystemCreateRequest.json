@@ -32,12 +32,7 @@
     "dtnMountSourcePath": { "type": "string" },
     "isDtn": { "type": "boolean" },
     "canExec": { "type": "boolean" },
-    "jobRuntimes": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/JobRuntime" }
-    },
+    "jobRuntimes": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/JobRuntimeList" },
     "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
     "jobEnvVariables": {
       "type": "array",

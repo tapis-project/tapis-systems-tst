@@ -45,6 +45,12 @@
       "version": { "type": "string" }
     }
   },
+  "JobRuntimeList": {
+    "type": "array",
+    "minItems": 1,
+    "uniqueItems": true,
+    "items": { "$ref": "#/JobRuntime" }
+  },
   "CapabilityCategoryEnum": { "type": "string", "enum": ["SCHEDULER", "OS", "HARDWARE", "SOFTWARE", "JOB", "CONTAINER", "MISC", "CUSTOM"] },
   "CapabilityDatatypeEnum": { "type": "string", "enum": ["STRING", "INTEGER", "BOOLEAN", "NUMBER", "TIMESTAMP"] },
   "Capability": {
