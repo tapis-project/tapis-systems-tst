@@ -1277,7 +1277,6 @@ public class SystemResource
   /**
    * Create a PatchSystem from a ReqUpdateSystem
    * Note that tenant and id are for tracking and needed by the service call. They are not updated.
-   * TODO cic-3940 allow for patch of jobRuntimes, others? verify update of jobCapabilities
    */
   private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId,
                                                           String rawJson)
@@ -1285,22 +1284,15 @@ public class SystemResource
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
 
-    var jobCapabilities = req.jobCapabilities;
-    if (jobCapabilities == null) jobCapabilities = new ArrayList<>();
-    var batchLogicalQueues = req.batchLogicalQueues;
-    if (batchLogicalQueues == null) batchLogicalQueues = new ArrayList<>();
-    var jobRuntimes = req.jobRuntimes;
-    if (jobRuntimes == null) jobRuntimes = new ArrayList<>();
-
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
 
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
                            req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
-                           jobRuntimes, req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
-                           req.jobIsBatch, req.batchScheduler, batchLogicalQueues, req.batchDefaultLogicalQueue,
-                           jobCapabilities, req.tags, notes);
+                           req.jobRuntimes, req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
+                           req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
+                           req.jobCapabilities, req.tags, notes);
     // Update tenant name and system name
     patchSystem.setTenant(tenantName);
     patchSystem.setId(systemId);

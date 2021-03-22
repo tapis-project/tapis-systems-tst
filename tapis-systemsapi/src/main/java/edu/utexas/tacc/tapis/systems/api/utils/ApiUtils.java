@@ -203,7 +203,8 @@ public class ApiUtils
    */
   public static String[] getKeyValuesAsArray(List<KeyValuePair> kvList)
   {
-    if (kvList == null || kvList.size() == 0) return TSystem.EMPTY_STR_ARRAY;
+    if (kvList == null) return null;
+    if (kvList.size() == 0) return TSystem.EMPTY_STR_ARRAY;
     return kvList.stream().map(KeyValuePair::toString).toArray(String[]::new);
   }
 
