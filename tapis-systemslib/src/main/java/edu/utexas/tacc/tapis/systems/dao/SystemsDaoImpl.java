@@ -75,7 +75,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public boolean createTSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
+  public boolean createSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "createSystem";
     // ------------------------- Check Input -------------------------
@@ -195,8 +195,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public void updateTSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
-                            String updateJsonStr, String scrubbedText)
+  public void updateSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
+                           String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "updateSystem";
     // ------------------------- Check Input -------------------------
@@ -262,30 +262,30 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, patchedSystem.getJobMaxJobsPerUser())
               .set(SYSTEMS.JOB_IS_BATCH, patchedSystem.getJobIsBatch())
               .set(SYSTEMS.BATCH_SCHEDULER, patchedSystem.getBatchScheduler())
-//              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
+              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
               .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne().getValue(SYSTEMS.SEQ_ID);
 
-//      // If jobRuntimes updated then replace them
-//      if (patchSystem.getJobRuntimes() != null) {
-//        db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistJobRuntimes(db, patchedSystem, seqId);
-//      }
-//
-//      // If batchLogicalQueues updated then replace them
-//      if (patchSystem.getBatchLogicalQueues() != null) {
-//        db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistLogicalQueues(db, patchedSystem, seqId);
-//      }
-//
-//      // If jobCapabilities updated then replace them
-//      if (patchSystem.getJobCapabilities() != null) {
-//        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistJobCapabilities(db, patchedSystem, seqId);
-//      }
+      // If jobRuntimes updated then replace them
+      if (patchSystem.getJobRuntimes() != null) {
+        db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+        persistJobRuntimes(db, patchedSystem, seqId);
+      }
+
+      // If batchLogicalQueues updated then replace them
+      if (patchSystem.getBatchLogicalQueues() != null) {
+        db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+        persistLogicalQueues(db, patchedSystem, seqId);
+      }
+
+      // If jobCapabilities updated then replace them
+      if (patchSystem.getJobCapabilities() != null) {
+        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+        persistJobCapabilities(db, patchedSystem, seqId);
+      }
 
       // Persist update record
       addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
@@ -394,7 +394,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *
    */
   @Override
-  public int softDeleteTSystem(AuthenticatedUser authenticatedUser, String id) throws TapisException
+  public int softDeleteSystem(AuthenticatedUser authenticatedUser, String id) throws TapisException
   {
     String opName = "softDeleteSystem";
     int rows = -1;
@@ -441,7 +441,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Hard delete a system record given the system name.
    */
   @Override
-  public int hardDeleteTSystem(String tenant, String id) throws TapisException
+  public int hardDeleteSystem(String tenant, String id) throws TapisException
   {
     String opName = "hardDeleteSystem";
     int rows = -1;
@@ -530,7 +530,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public boolean checkForTSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
+  public boolean checkForSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
     // Initialize result.
     boolean result = false;
 
@@ -566,9 +566,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getTSystem(String tenant, String id) throws TapisException
+  public TSystem getSystem(String tenant, String id) throws TapisException
   {
-    return getTSystem(tenant, id, false);
+    return getSystem(tenant, id, false);
   }
 
   /**
@@ -578,7 +578,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getTSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
+  public TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
     // Initialize result.
     TSystem result = null;
 
@@ -642,8 +642,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public int getTSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                              List<OrderBy> orderByList, String startAfter)
+  public int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
+                             List<OrderBy> orderByList, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -751,8 +751,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                   int limit, List<OrderBy> orderByList, int skip, String startAfter)
+  public List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
+                                  int limit, List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -905,7 +905,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getTSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs)
+  public List<TSystem> getSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs)
           throws TapisException
   {
     // TODO: might be possible to optimize this method with a join between systems and capabilities tables.
@@ -1188,7 +1188,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public Set<String> getTSystemNames(String tenant) throws TapisException
+  public Set<String> getSystemNames(String tenant) throws TapisException
   {
     // The result list is always non-null.
     var names = new HashSet<String>();
@@ -1226,7 +1226,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public String getTSystemOwner(String tenant, String id) throws TapisException
+  public String getSystemOwner(String tenant, String id) throws TapisException
   {
     String owner = null;
     // ------------------------- Call SQL ----------------------------
@@ -1262,7 +1262,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public String getTSystemEffectiveUserId(String tenant, String id) throws TapisException
+  public String getSystemEffectiveUserId(String tenant, String id) throws TapisException
   {
     String effectiveUserId = null;
 

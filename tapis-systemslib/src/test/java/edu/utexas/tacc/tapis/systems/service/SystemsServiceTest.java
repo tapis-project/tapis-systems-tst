@@ -6,17 +6,15 @@ import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
-import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
 import edu.utexas.tacc.tapis.systems.model.Capability;
-import edu.utexas.tacc.tapis.systems.model.Capability.Category;
-import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
@@ -34,7 +32,6 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 import javax.ws.rs.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -56,42 +53,10 @@ public class SystemsServiceTest
   private SystemsServiceImpl svcImpl;
   private AuthenticatedUser authenticatedOwner1, authenticatedTestUser0, authenticatedTestUser1, authenticatedTestUser2,
           authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc1,
-          authenticatedFilesSvc3, authenticatedSystemsSvc;
-  // Test data
-  private static final String svcName = "systems";
-  private static final String filesSvcName = "files";
-  private static final String adminUser = "testuser9";
-//TODO  private static final String adminUser = "admin";
-  private static final String siteId = "tacc";
-  private static final String adminTenantName = "admin";
-  private static final String testUser0 = "testuser0";
-  private static final String testUser1 = "testuser1";
-  private static final String testUser2 = "testuser2";
-  private static final String testUser3 = "testuser3";
-  private static final String testUser4 = "testuser4";
-  private static final Set<Permission> testPermsREADMODIFY = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
-  private static final Set<Permission> testPermsREADEXECUTE = new HashSet<>(Set.of(Permission.READ, Permission.EXECUTE));
-  private static final Set<Permission> testPermsREAD = new HashSet<>(Set.of(Permission.READ));
-  private static final Set<Permission> testPermsMODIFY = new HashSet<>(Set.of(Permission.MODIFY));
-  private static final String[] tags2 = {"value3", "value4"};
-  private static final Object notes2 = TapisGsonUtils.getGson().fromJson("{\"project\": \"myproj2\", \"testdata\": \"abc2\"}", JsonObject.class);
+          authenticatedFilesSvc3, authenticatedFilesSvc4, authenticatedSystemsSvc;
 
-  private static final Capability capA2 = new Capability(Category.SCHEDULER, "Type",
-                                                         Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "Condor");
-  private static final Capability capB2 = new Capability(Category.HARDWARE, "CoresPerNode",
-                                                         Datatype.INTEGER, Capability.DEFAULT_PRECEDENCE, "128");
-  private static final Capability capC2 = new Capability(Category.SOFTWARE, "OpenMP",
-                                                         Datatype.STRING, Capability.DEFAULT_PRECEDENCE, "3.1");
-  private static final List<Capability> capList2 = new ArrayList<>(List.of(capA2, capB2, capC2));
-
-  List<String> searchListNull = null;
-  int limit = -1;
-  List<String> orderByAttrList = Arrays.asList("");
-  List<String> orderByDirList = Arrays.asList("");
-  int skip = 0;
-  String startAfer= "";
-
-  int numSystems = 22;
+  // Create test system definitions in memory
+  int numSystems = 23;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -142,12 +107,15 @@ public class SystemsServiceTest
                                                    null, owner1, tenantName, null, null, null);
     authenticatedFilesSvc3 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                    null, testUser3, tenantName, null, null, null);
+    authenticatedFilesSvc4 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+                                                   null, testUser4, tenantName, null, null, null);
 
     // Cleanup anything leftover from previous failed run
     tearDown();
 
-    // Create a DTN system for other systems to reference. Otherwise some system definitions are not valid.
-    svc.createSystem(authenticatedOwner1, dtnSystem, scrubbedJson);
+    // Create DTN systems for other systems to reference. Otherwise some system definitions are not valid.
+    svc.createSystem(authenticatedOwner1, dtnSystem1, scrubbedJson);
+    svc.createSystem(authenticatedOwner1, dtnSystem2, scrubbedJson);
   }
 
   @AfterSuite
@@ -171,7 +139,8 @@ public class SystemsServiceTest
     {
       svcImpl.hardDeleteSystem(authenticatedAdminUser, systems[i].getId());
     }
-    svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem.getId());
+    svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem2.getId());
+    svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem1.getId());
 
     TSystem tmpSys = svc.getSystem(authenticatedAdminUser, systems[0].getId(), false, null, false);
     Assert.assertNull(tmpSys, "System not deleted. System name: " + systems[0].getId());
@@ -238,51 +207,82 @@ public class SystemsServiceTest
   }
 
   // Test updating a system
+  // Both update of all possible attributes and only some attributes
   @Test
   public void testUpdateSystem() throws Exception
   {
     TSystem sys0 = systems[13];
+    String systemId = sys0.getId();
+    sys0.setJobRuntimes(runtimeList1);
+    sys0.setBatchLogicalQueues(logicalQueueList1);
     sys0.setJobCapabilities(capList1);
-    String createText = "{\"testUpdate\": \"0-create\"}";
-    String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
-    PatchSystem patchSystem = new PatchSystem("description PATCHED", hostPatchedId, "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemId, dtnMountPoint, dtnMountSourcePath, runtimeList1, jobWorkingDir, jobEnvVariables,
-            jobMaxJobs, jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
-            capList2, tags2, notes2);
-    patchSystem.setId(sys0.getId());
-    patchSystem.setTenant(tenantName);
+    String createText = "{\"testUpdate\": \"0-create1\"}";
     svc.createSystem(authenticatedOwner1, sys0, createText);
+
+    // Create patchSystem where all updatable attributes are changed
+    String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
+    PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull();
+    patchSystemFull.setTenant(tenantName);
+    patchSystemFull.setId(systemId);
+
     // Update using patchSys
-    svc.updateSystem(authenticatedOwner1, patchSystem, patch1Text);
-    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
-//  TSystem sysE = new TSystem(-1, tenantName, "SsysE", "description E", SystemType.LINUX, ownerUser, "hostE", true,
-//          "effUserE", prot1.getAuthnMethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
-//          prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),false,
-//          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
-//          tags1, notes1, false, null, null);
-//  TSystem sysE2 = new TSystem(-1, tenantName, "SsysE", "description PATCHED", SystemType.LINUX, ownerUser, "hostPATCHED", false,
-//          "effUserPATCHED", prot2.getAuthnMethod(), "bucketE", "/rootE", prot2.getTransferMethods(),
-//          prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),false,
-//          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
-//          tags2, notes2, false, null, null);
-    // Update original system definition with patched values
-    sys0.setJobCapabilities(capList2);
-    sys0.setDescription("description PATCHED");
-    sys0.setHost(hostPatchedId);
-    sys0.setEffectiveUserId("effUserPATCHED");
+    svc.updateSystem(authenticatedOwner1, patchSystemFull, patch1Text);
+    TSystem tmpSysFull = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+
+    // Update original definition with patched values so we can use the checkCommon method.
+    sys0.setDescription(description2);
+    sys0.setHost(hostname2);
+    sys0.setEffectiveUserId(effectiveUserId2);
     sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
     sys0.setTransferMethods(prot2.getTransferMethods());
     sys0.setPort(prot2.getPort());
     sys0.setUseProxy(prot2.isUseProxy());
     sys0.setProxyHost(prot2.getProxyHost());
     sys0.setProxyPort(prot2.getProxyPort());
+    sys0.setDtnSystemId(dtnSystemId2);
+    sys0.setDtnMountPoint(dtnMountPoint2);
+    sys0.setDtnMountSourcePath(dtnMountSourcePath2);
+    sys0.setJobWorkingDir(jobWorkingDir2);
+    sys0.setJobEnvVariables(jobEnvVariables2);
+    sys0.setJobMaxJobs(jobMaxJobs2);
+    sys0.setJobMaxJobsPerUser(jobMaxJobsPerUser2);
+    sys0.setBatchScheduler(batchScheduler2);
+    sys0.setBatchDefaultLogicalQueue(batchDefaultLogicalQueue2);
     sys0.setTags(tags2);
     sys0.setNotes(notes2);
+    sys0.setJobRuntimes(runtimeList2);
+    sys0.setBatchLogicalQueues(logicalQueueList2);
+    sys0.setJobCapabilities(capList2);
     // Check common system attributes:
-    // TODO Caps are getting added, not replaced
-    checkCommonSysAttrs(sys0, tmpSys);
+    checkCommonSysAttrs(sys0, tmpSysFull);
+
+    // Test updating just a few attributes
+    sys0 = systems[22];
+    systemId = sys0.getId();
+    sys0.setJobRuntimes(runtimeList1);
+    sys0.setBatchLogicalQueues(logicalQueueList1);
+    sys0.setJobCapabilities(capList1);
+    createText = "{\"testUpdate\": \"0-create2\"}";
+    svc.createSystem(authenticatedOwner1, sys0, createText);
+    // Create patchSystem where some attributes are changed
+    //   * Some attributes are to be updated: description, authnMethod, dtnMountPoint, runtimeList, jobMaxJobsPerUser
+    String patch2Text = "{\"testUpdate\": \"1-patch2\"}";
+    PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial();
+    patchSystemPartial.setTenant(tenantName);
+    patchSystemPartial.setId(systemId);
+
+    // Update using patchSys
+    svc.updateSystem(authenticatedOwner1, patchSystemPartial, patch2Text);
+    TSystem tmpSysPartial = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+
+    // Update original definition with patched values so we can use the checkCommon method.
+    sys0.setDescription(description2);
+    sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
+    sys0.setDtnMountPoint(dtnMountPoint2);
+    sys0.setJobMaxJobsPerUser(jobMaxJobsPerUser2);
+    sys0.setJobRuntimes(runtimeList2);
+    // Check common system attributes:
+    checkCommonSysAttrs(sys0, tmpSysPartial);
   }
 
   // Test changing system owner
@@ -397,13 +397,14 @@ public class SystemsServiceTest
   {
     TSystem sys0 = systems[4];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limit, orderByListNull, skip, startAfer);
+    List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
   }
 
   // Check that user only sees systems they are authorized to see.
+  //   and same for a service when it is calling with oboUser (i.e. not as itself).
   @Test
   public void testGetSystemsAuth() throws Exception
   {
@@ -419,8 +420,18 @@ public class SystemsServiceTest
     sys0 = systems[18];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // When retrieving systems as testUser4 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limit, orderByListNull, skip, startAfer);
-    System.out.println("Total number of systems retrieved: " + systems.size());
+    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
+    System.out.println("Total number of systems retrieved by testuser4: " + systems.size());
+    for (TSystem system : systems)
+    {
+      System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
+      Assert.assertTrue(system.getId().equals(sys1Name) || system.getId().equalsIgnoreCase(sys2Name));
+    }
+    Assert.assertEquals(systems.size(), 2);
+
+    // When retrieving systems as a service with oboUser = testuser4 only 2 should be returned.
+    systems = svc.getSystems(authenticatedFilesSvc4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
+    System.out.println("Total number of systems retrieved by Files svc calling with oboUser=testuser4: " + systems.size());
     for (TSystem system : systems)
     {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
@@ -721,8 +732,8 @@ public class SystemsServiceTest
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemFakeHostname, dtnMountPoint, dtnMountSourcePath, runtimeList1, jobWorkingDir, jobEnvVariables, jobMaxJobs,
-            jobMaxJobsPerUser, jobIsBatchTrue, batchScheduler, queueList1, batchDefaultLogicalQueue,
+            dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, runtimeList1, jobWorkingDir1, jobEnvVariables1, jobMaxJobs1,
+            jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, logicalQueueList1, batchDefaultLogicalQueue1,
             capList2, tags2, notes2);
     patchSys.setId(sys0.getId());
     patchSys.setTenant(tenantName);
@@ -1046,14 +1057,16 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
 
     // Verify jobEnvVariables
+    String[] origVars = sys0.getJobEnvVariables();
     String[] tmpVars = tmpSys.getJobEnvVariables();
-    Assert.assertNotNull(tmpVars, "jobEnvVariables value was null");
+    Assert.assertNotNull(origVars, "Orig jobEnvVariables should not be null");
+    Assert.assertNotNull(tmpVars, "Fetched jobEnvVariables should not be null");
     var varsList = Arrays.asList(tmpVars);
-    Assert.assertEquals(tmpVars.length, jobEnvVariables.length, "Wrong number of jobEnvVariables");
-    for (String varStr : jobEnvVariables)
+    Assert.assertEquals(tmpVars.length, origVars.length, "Wrong number of jobEnvVariables");
+    for (String varStr : origVars)
     {
       Assert.assertTrue(varsList.contains(varStr));
-      System.out.println("Found jobEnvVarialbe: " + varStr);
+      System.out.println("Found jobEnvVariable: " + varStr);
     }
 
     Assert.assertEquals(tmpSys.getJobMaxJobs(), sys0.getJobMaxJobs());
@@ -1086,19 +1099,7 @@ public class SystemsServiceTest
     Assert.assertTrue(tmpObj.has("testdata"));
     String testdataStr = origNotes.get("testdata").getAsString();
     Assert.assertEquals(tmpObj.get("testdata").getAsString(), testdataStr);
-    // Verify capabilities
-    List<Capability> origCaps = sys0.getJobCapabilities();
-    List<Capability> jobCaps = tmpSys.getJobCapabilities();
-    Assert.assertNotNull(origCaps, "Orig Caps was null");
-    Assert.assertNotNull(jobCaps, "Fetched Caps was null");
-    Assert.assertEquals(jobCaps.size(), origCaps.size());
-    var capNamesFound = new ArrayList<String>();
-    for (Capability capFound : jobCaps) {capNamesFound.add(capFound.getName());}
-    for (Capability capSeedItem : origCaps)
-    {
-      Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
-              "List of capabilities did not contain a capability named: " + capSeedItem.getName());
-    }
+
     // Verify jobRuntimes
     List<JobRuntime> origRuntimes = sys0.getJobRuntimes();
     List<JobRuntime> jobRuntimes = tmpSys.getJobRuntimes();
@@ -1112,6 +1113,35 @@ public class SystemsServiceTest
       Assert.assertTrue(runtimeVersionsFound.contains(runtimeSeedItem.getVersion()),
               "List of jobRuntimes did not contain a runtime with version: " + runtimeSeedItem.getVersion());
     }
+
+    // Verify logicalQueues
+    List<LogicalQueue> origLogicalQueues = sys0.getBatchLogicalQueues();
+    List<LogicalQueue> logicalQueues = tmpSys.getBatchLogicalQueues();
+    Assert.assertNotNull(origLogicalQueues, "Orig LogicalQueues was null");
+    Assert.assertNotNull(logicalQueues, "Fetched LogicalQueues was null");
+    Assert.assertEquals(logicalQueues.size(), origLogicalQueues.size());
+    var logicalQueueNamesFound = new ArrayList<String>();
+    for (LogicalQueue logicalQueueFound : logicalQueues) {logicalQueueNamesFound.add(logicalQueueFound.getName());}
+    for (LogicalQueue logicalQueueSeedItem : origLogicalQueues)
+    {
+      Assert.assertTrue(logicalQueueNamesFound.contains(logicalQueueSeedItem.getName()),
+              "List of logicalQueues did not contain a logicalQueue with name: " + logicalQueueSeedItem.getName());
+    }
+
+    // Verify capabilities
+    List<Capability> origCaps = sys0.getJobCapabilities();
+    List<Capability> jobCaps = tmpSys.getJobCapabilities();
+    Assert.assertNotNull(origCaps, "Orig Caps was null");
+    Assert.assertNotNull(jobCaps, "Fetched Caps was null");
+    Assert.assertEquals(jobCaps.size(), origCaps.size());
+    var capNamesFound = new ArrayList<String>();
+    for (Capability capFound : jobCaps) {capNamesFound.add(capFound.getName());}
+    for (Capability capSeedItem : origCaps)
+    {
+      Assert.assertTrue(capNamesFound.contains(capSeedItem.getName()),
+              "List of capabilities did not contain a capability named: " + capSeedItem.getName());
+    }
+
     Assert.assertNotNull(tmpSys.getCreated(), "Fetched created timestamp should not be null");
     Assert.assertNotNull(tmpSys.getUpdated(), "Fetched updated timestamp should not be null");
   }

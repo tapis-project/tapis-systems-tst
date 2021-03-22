@@ -28,7 +28,6 @@ import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
-import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -161,7 +160,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Check if system already exists
-    if (dao.checkForTSystem(systemTenantName, systemId, true))
+    if (dao.checkForSystem(systemTenantName, systemId, true))
     {
       throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", authenticatedUser, systemId));
     }
@@ -201,7 +200,7 @@ public class SystemsServiceImpl implements SystemsService
     var skClient = getSKClient();
     try {
       // ------------------- Make Dao call to persist the system -----------------------------------
-      itemCreated = dao.createTSystem(authenticatedUser, system, createJsonStr, scrubbedText);
+      itemCreated = dao.createSystem(authenticatedUser, system, createJsonStr, scrubbedText);
 
       // ------------------- Add permissions -----------------------------
       // Give owner and possibly effectiveUser full access to the system
@@ -235,7 +234,7 @@ public class SystemsServiceImpl implements SystemsService
 
       // Rollback
       // Remove system from DB
-      if (itemCreated) try {dao.hardDeleteTSystem(systemTenantName, systemId); }
+      if (itemCreated) try {dao.hardDeleteSystem(systemTenantName, systemId); }
       catch (Exception e) {_log.warn(LibUtils.getMsgAuth(ERROR_ROLLBACK, authenticatedUser, systemId, "hardDelete", e.getMessage()));}
       // Remove perms
       try { skClient.revokeUserPermission(systemTenantName, system.getOwner(), systemsPermSpecALL); }
@@ -300,13 +299,13 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // System must already exist and not be soft deleted
-    if (!dao.checkForTSystem(systemTenantName, systemId, false))
+    if (!dao.checkForSystem(systemTenantName, systemId, false))
     {
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
     }
 
     // Retrieve the system being patched and create fully populated TSystem with changes merged in
-    TSystem origTSystem = dao.getTSystem(systemTenantName, systemId);
+    TSystem origTSystem = dao.getSystem(systemTenantName, systemId);
     TSystem patchedTSystem = createPatchedTSystem(origTSystem, patchSystem);
 
     // ------------------------- Check service level authorization -------------------------
@@ -322,7 +321,7 @@ public class SystemsServiceImpl implements SystemsService
     // ----------------- Create all artifacts --------------------
     // No distributed transactions so no distributed rollback needed
     // ------------------- Make Dao call to persist the system -----------------------------------
-    dao.updateTSystem(authenticatedUser, patchedTSystem, patchSystem, updateJsonStr, scrubbedText);
+    dao.updateSystem(authenticatedUser, patchedTSystem, patchSystem, updateJsonStr, scrubbedText);
   }
 
   /**
@@ -396,11 +395,11 @@ public class SystemsServiceImpl implements SystemsService
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
 
     // System must already exist and not be soft deleted
-    if (!dao.checkForTSystem(systemTenantName, systemId, false))
+    if (!dao.checkForSystem(systemTenantName, systemId, false))
          throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // Retrieve old owner
-    String oldOwnerName = dao.getTSystemOwner(systemTenantName, systemId);
+    String oldOwnerName = dao.getSystemOwner(systemTenantName, systemId);
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, oldOwnerName, null, null);
@@ -468,7 +467,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // If system does not exist or has already been soft deleted then 0 changes
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return 0;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -477,7 +476,7 @@ public class SystemsServiceImpl implements SystemsService
     removeSKArtifacts(authenticatedUser, systemId, op);
 
     // Delete the system
-    return dao.softDeleteTSystem(authenticatedUser, systemId);
+    return dao.softDeleteSystem(authenticatedUser, systemId);
   }
 
   /**
@@ -504,7 +503,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // If system does not exist then 0 changes
-    if (!dao.checkForTSystem(systemTenantName, systemId, true)) return 0;
+    if (!dao.checkForSystem(systemTenantName, systemId, true)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -513,7 +512,7 @@ public class SystemsServiceImpl implements SystemsService
     removeSKArtifacts(authenticatedUser, systemId, op);
 
     // Delete the system
-    return dao.hardDeleteTSystem(systemTenantName, systemId);
+    return dao.hardDeleteSystem(systemTenantName, systemId);
   }
 
   /**
@@ -559,7 +558,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // We need owner to check auth and if system not there cannot find owner, so cannot do auth check if no system
-    if (dao.checkForTSystem(systemTenantName, systemId, false)) {
+    if (dao.checkForSystem(systemTenantName, systemId, false)) {
       // ------------------------- Check service level authorization -------------------------
       checkAuth(authenticatedUser, op, systemId, null, null, null);
       return true;
@@ -598,7 +597,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // We need owner to check auth and if system not there cannot find owner, so
     // if system does not exist then return null
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -609,7 +608,7 @@ public class SystemsServiceImpl implements SystemsService
                     systemId, null, null, null);
     }
 
-    TSystem result = dao.getTSystem(systemTenantName, systemId);
+    TSystem result = dao.getSystem(systemTenantName, systemId);
     if (result == null) return null;
 
     // If flag is set to also require EXECUTE perm then system must support execute
@@ -684,7 +683,7 @@ public class SystemsServiceImpl implements SystemsService
     if (allowedSysIDs != null && allowedSysIDs.isEmpty()) return 0;
 
     // Count all allowed systems matching the search conditions
-    return dao.getTSystemsCount(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
+    return dao.getSystemsCount(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
                                 orderByList, startAfter);
   }
 
@@ -737,7 +736,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
+    List<TSystem> systems = dao.getSystems(systemTenantName, verifiedSearchList, null, allowedSysIDs,
                                             limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
@@ -799,7 +798,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<TSystem> systems = dao.getTSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
+    List<TSystem> systems = dao.getSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
                                                           limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
@@ -844,7 +843,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Get all allowed systems matching the constraint conditions
-    List<TSystem> systems = dao.getTSystemsSatisfyingConstraints(authenticatedUser.getTenantId(), matchAST,
+    List<TSystem> systems = dao.getSystemsSatisfyingConstraints(authenticatedUser.getTenantId(), matchAST,
                                                                  allowedSysIDs);
 
     for (TSystem system : systems)
@@ -877,7 +876,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // We need owner to check auth and if system not there cannot find owner, so
     // if system does not exist then return null
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -935,7 +934,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    return dao.getSystemsBasic(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
+    return dao.getSystemsBasic(systemTenantName, verifiedSearchList, null, allowedSysIDs,
                                limit, orderByList, skip, startAfter);
   }
 
@@ -980,7 +979,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    return dao.getSystemsBasic(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
+    return dao.getSystemsBasic(systemTenantName, null, searchAST, allowedSysIDs,
                                                     limit, orderByList, skip, startAfter);
   }
 
@@ -996,7 +995,7 @@ public class SystemsServiceImpl implements SystemsService
     SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Get all system names
-    Set<String> systemIds = dao.getTSystemNames(authenticatedUser.getTenantId());
+    Set<String> systemIds = dao.getSystemNames(authenticatedUser.getTenantId());
     var allowedNames = new HashSet<String>();
     // Filter based on user authorization
     for (String name: systemIds)
@@ -1031,12 +1030,12 @@ public class SystemsServiceImpl implements SystemsService
 
     // We need owner to check auth and if system not there cannot find owner, so
     // if system does not exist then return null
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
-    return dao.getTSystemOwner(authenticatedUser.getTenantId(), systemId);
+    return dao.getSystemOwner(authenticatedUser.getTenantId(), systemId);
   }
 
   // -----------------------------------------------------------------------
@@ -1072,7 +1071,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // If system does not exist or has been soft deleted then throw an exception
-    if (!dao.checkForTSystem(systemTenantName, systemId, false))
+    if (!dao.checkForSystem(systemTenantName, systemId, false))
       throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
@@ -1155,7 +1154,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // We need owner to check auth and if system not there cannot find owner, so
     // if system does not exist or has been soft deleted then return 0 changes
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return 0;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
@@ -1232,7 +1231,7 @@ public class SystemsServiceImpl implements SystemsService
          systemTenantName = authenticatedUser.getOboTenantId();
 
     // If system does not exist or has been soft deleted then return null
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1270,7 +1269,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // If system does not exist or has been soft deleted then throw an exception
-    if (!dao.checkForTSystem(systemTenantName, systemId, false))
+    if (!dao.checkForSystem(systemTenantName, systemId, false))
       throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
@@ -1340,7 +1339,7 @@ public class SystemsServiceImpl implements SystemsService
 
     int changeCount = 0;
     // If system does not exist or has been soft deleted then return 0 changes
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return changeCount;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return changeCount;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1405,7 +1404,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // If system does not exist or has been soft deleted then return null
-    if (!dao.checkForTSystem(systemTenantName, systemId, false)) return null;
+    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1413,7 +1412,7 @@ public class SystemsServiceImpl implements SystemsService
     // If authnMethod not passed in fill in with default from system
     if (authnMethod == null)
     {
-      TSystem sys = dao.getTSystem(systemTenantName, systemId);
+      TSystem sys = dao.getSystem(systemTenantName, systemId);
       if (sys == null)  throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
       authnMethod = sys.getDefaultAuthnMethod();
     }
@@ -1490,7 +1489,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new IllegalArgumentException(LibUtils.getMsgAuth("APPLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
 
     // App must already exist and not be soft deleted
-    if (!dao.checkForTSystem(appTenantName, systemId, false))
+    if (!dao.checkForSystem(appTenantName, systemId, false))
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
@@ -1562,7 +1561,7 @@ public class SystemsServiceImpl implements SystemsService
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = dao.getTSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId());
+        dtnSystem = dao.getSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId());
       }
       catch (TapisException e)
       {
@@ -1746,7 +1745,7 @@ public class SystemsServiceImpl implements SystemsService
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
     // Requires owner. If no owner specified and owner cannot be determined then log an error and deny.
-    if (StringUtils.isBlank(owner)) owner = dao.getTSystemOwner(tenantName, systemId);
+    if (StringUtils.isBlank(owner)) owner = dao.getSystemOwner(tenantName, systemId);
     if (StringUtils.isBlank(owner)) {
       String msg = LibUtils.getMsgAuth("SYSLIB_AUTH_NO_OWNER", authenticatedUser, systemId, operation.name());
       _log.error(msg);
@@ -1809,8 +1808,9 @@ public class SystemsServiceImpl implements SystemsService
   private Set<String> getAllowedSysIDs(AuthenticatedUser authenticatedUser, String systemTenantName)
           throws TapisException, TapisClientException
   {
-    // If requester is a service or an admin then all systems allowed
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()) ||
+    // If requester is a service calling as itself or an admin then all systems allowed
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()) &&
+            authenticatedUser.getName().equals(authenticatedUser.getOboUser()) ||
         hasAdminRole(authenticatedUser, null, null)) return null;
     var sysIDs = new HashSet<String>();
     var userPerms = getSKClient().getUserPerms(systemTenantName, authenticatedUser.getOboUser());
@@ -1908,7 +1908,7 @@ public class SystemsServiceImpl implements SystemsService
           throws TapisException, IllegalStateException
   {
     // Get the effectiveUserId. If not ${apiUserId} then considered an error since credential would never be used.
-    String effectiveUserId = dao.getTSystemEffectiveUserId(authenticatedUser.getTenantId(), systemId);
+    String effectiveUserId = dao.getSystemEffectiveUserId(authenticatedUser.getTenantId(), systemId);
     if (StringUtils.isBlank(effectiveUserId) || !effectiveUserId.equals(APIUSERID_VAR))
     {
       String msg = LibUtils.getMsgAuth("SYSLIB_CRED_NOTAPIUSER", authenticatedUser, systemId, op.name());
@@ -2033,7 +2033,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Fetch the system. If system not found then return
-    TSystem system = dao.getTSystem(systemTenantName, systemId, true);
+    TSystem system = dao.getSystem(systemTenantName, systemId, true);
     if (system == null) return;
 
     // Resolve effectiveUserId if necessary

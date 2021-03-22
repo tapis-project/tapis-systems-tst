@@ -20,10 +20,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
-import static edu.utexas.tacc.tapis.systems.IntegrationUtils.dtnSystem;
+import static edu.utexas.tacc.tapis.systems.IntegrationUtils.dtnSystem1;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.gson;
-import static edu.utexas.tacc.tapis.systems.IntegrationUtils.queueList2;
+import static edu.utexas.tacc.tapis.systems.IntegrationUtils.logicalQueueList2;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.scrubbedJson;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.tenantName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.capList2;
@@ -79,19 +79,19 @@ public class MatchConstraintsDaoTest
     // For half the systems vary queues and capabilities so we can test matching
     for (int i = 0; i < numSystems/2; i++)
     {
-      systems[i].setBatchLogicalQueues(queueList2);
+      systems[i].setBatchLogicalQueues(logicalQueueList2);
       systems[i].setJobCapabilities(capList2);
     }
 
     // Create all the systems in the dB using the in-memory objects, recording start and end times
     createBegin = TapisUtils.getUTCTimeNow();
     Thread.sleep(500);
-    boolean itemCreated = dao.createTSystem(authenticatedUser, dtnSystem, gson.toJson(dtnSystem), scrubbedJson);
-    Assert.assertTrue(itemCreated, "Item not created, id: " + dtnSystem.getId());
-    allowedIDs.add(dtnSystem.getId());
+    boolean itemCreated = dao.createSystem(authenticatedUser, dtnSystem1, gson.toJson(dtnSystem1), scrubbedJson);
+    Assert.assertTrue(itemCreated, "Item not created, id: " + dtnSystem1.getId());
+    allowedIDs.add(dtnSystem1.getId());
     for (TSystem sys : systems)
     {
-      itemCreated = dao.createTSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      itemCreated = dao.createSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
       allowedIDs.add(sys.getId());
     }
@@ -105,10 +105,10 @@ public class MatchConstraintsDaoTest
     //Remove all objects created by tests
     for (TSystem sys : systems)
     {
-      dao.hardDeleteTSystem(tenantName, sys.getId());
+      dao.hardDeleteSystem(tenantName, sys.getId());
     }
 
-    TSystem tmpSystem = dao.getTSystem(tenantName, systems[0].getId(), true);
+    TSystem tmpSystem = dao.getSystem(tenantName, systems[0].getId(), true);
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
   }
 
@@ -222,7 +222,7 @@ public class MatchConstraintsDaoTest
       // TODO
       ASTNode matchAST = ASTParser.parse(cd.sqlMatchStr);
       System.out.println("  Created AST with leaf node count: " + matchAST.countLeaves());
-      List<TSystem> matchResults = dao.getTSystemsSatisfyingConstraints(tenantName, matchAST, allowedIDs);
+      List<TSystem> matchResults = dao.getSystemsSatisfyingConstraints(tenantName, matchAST, allowedIDs);
       System.out.println("  Result size: " + matchResults.size());
       assertEquals(matchResults.size(), cd.count, "MatchConstraintsDaoTest.testValidCases: Incorrect result count for case number: " + caseNum);
     }
