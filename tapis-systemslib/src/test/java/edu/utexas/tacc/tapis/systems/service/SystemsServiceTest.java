@@ -52,8 +52,8 @@ public class SystemsServiceTest
   private SystemsService svc;
   private SystemsServiceImpl svcImpl;
   private AuthenticatedUser authenticatedOwner1, authenticatedTestUser0, authenticatedTestUser1, authenticatedTestUser2,
-          authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedFilesSvc1,
-          authenticatedFilesSvc3, authenticatedFilesSvc4, authenticatedSystemsSvc;
+          authenticatedTestUser3, authenticatedTestUser4, authenticatedAdminUser, authenticatedSystemsSvc,
+          authenticatedFilesSvcOwner1, authenticatedFilesSvcTestUser3, authenticatedFilesSvcTestUser4;
 
   // Create test system definitions in memory
   int numSystems = 23;
@@ -87,10 +87,10 @@ public class SystemsServiceTest
     svcImpl.initService(siteId, adminTenantName, RuntimeParameters.getInstance().getServicePassword());
 
     // Initialize authenticated user and service
-    authenticatedOwner1 = new AuthenticatedUser(owner1, tenantName, TapisThreadContext.AccountType.user.name(),
-                                                    null, owner1, tenantName, null, null, null);
     authenticatedAdminUser = new AuthenticatedUser(adminUser, tenantName, TapisThreadContext.AccountType.user.name(),
                                                     null, adminUser, tenantName, null, null, null);
+    authenticatedOwner1 = new AuthenticatedUser(owner1, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                null, owner1, tenantName, null, null, null);
     authenticatedTestUser0 = new AuthenticatedUser(testUser0, tenantName, TapisThreadContext.AccountType.user.name(),
                                                    null, testUser0, tenantName, null, null, null);
     authenticatedTestUser1 = new AuthenticatedUser(testUser1, tenantName, TapisThreadContext.AccountType.user.name(),
@@ -103,11 +103,11 @@ public class SystemsServiceTest
                                                    null, testUser4, tenantName, null, null, null);
     authenticatedSystemsSvc = new AuthenticatedUser(svcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                     null, svcName, adminTenantName, null, null, null);
-    authenticatedFilesSvc1 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+    authenticatedFilesSvcOwner1 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                    null, owner1, tenantName, null, null, null);
-    authenticatedFilesSvc3 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+    authenticatedFilesSvcTestUser3 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                    null, testUser3, tenantName, null, null, null);
-    authenticatedFilesSvc4 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
+    authenticatedFilesSvcTestUser4 = new AuthenticatedUser(filesSvcName, adminTenantName, TapisThreadContext.AccountType.service.name(),
                                                    null, testUser4, tenantName, null, null, null);
 
     // Cleanup anything leftover from previous failed run
@@ -180,7 +180,7 @@ public class SystemsServiceTest
     checkCommonSysAttrs(sys0, tmpSys);
     // Retrieve the system including the credential using the default authn method defined for the system
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, null, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), true, null, false);
     checkCommonSysAttrs(sys0, tmpSys);
     // Verify credentials. Only cred for default authnMethod is returned. In this case PKI_KEYS.
     Credential cred = tmpSys.getAuthnCredential();
@@ -193,7 +193,7 @@ public class SystemsServiceTest
     Assert.assertNull(cred.getCertificate(), "AuthnCredential certificate should be null");
 
     // Test retrieval using specified authn method
-    tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
     System.out.println("Found item: " + sys0.getId());
     // Verify credentials. Only cred for default authnMethod is returned. In this case PASSWORD.
     cred = tmpSys.getAuthnCredential();
@@ -430,7 +430,7 @@ public class SystemsServiceTest
     Assert.assertEquals(systems.size(), 2);
 
     // When retrieving systems as a service with oboUser = testuser4 only 2 should be returned.
-    systems = svc.getSystems(authenticatedFilesSvc4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
+    systems = svc.getSystems(authenticatedFilesSvcTestUser4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
     System.out.println("Total number of systems retrieved by Files svc calling with oboUser=testuser4: " + systems.size());
     for (TSystem system : systems)
     {
@@ -567,6 +567,26 @@ public class SystemsServiceTest
     // Get the system perms for the user and make sure permissions are gone.
     userPerms = svc.getUserPermissions(authenticatedOwner1, sys0.getId(), testUser3);
     for (Permission perm: testPermsREADMODIFY) { if (userPerms.contains(perm)) Assert.fail("User perms should not contain permission: " + perm.name()); }
+
+    // Owner should not be able to update perms. It would be confusing since owner always authorized. Perms not checked.
+    boolean pass = false;
+    try {
+      svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), sys0.getOwner(), testPermsREAD, scrubbedJson);
+      Assert.fail("Update of perms by owner for owner should have thrown an exception");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_PERM_OWNER_UPDATE"));
+      pass = true;
+    }
+    Assert.assertTrue(pass, "Update of perms by owner for owner did not throw correct exception");
+    pass = false;
+    try {
+      svc.revokeUserPermissions(authenticatedOwner1, sys0.getId(), sys0.getOwner(), testPermsREAD, scrubbedJson);
+      Assert.fail("Update of perms by owner for owner should have thrown an exception");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_PERM_OWNER_UPDATE"));
+      pass = true;
+    }
+    Assert.assertTrue(pass, "Update of perms by owner for owner did not throw correct exception");
   }
 
   // Test creating, reading and deleting user credentials for a system
@@ -587,14 +607,14 @@ public class SystemsServiceTest
     svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
 
     // Get system as owner1 using files service and should get cred for owner1
-    TSystem tmpSys = svc.getSystem(authenticatedFilesSvc1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    TSystem tmpSys = svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
     Credential cred0 = tmpSys.getAuthnCredential();
     Assert.assertNotNull(cred0, "AuthnCredential should not be null for user: " + owner1);
     Assert.assertNotNull(cred0.getPassword(), "AuthnCredential password should not be null for user: " + owner1);
     Assert.assertEquals(cred0.getPassword(), cred1.getPassword());
 
     // Get system as testUser3 using files service and should get cred for testUser3
-    tmpSys = svc.getSystem(authenticatedFilesSvc3, sys0.getId(), true, AuthnMethod.PASSWORD, false);
+    tmpSys = svc.getSystem(authenticatedFilesSvcTestUser3, sys0.getId(), true, AuthnMethod.PASSWORD, false);
     cred0 = tmpSys.getAuthnCredential();
     Assert.assertNotNull(cred0, "AuthnCredential should not be null for user: " + testUser3);
     Assert.assertNotNull(cred0.getPassword(), "AuthnCredential password should not be null for user: " + testUser3);
@@ -602,13 +622,13 @@ public class SystemsServiceTest
 
     // Get credentials for testUser3 and validate
     // Use files service AuthenticatedUser since only certain services can retrieve the cred.
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
     // Verify credentials
     Assert.assertEquals(cred0.getPassword(), cred3.getPassword());
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
     Assert.assertEquals(cred0.getPublicKey(), cred3.getPublicKey());
     Assert.assertEquals(cred0.getPrivateKey(), cred3.getPrivateKey());
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
     Assert.assertEquals(cred0.getAccessKey(), cred3.getAccessKey());
     Assert.assertEquals(cred0.getAccessSecret(), cred3.getAccessSecret());
 
@@ -618,9 +638,9 @@ public class SystemsServiceTest
     changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when removing credential for user: " + testUser3);
 
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1, AuthnMethod.PASSWORD);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), owner1, AuthnMethod.PASSWORD);
     Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + owner1);
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
     Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
 
     // Attempt to delete again, should return 0 for change count
@@ -630,16 +650,16 @@ public class SystemsServiceTest
     // Set just ACCESS_KEY only and test
     cred3 = new Credential(null, null, null, "fakeAccessKey3a", "fakeAccessSecret3a", null);
     svc.createUserCredential(authenticatedOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
     Assert.assertEquals(cred0.getAccessKey(), cred3.getAccessKey());
     Assert.assertEquals(cred0.getAccessSecret(), cred3.getAccessSecret());
     // Attempt to retrieve secret that has not been set
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
     Assert.assertNull(cred0, "Credential was non-null for missing secret. System name: " + sys0.getId() + " User name: " + testUser3);
     // Delete credentials and verify they were destroyed
     changeCount = svc.deleteUserCredential(authenticatedOwner1, sys0.getId(), testUser3);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when removing a credential.");
-    cred0 = svc.getUserCredential(authenticatedFilesSvc1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+    cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
     Assert.assertNull(cred0, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
   }
 
@@ -723,7 +743,7 @@ public class SystemsServiceTest
   // testUser0 - no perms, not owner
   // testUser3 - READ perm
   // testUser2 - MODIFY perm
-  // NOTE: testUser1 is owner - all perms
+  // NOTE: owner1 is owner - all perms
   @Test
   public void testAuthDeny() throws Exception
   {
@@ -747,7 +767,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.createSystem(authenticatedFilesSvc1, sys0, scrubbedJson); }
+    try { svc.createSystem(authenticatedFilesSvcOwner1, sys0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -803,7 +823,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.updateSystem(authenticatedFilesSvc1, patchSys, scrubbedJson); }
+    try { svc.updateSystem(authenticatedFilesSvcOwner1, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -821,7 +841,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.softDeleteSystem(authenticatedFilesSvc1, sys0.getId()); }
+    try { svc.softDeleteSystem(authenticatedFilesSvcOwner1, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -839,7 +859,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.changeSystemOwner(authenticatedFilesSvc1, sys0.getId(), testUser2); }
+    try { svc.changeSystemOwner(authenticatedFilesSvcOwner1, sys0.getId(), testUser2); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -867,7 +887,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.grantUserPermissions(authenticatedFilesSvc1, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
+    try { svc.grantUserPermissions(authenticatedFilesSvcOwner1, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -885,7 +905,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.grantUserPermissions(authenticatedFilesSvc1, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
+    try { svc.revokeUserPermissions(authenticatedFilesSvcOwner1, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -903,7 +923,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.createUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1, cred0, scrubbedJson); }
+    try { svc.createUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), owner1, cred0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -921,7 +941,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.deleteUserCredential(authenticatedFilesSvc1, sys0.getId(), owner1); }
+    try { svc.deleteUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), owner1); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
@@ -984,7 +1004,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = true;
-    try { svc.getSystem(authenticatedFilesSvc1, sys0.getId(), false, null, false); }
+    try { svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), false, null, false); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
