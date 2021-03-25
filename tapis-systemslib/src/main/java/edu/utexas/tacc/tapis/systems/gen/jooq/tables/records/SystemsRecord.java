@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Systems;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -1882421586;
+    private static final long serialVersionUID = -1140091905;
 
     /**
      * Setter for <code>tapis_sys.systems.seq_id</code>. System sequence id
@@ -406,15 +407,15 @@ public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
     /**
      * Setter for <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
      */
-    public void setBatchScheduler(String value) {
+    public void setBatchScheduler(SchedulerType value) {
         set(27, value);
     }
 
     /**
      * Getter for <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
      */
-    public String getBatchScheduler() {
-        return (String) get(27);
+    public SchedulerType getBatchScheduler() {
+        return (SchedulerType) get(27);
     }
 
     /**
@@ -538,7 +539,7 @@ public class SystemsRecord extends UpdatableRecordImpl<SystemsRecord> {
     /**
      * Create a detached, initialised SystemsRecord
      */
-    public SystemsRecord(Integer seqId, String tenant, String id, String description, SystemType systemType, String owner, String host, Boolean enabled, String effectiveUserId, AuthnMethod defaultAuthnMethod, String bucketName, String rootDir, String[] transferMethods, Integer port, Boolean useProxy, String proxyHost, Integer proxyPort, String dtnSystemId, String dtnMountPoint, String dtnMountSourcePath, Boolean isDtn, Boolean canExec, String jobWorkingDir, String[] jobEnvVariables, Integer jobMaxJobs, Integer jobMaxJobsPerUser, Boolean jobIsBatch, String batchScheduler, String batchDefaultLogicalQueue, String[] tags, JsonElement notes, UUID uuid, Boolean deleted, LocalDateTime created, LocalDateTime updated) {
+    public SystemsRecord(Integer seqId, String tenant, String id, String description, SystemType systemType, String owner, String host, Boolean enabled, String effectiveUserId, AuthnMethod defaultAuthnMethod, String bucketName, String rootDir, String[] transferMethods, Integer port, Boolean useProxy, String proxyHost, Integer proxyPort, String dtnSystemId, String dtnMountPoint, String dtnMountSourcePath, Boolean isDtn, Boolean canExec, String jobWorkingDir, String[] jobEnvVariables, Integer jobMaxJobs, Integer jobMaxJobsPerUser, Boolean jobIsBatch, SchedulerType batchScheduler, String batchDefaultLogicalQueue, String[] tags, JsonElement notes, UUID uuid, Boolean deleted, LocalDateTime created, LocalDateTime updated) {
         super(Systems.SYSTEMS);
 
         set(0, seqId);

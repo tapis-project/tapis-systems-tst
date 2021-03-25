@@ -9,6 +9,7 @@ import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public final class ReqCreateSystem
   public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
   public int jobMaxJobsPerUser = DEFAULT_JOBMAXJOBSPERUSER;
   public boolean jobIsBatch;
-  public String batchScheduler;
+  public SchedulerType batchScheduler;
   public List<LogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities; // List of job related capabilities supported by the system

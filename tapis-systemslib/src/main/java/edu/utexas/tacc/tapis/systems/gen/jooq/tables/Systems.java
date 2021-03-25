@@ -12,6 +12,7 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = -245522709;
+    private static final long serialVersionUID = 819017828;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -193,7 +194,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
      */
-    public final TableField<SystemsRecord, String> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.CLOB, this, "Type of scheduler used when running batch jobs");
+    public final TableField<SystemsRecord, SchedulerType> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.VARCHAR.asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType.class), this, "Type of scheduler used when running batch jobs", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType, edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType.class, edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType.class));
 
     /**
      * The column <code>tapis_sys.systems.batch_default_logical_queue</code>. Default logical batch queue for the system

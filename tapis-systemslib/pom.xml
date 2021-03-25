@@ -275,6 +275,12 @@
                     <includeTypes>.*</includeTypes>
                   </forcedType>
                   <forcedType>
+                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType</userType>
+                    <enumConverter>true</enumConverter>
+                    <includeExpression>systems\.batch_scheduler</includeExpression>
+                    <includeTypes>.*</includeTypes>
+                  </forcedType>
+                  <forcedType>
                     <userType>edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod</userType>
                     <enumConverter>true</enumConverter>
                     <includeExpression>systems\.default_authn_method</includeExpression>

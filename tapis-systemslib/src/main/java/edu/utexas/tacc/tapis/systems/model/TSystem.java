@@ -58,7 +58,6 @@ public final class TSystem
   public static final String DTNMOUNTPOINT_FIELD = "dtnMountPoint";
   public static final String DTNMOUNTSRCPATH_FIELD = "dtnMountSourcePath";
   public static final String JOBWRKDIR_FIELD = "jobWorkingDir";
-  public static final String BATCHSCHED_FIELD = "batchScheduler";
   public static final String NOTES_FIELD = "notes";
   public static final String SYSTEM_TYPE_FIELD = "systemType";
   public static final String HOST_FIELD = "host";
@@ -97,7 +96,6 @@ public final class TSystem
   private final Integer MAX_PATH_LEN = 4096;
   private final Integer MAX_USERNAME_LEN = 60;
   private final Integer MAX_BUCKETNAME_LEN = 63;
-  private final Integer MAX_SCHEDNAME_LEN = 64;
   private final Integer MAX_QUEUENAME_LEN = 128;
   private final Integer MAX_HPCQUEUENAME_LEN = 128;
   private final Integer MAX_RUNTIME_VER_LEN = 128;
@@ -113,6 +111,7 @@ public final class TSystem
   public enum Permission {READ, MODIFY, EXECUTE}
   public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
   public enum TransferMethod {SFTP, S3, FTP, IRODS}
+  public enum SchedulerType {SLURM, CONDOR, PBS, SGE, UGE, TORQUE}
 
   // ************************************************************************
   // *********************** Fields *****************************************
@@ -148,7 +147,7 @@ public final class TSystem
   private int jobMaxJobs;
   private int jobMaxJobsPerUser;
   private boolean jobIsBatch;
-  private String batchScheduler;
+  private SchedulerType batchScheduler;
   private List<LogicalQueue> batchLogicalQueues;
   private String batchDefaultLogicalQueue;
   private List<Capability> jobCapabilities; // List of job related capabilities supported by the system
@@ -188,7 +187,7 @@ public final class TSystem
                  List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
                  String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, boolean isDtn1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
-                 int jobMaxJobsPerUser1, boolean jobIsBatch1, String batchScheduler1, String batchDefaultLogicalQueue1,
+                 int jobMaxJobsPerUser1, boolean jobIsBatch1, SchedulerType batchScheduler1, String batchDefaultLogicalQueue1,
                  String[] tags1, Object notes1, UUID uuid1, boolean deleted1,
                  Instant created1, Instant updated1)
   {
@@ -378,6 +377,7 @@ public final class TSystem
   /**
    * Check for invalid attributes
    *   systemId, host
+   *   rootDir must start with /
    */
   private void checkAttrValidity(List<String> errMessages)
   {
@@ -385,13 +385,15 @@ public final class TSystem
 
     if (!StringUtils.isBlank(host) && !isValidHost(host))
       errMessages.add(LibUtils.getMsg(INVALID_STR_ATTR, HOST_FIELD, host));
+
+    if (!StringUtils.isBlank(rootDir) && !rootDir.startsWith("/"))
+      errMessages.add(LibUtils.getMsg("SYSLIB_LINUX_ROOTDIR_NOSLASH", rootDir));
   }
 
   /**
    * Check for attribute strings that exceed limits
    *   id, description, owner, effectiveUserId, bucketName, rootDir
    *   dtnSystemId, dtnMountPoint, dtnMountSourcePath, jobWorkingDir
-   *   batchScheduler
    */
   private void checkAttrStringLengths(List<String> errMessages)
   {
@@ -444,11 +446,6 @@ public final class TSystem
     {
       errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, JOBWRKDIR_FIELD, MAX_PATH_LEN));
     }
-
-    if (!StringUtils.isBlank(batchScheduler) && batchScheduler.length() > MAX_SCHEDNAME_LEN)
-    {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, BATCHSCHED_FIELD, MAX_SCHEDNAME_LEN));
-    }
   }
 
   /**
@@ -479,7 +476,7 @@ public final class TSystem
               !(jobCapabilities == null || jobCapabilities.isEmpty()) ||
               !(jobRuntimes == null || jobRuntimes.isEmpty()) ||
               !(jobEnvVariables == null || jobEnvVariables.length == 0) ||
-              !StringUtils.isBlank(batchScheduler) ||
+              !(batchScheduler == null) ||
               !StringUtils.isBlank(batchDefaultLogicalQueue) ||
               !(batchLogicalQueues == null || batchLogicalQueues.isEmpty()) )
     {
@@ -499,7 +496,7 @@ public final class TSystem
    */
   private void checkAttrJobIsBatch(List<String> errMessages)
   {
-    if (StringUtils.isBlank(batchScheduler)) errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_NOSCHED"));
+    if (batchScheduler == null) errMessages.add(LibUtils.getMsg("SYSLIB_ISBATCH_NOSCHED"));
 
     if (batchLogicalQueues == null || batchLogicalQueues.isEmpty())
     {
@@ -714,8 +711,8 @@ public final class TSystem
   public boolean getJobIsBatch() { return jobIsBatch; }
   public TSystem setJobIsBatch(boolean b) { jobIsBatch = b; return this; }
 
-  public String getBatchScheduler() { return batchScheduler; }
-  public TSystem setBatchScheduler(String s) { batchScheduler = s; return this; }
+  public SchedulerType getBatchScheduler() { return batchScheduler; }
+  public TSystem setBatchScheduler(SchedulerType s) { batchScheduler = s; return this; }
 
   public List<LogicalQueue> getBatchLogicalQueues() {
     return (batchLogicalQueues == null) ? null : new ArrayList<>(batchLogicalQueues);

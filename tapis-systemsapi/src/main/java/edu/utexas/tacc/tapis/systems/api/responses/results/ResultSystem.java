@@ -48,7 +48,7 @@ public final class ResultSystem
   public int jobMaxJobs;
   public int jobMaxJobsPerUser;
   public boolean jobIsBatch;
-  public String batchScheduler;
+  public TSystem.SchedulerType batchScheduler;
   public List<ResultLogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities;

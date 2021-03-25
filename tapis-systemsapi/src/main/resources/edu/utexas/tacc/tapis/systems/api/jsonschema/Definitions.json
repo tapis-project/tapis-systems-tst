@@ -11,6 +11,7 @@
   "SystemTypeEnum": { "type": "string", "enum": ["LINUX","OBJECT_STORE"] },
   "TransferMethodEnum": { "type": "string", "enum": ["SFTP","S3","FTP","IRODS"] },
   "AuthnMethodEnum": { "type": "string", "enum": ["PASSWORD","PKI_KEYS","ACCESS_KEY","CERT"] },
+  "SchedulerTypeEnum": { "type": "string", "enum": ["SLURM","CONDOR","PBS","SGE","UGE","TORQUE"] },
   "tagsDefinition": {
     "type": "array",
     "items": { "type":  "string", "minLength": 1, "maxLength": 128 }

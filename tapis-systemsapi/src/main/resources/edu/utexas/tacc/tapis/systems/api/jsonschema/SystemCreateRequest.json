@@ -41,7 +41,7 @@
     "jobMaxJobs": { "type": "integer" },
     "jobMaxJobsPerUser": { "type": "integer" },
     "jobIsBatch": { "type": "boolean" },
-    "batchScheduler": { "type": "string", "maxLength": 64 },
+    "batchScheduler": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/SchedulerTypeEnum" },
     "batchLogicalQueues": {
       "type": "array",
       "uniqueItems": true,

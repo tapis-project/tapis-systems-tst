@@ -155,7 +155,7 @@ public class SearchDaoTest
     validCaseInputs.put(4, new CaseData(1, Arrays.asList("bucket_name.eq." + sys0.getBucketName())));
     validCaseInputs.put(5, new CaseData(1, Arrays.asList("root_dir.eq." + sys0.getRootDir())));
     validCaseInputs.put(6, new CaseData(1, Arrays.asList("job_working_dir.eq." + sys0.getJobWorkingDir())));
-    validCaseInputs.put(7, new CaseData(1, Arrays.asList("batch_scheduler.eq." + sys0.getBatchScheduler())));
+    validCaseInputs.put(7, new CaseData(20, Arrays.asList("id.like." + sysNameLikeAll, "batch_scheduler.eq." + sys0.getBatchScheduler())));
     validCaseInputs.put(8, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "batch_default_logical_queue.eq." + sys0.getBatchDefaultLogicalQueue())));
     validCaseInputs.put(10, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + owner1)));  // Half owned by one user
     validCaseInputs.put(11, new CaseData(numSystems / 2, Arrays.asList("id.like." + sysNameLikeAll, "owner.eq." + owner2))); // and half owned by another

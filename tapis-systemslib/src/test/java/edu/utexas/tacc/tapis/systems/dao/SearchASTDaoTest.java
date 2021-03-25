@@ -143,7 +143,7 @@ public class SearchASTDaoTest
     validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sq(sys0.getBucketName())));
 //    validCaseInputs.put( 5,new CaseData(1, "root_dir = " + sys0.getRootDir())); // TODO underscore
     validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sq(sys0.getJobWorkingDir())));
-    validCaseInputs.put( 7,new CaseData(1, "batch_scheduler = " + sq(sys0.getBatchScheduler())));
+    validCaseInputs.put( 7,new CaseData(20, "id LIKE " + sysNameLikeAll + "AND batch_scheduler = " + sq(sys0.getBatchScheduler().name())));
     validCaseInputs.put( 8,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + "AND batch_default_logical_queue = " + sq(sys0.getBatchDefaultLogicalQueue())));
     validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner1)));  // Half owned by one user
     validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner2))); // and half owned by another

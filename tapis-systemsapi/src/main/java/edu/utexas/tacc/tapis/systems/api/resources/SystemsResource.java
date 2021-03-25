@@ -93,10 +93,10 @@ public class SystemsResource
   private Request _request;
 
   // Count the number of health check requests received.
-  private static final AtomicLong _healthCheckCount = new AtomicLong();
+  private static final AtomicLong healthCheckCount = new AtomicLong();
 
   // Count the number of health check requests received.
-  private static final AtomicLong _readyCheckCount = new AtomicLong();
+  private static final AtomicLong readyCheckCount = new AtomicLong();
 
   // Use CallSiteToggle to limit logging for readyCheck endpoint
   private static final CallSiteToggle checkTenantsOK = new CallSiteToggle();
@@ -126,7 +126,7 @@ public class SystemsResource
   public Response healthCheck()
   {
     // Get the current check count.
-    long checkNum = _healthCheckCount.incrementAndGet();
+    long checkNum = healthCheckCount.incrementAndGet();
     RespBasic resp = new RespBasic("Health check received. Count: " + checkNum);
 
     // Manually create a success response with git info included in version
@@ -174,7 +174,7 @@ public class SystemsResource
   public Response readyCheck()
   {
     // Get the current check count.
-    long checkNum = _readyCheckCount.incrementAndGet();
+    long checkNum = readyCheckCount.incrementAndGet();
 
     // Check that we can get tenants list
     Exception readyCheckException = checkTenants();

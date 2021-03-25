@@ -12,6 +12,7 @@ import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,6 +38,9 @@ public final class IntegrationUtils
   public static final String filesSvcName = "files";
   public static final String adminUser = "testuser9";
   //TODO  private static final String adminUser = "admin";
+
+  // NOTE: Continue to use the fake users owner1, owner2 since some operations involve modifying credentials
+  //       Although it should not be a problem because credentials are stored for each system it is best to be safe.
   public static final String owner1 = "owner1";
   public static final String owner2 = "owner2";
   public static final String testUser0 = "testuser0";
@@ -85,8 +89,8 @@ public final class IntegrationUtils
   public static final String jobWorkingDir1 = "/fake/job/working_dir1";
   public static final String jobWorkingDir2 = "/fake/job/working_dir2";
   public static final String jobWorkingDirNull = null;
-  public static final String batchScheduler1 = "SLURM";
-  public static final String batchScheduler2 = "PBS";
+  public static final SchedulerType batchScheduler1 = SchedulerType.SLURM;
+  public static final SchedulerType batchScheduler2 = SchedulerType.PBS;
   public static final String batchDefaultLogicalQueue1 = "lqA1";
   public static final String batchDefaultLogicalQueue2 = "lqA2";
   public static final String batchDefaultLogicalQueueNull = null;
@@ -97,7 +101,7 @@ public final class IntegrationUtils
   public static final String[] jobEnvVariables1 = {"a1=b1", "HOME=/home/testuser1", "TMP=/tmp1"};
   public static final String[] jobEnvVariables2 = {"a2=b2", "HOME=/home/testuser2", "TMP=/tmp2"};
   public static final String[] jobEnvVariablesNull = null;
-  public static final String batchSchedulerNull = null;
+  public static final SchedulerType batchSchedulerNull = null;
   public static final String queueNameNull = null;
   public static final boolean jobIsBatchTrue = true;
   public static final boolean jobIsBatchFalse = false;
@@ -239,7 +243,7 @@ public final class IntegrationUtils
               prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
               dtnSystemId1, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse,
               canExecTrue, "jobWorkDir"+suffix, jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue,
-              "batchScheduler"+suffix, queueA1.getName(), tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
+              batchScheduler1, queueA1.getName(), tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
       systems[i].setJobRuntimes(runtimeList1);
       systems[i].setBatchLogicalQueues(logicalQueueList1);
       systems[i].setJobCapabilities(capList1);

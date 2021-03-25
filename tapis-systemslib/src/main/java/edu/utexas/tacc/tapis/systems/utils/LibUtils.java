@@ -125,7 +125,7 @@ public class LibUtils
    */
   public static String getTransferMethodsAsString(List<TransferMethod> txfrMethods)
   {
-    if (txfrMethods == null || txfrMethods.size() == 0) return TSystem.EMPTY_TRANSFER_METHODS_STR;
+    if (txfrMethods == null || txfrMethods.isEmpty()) return TSystem.EMPTY_TRANSFER_METHODS_STR;
     StringBuilder sb = new StringBuilder("{");
     for (int i = 0; i < txfrMethods.size()-1; i++)
     {

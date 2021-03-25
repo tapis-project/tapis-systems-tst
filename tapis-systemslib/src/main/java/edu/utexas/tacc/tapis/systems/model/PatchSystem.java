@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
+import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public final class PatchSystem
   private final Integer jobMaxJobs;
   private final Integer jobMaxJobsPerUser;
   private final Boolean jobIsBatch;
-  private final String batchScheduler;
+  private final SchedulerType batchScheduler;
   private final List<LogicalQueue> batchLogicalQueues;
   private final String batchDefaultLogicalQueue;
   private final List<Capability> jobCapabilities;
@@ -56,7 +57,7 @@ public final class PatchSystem
                      String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1,
                      List<JobRuntime> jobRuntimes1, String jobWorkingDir1, String[] jobEnvVariables1,
                      Integer jobMaxJobs1, Integer jobMaxJobsPerUser1, Boolean jobIsBatch1,
-                     String batchScheduler1, List<LogicalQueue> batchLogicalQueues1, String batchDefaultLogicalQueue1,
+                     SchedulerType batchScheduler1, List<LogicalQueue> batchLogicalQueues1, String batchDefaultLogicalQueue1,
                      List<Capability> jobCapabilities1, String[] tags1, Object notes1)
   {
     description = description1;
@@ -136,7 +137,7 @@ public final class PatchSystem
 
   public Boolean getJobIsBatch() { return jobIsBatch; }
 
-  public String getBatchScheduler() { return batchScheduler; }
+  public SchedulerType getBatchScheduler() { return batchScheduler; }
 
   public List<LogicalQueue> getBatchLogicalQueues() {
     return (batchLogicalQueues == null) ? null : new ArrayList<>(batchLogicalQueues);

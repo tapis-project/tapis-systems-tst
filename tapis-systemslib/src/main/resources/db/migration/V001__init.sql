@@ -43,6 +43,7 @@ CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
 CREATE TYPE authn_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
 CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');
 CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'NUMBER', 'TIMESTAMP');
+CREATE TYPE scheduler_type_type AS ENUM ('SLURM', 'CONDOR', 'PBS', 'SGE', 'UGE', 'TORQUE');
 
 -- ----------------------------------------------------------------------------------------
 --                                     SYSTEMS
@@ -78,7 +79,7 @@ CREATE TABLE systems
   job_max_jobs INTEGER NOT NULL DEFAULT -1,
   job_max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
   job_is_batch BOOLEAN NOT NULL DEFAULT false,
-  batch_scheduler TEXT,
+  batch_scheduler scheduler_type_type,
   batch_default_logical_queue TEXT,
   tags       TEXT[] NOT NULL,
   notes      JSONB NOT NULL,

@@ -339,7 +339,7 @@ public class SystemsDaoTest
             "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse, canExecTrue, "jobWorkDir",
-            jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue, "batchScheduler", "batchDefaultLogicalQueue",
+            jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, "batchDefaultLogicalQueue",
             tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
     // Make sure system does not exist
     Assert.assertFalse(dao.checkForSystem(tenantName, fakeSystemName, true));

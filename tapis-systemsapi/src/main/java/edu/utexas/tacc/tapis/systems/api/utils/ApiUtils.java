@@ -84,7 +84,6 @@ public class ApiUtils
    */
   public static String getMsg(String key, Locale locale, Object... parms)
   {
-    // TODO: Pull tenant name from thread context and include it in the message
     String msgValue = null;
 
     if (locale == null) locale = Locale.getDefault();
@@ -127,12 +126,15 @@ public class ApiUtils
     else return jelem.getAsString();
   }
 
+  /**
+   * Validate call checks for tenantId, user and accountType
+   * If all OK return null, else return error response.
+   * @param threadContext thread context to check
+   * @return null if all OK else error response
+   */
   public static Response checkContext(TapisThreadContext threadContext, boolean prettyPrint)
   {
-    // Validate call checks for tenantId, user and accountType
-    // If all OK return null, else return error response.
     if (threadContext.validate()) return null;
-
     String msg = MsgUtils.getMsg("TAPIS_INVALID_THREADLOCAL_VALUE", "validate");
     _log.error(msg);
     return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
