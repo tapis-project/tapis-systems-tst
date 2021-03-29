@@ -306,10 +306,12 @@ public class SystemsServiceTest
     {
       Assert.assertTrue(userPerms.contains(perm));
     }
-    // Original owner should no longer have the modify permission
-    // TODO/TBD: what about EXECUTE?
+    // Original owner should no longer have the modify or execute permission
     userPerms = svc.getUserPermissions(authenticatedTestUser2, sys0.getId(), owner1);
+    Assert.assertFalse(userPerms.contains(Permission.READ));
     Assert.assertFalse(userPerms.contains(Permission.MODIFY));
+    Assert.assertFalse(userPerms.contains(Permission.EXECUTE));
+    Assert.assertTrue(userPerms.isEmpty());
     // Original owner should not be able to modify system
     try {
       svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
@@ -329,7 +331,7 @@ public class SystemsServiceTest
   }
 
   // Check that when a system is created variable substitution is correct for:
-  //   owner, bucketName, rootDir, ...
+  //   owner, effectiveUser, bucketName, rootDir, jobWorkingDir
   // And when system is retrieved effectiveUserId is resolved
   @Test
   public void testGetSystemWithVariables() throws Exception
@@ -344,11 +346,6 @@ public class SystemsServiceTest
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
-
-// sys8 = {tenantName, "Ssys8", "description 8", SystemType.LINUX.name(), "${apiUserId}", "host8",
-//         "${owner}", prot1AuthnMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}", prot1TxfrMethods,
-//         "jobWorkDir8/${owner}/${tenant}/${apiUserId}", "jobLocalArchDir8/${apiUserId}", "jobRemoteArchSystem8",
-//         "jobRemoteArchDir8${owner}${tenant}${apiUserId}", tags, notes, "{}"};
     String effectiveUserId = owner1;
     String bucketName = "bucket8-" + tenantName + "-" + effectiveUserId;
     String rootDir = "/root8/" + tenantName;
@@ -712,16 +709,6 @@ public class SystemsServiceTest
     //Get credential with no system should return null
     Credential cred = svc.getUserCredential(authenticatedOwner1, fakeSystemName, fakeUserName, AuthnMethod.PKI_KEYS);
     Assert.assertNull(cred, "Credential was not null for non-existent system");
-//    // Get credential with no system should throw an exception
-//    // TODO/TBD: this is inconsistent other GETs return null. Make them consistent once decided?
-//    pass = false;
-//    try { svc.getUserCredential(authenticatedUser, fakeSystemName, fakeUserName, AuthnMethod.PKI_KEYS); }
-//    catch (TapisException te)
-//    {
-//      Assert.assertTrue(te.getMessage().startsWith("SYSLIB_NOT_FOUND"));
-//      pass = true;
-//    }
-//    Assert.assertTrue(pass);
 
     // Create credential with no system should throw an exception
     pass = false;
