@@ -37,7 +37,6 @@ public final class IntegrationUtils
   public static final String svcName = "systems";
   public static final String filesSvcName = "files";
   public static final String adminUser = "testuser9";
-  //TODO  private static final String adminUser = "admin";
 
   // NOTE: Continue to use the fake users owner1, owner2 since some operations involve modifying credentials
   //       Although it should not be a problem because credentials are stored for each system it is best to be safe.

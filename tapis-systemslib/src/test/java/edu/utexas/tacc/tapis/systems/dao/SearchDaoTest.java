@@ -30,7 +30,6 @@ import static org.testng.Assert.assertEquals;
  *       For this reason there is currently no need to have a SearchSystemsTest suite.
  *       If this changes then we will need to create another suite and move the test data into IntegrationUtils so that
  *       it can be re-used.
- * TODO: Test that timestamps are handling timezone correctly.
  */
 @Test(groups={"integration"})
 public class SearchDaoTest

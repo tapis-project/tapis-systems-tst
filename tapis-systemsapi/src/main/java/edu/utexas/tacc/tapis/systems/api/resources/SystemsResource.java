@@ -23,7 +23,6 @@ import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.utils.CallSiteToggle;
-import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespBasic;
@@ -133,8 +132,7 @@ public class SystemsResource
     resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
     resp.message = MsgUtils.getMsg("TAPIS_HEALTHY", "Systems Service");
     resp.version = TapisUtils.getTapisFullVersion();
-    String respStr = TapisGsonUtils.getGson().toJson(resp);
-    return Response.status(Status.OK).entity(respStr).build();
+    return Response.ok(resp).build();
   }
 
   /**
@@ -243,8 +241,7 @@ public class SystemsResource
     resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
     resp.message = MsgUtils.getMsg("TAPIS_READY", "Systems Service");
     resp.version = TapisUtils.getTapisFullVersion();
-    String respStr = TapisGsonUtils.getGson().toJson(resp);
-    return Response.status(Status.OK).entity(respStr).build();
+    return Response.ok(resp).build();
   }
 
   /* **************************************************************************** */
