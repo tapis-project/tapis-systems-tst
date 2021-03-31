@@ -77,7 +77,9 @@ public class SystemsServiceImpl implements SystemsService
 
   private static final Set<Permission> ALL_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY, Permission.EXECUTE));
   private static final Set<Permission> READMODIFY_PERMS = new HashSet<>(Set.of(Permission.READ, Permission.MODIFY));
+  // Permspec format for systems is "system:<tenant>:<perm_list>:<system_id>"
   private static final String PERM_SPEC_PREFIX = "system";
+  private static final String PERM_SPEC_TEMPLATE = "system:%s:%s:%s";
 
   private static final String SERVICE_NAME = TapisConstants.SERVICE_NAME_SYSTEMS;
   private static final String FILES_SERVICE = TapisConstants.SERVICE_NAME_FILES;
@@ -1630,7 +1632,7 @@ public class SystemsServiceImpl implements SystemsService
     var userPerms = new HashSet<Permission>();
     for (Permission perm : Permission.values())
     {
-      String permSpec = PERM_SPEC_PREFIX + ":" + tenantName + ":" + perm.name() + ":" + resourceId;
+      String permSpec = String.format(PERM_SPEC_TEMPLATE, tenantName, perm.name(), resourceId);
       if (skClient.isPermitted(tenantName, userName, permSpec)) userPerms.add(perm);
     }
     return userPerms;
@@ -1655,7 +1657,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   private static String getPermSpecStr(String tenantName, String systemId, Permission perm)
   {
-    return PERM_SPEC_PREFIX + ":" + tenantName + ":" + perm.name().toUpperCase() + ":" + systemId;
+    return String.format(PERM_SPEC_TEMPLATE, tenantName, perm.name(), systemId);
   }
 
   /**
@@ -1664,7 +1666,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   private static String getPermSpecAllStr(String tenantName, String systemId)
   {
-    return PERM_SPEC_PREFIX + ":" + tenantName + ":*:" + systemId;
+    return String.format(PERM_SPEC_TEMPLATE, tenantName, "*", systemId);
   }
 
   /**
@@ -2069,14 +2071,13 @@ public class SystemsServiceImpl implements SystemsService
     var skClient = getSKClient();
 
     // Use Security Kernel client to find all users with perms associated with the system.
-    String permSpec = PERM_SPEC_PREFIX + ":" + systemTenantName + ":%:" + systemId;
+    String permSpec = String.format(PERM_SPEC_TEMPLATE, systemTenantName, "%", systemId);
     var userNames = skClient.getUsersWithPermission(systemTenantName, permSpec);
     // Revoke all perms for all users
     for (String userName : userNames) {
       revokePermissions(skClient, systemTenantName, systemId, userName, ALL_PERMS);
       // Remove wildcard perm
-      String wildCardPermSpec = getPermSpecAllStr(systemTenantName, systemId);
-      skClient.revokeUserPermission(systemTenantName, userName, wildCardPermSpec);
+      skClient.revokeUserPermission(systemTenantName, userName, getPermSpecAllStr(systemTenantName, systemId));
     }
 
     // Fetch the system. If system not found then return
