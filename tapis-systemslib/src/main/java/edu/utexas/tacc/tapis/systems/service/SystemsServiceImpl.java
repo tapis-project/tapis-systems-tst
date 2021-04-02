@@ -597,8 +597,7 @@ public class SystemsServiceImpl implements SystemsService
       apiUserId = authenticatedUser.getOboUser();
     }
 
-    // We need owner to check auth and if system not there cannot find owner, so
-    // if system does not exist then return null
+    // We need owner to check auth and if system not there cannot find owner, so return null if no system.
     if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
@@ -1723,37 +1722,40 @@ public class SystemsServiceImpl implements SystemsService
    * If no owner is passed in and one cannot be found then an error is logged and authorization is denied.
    *
    * @param authenticatedUser - principal user containing tenant and user info
-   * @param operation - operation name
+   * @param op - operation name
    * @param systemId - name of the system
    * @param owner - system owner
    * @param perms - List of permissions for the revokePerm case
    * @throws NotAuthorizedException - apiUserId not authorized to perform operation
    */
-  private void checkAuth(AuthenticatedUser authenticatedUser, SystemOperation operation, String systemId,
+  private void checkAuth(AuthenticatedUser authenticatedUser, SystemOperation op, String systemId,
                          String owner, String targetUser, Set<Permission> perms)
       throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException
   {
     // Check service and user requests separately to avoid confusing a service name with a user name
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) {
       // This is a service request. The user name will be the service name. E.g. files, jobs, streams, etc
-      switch (operation) {
-        case read:
-          if (SVCLIST_READ.contains(authenticatedUser.getName())) return;
-          break;
-        case getCred:
-          if (SVCLIST_GETCRED.contains(authenticatedUser.getName())) return;
-          break;
+      // For read only certain services allowed.
+      if (op == SystemOperation.read && SVCLIST_READ.contains(authenticatedUser.getName())) return;
+      // For getCred only certain services are allowed. Everyone else denied with a special message
+      else if (op == SystemOperation.getCred)
+      {
+        if (SVCLIST_GETCRED.contains(authenticatedUser.getName())) return;
+        else
+        {
+          throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_AUTH_GETCRED", authenticatedUser,
+                                                               systemId, op.name()));
+        }
       }
     }
     else
     {
-      // User check
-      checkAuthUser(authenticatedUser, operation, null, null, systemId, owner, targetUser, perms);
+      // This is a user check
+      checkAuthUser(authenticatedUser, op, null, null, systemId, owner, targetUser, perms);
       return;
     }
     // Not authorized, throw an exception
-    String msg = LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, operation.name());
-    throw new NotAuthorizedException(msg);
+    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()));
   }
 
   /**
@@ -1775,9 +1777,10 @@ public class SystemsServiceImpl implements SystemsService
    *  RevokePerm -  must be owner or have admin role or apiUserId=targetUser and meet certain criteria (allowUserRevokePerm)
    *  SetCred -     must be owner or have admin role or apiUserId=targetUser and meet certain criteria (allowUserCredOp)
    *  RemoveCred -  must be owner or have admin role or apiUserId=targetUser and meet certain criteria (allowUserCredOp)
+   *  GetCred -     Deny. Only authorized services may get credentials. Set specific message.
    *
    * @param authenticatedUser - principal user containing tenant and user info
-   * @param operation - operation name
+   * @param op - operation name
    * @param tenantToCheck - optional name of the tenant to use. Default is to use authenticatedUser.
    * @param userToCheck - optional name of the user to check. Default is to use authenticatedUser.
    * @param systemId - name of the system
@@ -1785,7 +1788,7 @@ public class SystemsServiceImpl implements SystemsService
    * @param perms - List of permissions for the revokePerm case
    * @throws NotAuthorizedException - apiUserId not authorized to perform operation
    */
-  private void checkAuthUser(AuthenticatedUser authenticatedUser, SystemOperation operation,
+  private void checkAuthUser(AuthenticatedUser authenticatedUser, SystemOperation op,
                              String tenantToCheck, String userToCheck,
                              String systemId, String owner, String targetUser, Set<Permission> perms)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException
@@ -1793,14 +1796,26 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    // Requires owner. If no owner specified and owner cannot be determined then log an error and deny.
+
+    // Some checks do not require owner
+    switch(op) {
+      case hardDelete:
+        if (hasAdminRole(authenticatedUser, tenantName, userName))
+          return;
+        break;
+      case getCred:
+        throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_AUTH_GETCRED", authenticatedUser,
+                                                             systemId, op.name()));
+    }
+
+    // Most checks require owner. If no owner specified and owner cannot be determined then log an error and deny.
     if (StringUtils.isBlank(owner)) owner = dao.getSystemOwner(tenantName, systemId);
     if (StringUtils.isBlank(owner)) {
-      String msg = LibUtils.getMsgAuth("SYSLIB_AUTH_NO_OWNER", authenticatedUser, systemId, operation.name());
+      String msg = LibUtils.getMsgAuth("SYSLIB_AUTH_NO_OWNER", authenticatedUser, systemId, op.name());
       _log.error(msg);
       throw new NotAuthorizedException(msg);
     }
-    switch(operation) {
+    switch(op) {
       case create:
       case enable:
       case disable:
@@ -1808,10 +1823,6 @@ public class SystemsServiceImpl implements SystemsService
       case changeOwner:
       case grantPerms:
         if (owner.equals(userName) || hasAdminRole(authenticatedUser, tenantName, userName))
-          return;
-        break;
-      case hardDelete:
-        if (hasAdminRole(authenticatedUser, tenantName, userName))
           return;
         break;
       case read:
@@ -1840,13 +1851,12 @@ public class SystemsServiceImpl implements SystemsService
       case removeCred:
         if (owner.equals(userName) || hasAdminRole(authenticatedUser, tenantName, userName) ||
                 (userName.equals(targetUser) &&
-                        allowUserCredOp(authenticatedUser, systemId, operation)))
+                        allowUserCredOp(authenticatedUser, systemId, op)))
           return;
         break;
     }
     // Not authorized, throw an exception
-    String msg = LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, operation.name());
-    throw new NotAuthorizedException(msg);
+    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()));
   }
 
   /**
