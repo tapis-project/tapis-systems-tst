@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
+import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
@@ -265,6 +266,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
               .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne().getValue(SYSTEMS.SEQ_ID);
@@ -328,7 +330,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      db.update(SYSTEMS).set(SYSTEMS.ENABLED, enabled).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      db.update(SYSTEMS)
+              .set(SYSTEMS.ENABLED, enabled)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = "{\"enabled\":" +  enabled + "}";
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
@@ -369,7 +374,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      db.update(SYSTEMS).set(SYSTEMS.OWNER, newOwnerName).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      db.update(SYSTEMS)
+              .set(SYSTEMS.OWNER, newOwnerName)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = TapisGsonUtils.getGson().toJson(newOwnerName);
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
@@ -415,7 +423,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       {
         return 0;
       }
-      rows = db.update(SYSTEMS).set(SYSTEMS.DELETED, true).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      rows = db.update(SYSTEMS)
+              .set(SYSTEMS.DELETED, true)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
 
       // Persist update record
       addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.softDelete, EMPTY_JSON, null,

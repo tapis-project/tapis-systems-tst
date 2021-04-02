@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
+import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
@@ -30,6 +31,8 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 
 import javax.ws.rs.NotAuthorizedException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -218,6 +221,11 @@ public class SystemsServiceTest
     sys0.setJobCapabilities(capList1);
     String createText = "{\"testUpdate\": \"0-create1\"}";
     svc.createSystem(authenticatedOwner1, sys0, createText);
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, systemId, false, null, false);
+    // Get last updated timestamp
+    LocalDateTime updated = LocalDateTime.ofInstant(tmpSys.getUpdated(), ZoneOffset.UTC);
+    String updatedStr1 = TapisUtils.getSQLStringFromUTCTime(updated);
+    Thread.sleep(300);
 
     // Create patchSystem where all updatable attributes are changed
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
@@ -228,6 +236,13 @@ public class SystemsServiceTest
     // Update using patchSys
     svc.updateSystem(authenticatedOwner1, patchSystemFull, patch1Text);
     TSystem tmpSysFull = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+
+    // Get last updated timestamp
+    updated = LocalDateTime.ofInstant(tmpSysFull.getUpdated(), ZoneOffset.UTC);
+    String updatedStr2 = TapisUtils.getSQLStringFromUTCTime(updated);
+    // Make sure update timestamp has been modified
+    System.out.println("Updated timestamp before: " + updatedStr1 + " after: " + updatedStr2);
+    Assert.assertNotEquals(updatedStr1, updatedStr2, "Update timestamp was not updated. Both are: " + updatedStr1);
 
     // Update original definition with patched values so we can use the checkCommon method.
     sys0.setDescription(description2);

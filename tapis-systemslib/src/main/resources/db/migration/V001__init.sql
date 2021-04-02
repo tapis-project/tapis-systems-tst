@@ -226,19 +226,3 @@ COMMENT ON COLUMN capabilities.name IS 'Name of capability';
 COMMENT ON COLUMN capabilities.datatype IS 'Datatype associated with the value';
 COMMENT ON COLUMN capabilities.precedence IS 'Precedence where higher number has higher precedence';
 COMMENT ON COLUMN capabilities.value IS 'Value for the capability';
-
--- ******************************************************************************
---                         PROCEDURES and TRIGGERS
--- ******************************************************************************
-
--- Auto update of updated column
-CREATE OR REPLACE FUNCTION trigger_set_updated() RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER system_updated
-  BEFORE UPDATE ON systems
-  EXECUTE PROCEDURE trigger_set_updated();
