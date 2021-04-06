@@ -2,7 +2,6 @@ package edu.utexas.tacc.tapis.systems.api.resources;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -34,12 +33,15 @@ import edu.utexas.tacc.tapis.client.shared.exceptions.TapisClientException;
 import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqImportSGCIResource;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSGCISystem;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsBasic;
+import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
@@ -65,7 +67,7 @@ import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsSearch;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsArray;
+import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
@@ -773,7 +775,6 @@ public class SystemResource
     if (tSystem == null)
     {
       String msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
-      _log.warn(msg);
       return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
@@ -789,12 +790,14 @@ public class SystemResource
    * NOTE: The query parameters pretty, search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
+   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystems(@Context SecurityContext securityContext)
+  public Response getSystems(@Context SecurityContext securityContext,
+                             @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
   {
     String opName = "getSystems";
     // Trace this request.
@@ -814,17 +817,51 @@ public class SystemResource
     List<String> searchList = srchParms.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
-    if (srchParms.getLimit() == null) srchParms.setLimit(SearchParameters.DEFAULT_LIMIT);
+//    // If limit was not specified then use the default
+//    int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
+//    // Set some variables to make code easier to read
+//    int skip = srchParms.getSkip();
+//    String startAfter = srchParms.getStartAfter();
+//    boolean computeTotal = srchParms.getComputeTotal();
+//    String orderBy = srchParms.getOrderBy();
+//    List<OrderBy> orderByList = srchParms.getOrderByList();
 
     // TODO: cic-3939 Support filtering
 //    List<String> filterList = threadContext.getFilterList();
 //    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
 
-    // ------------------------- Retrieve all records -----------------------------
-    List<TSystem> systems;
-    try {
-      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
+    // ------------------------- Retrieve records -----------------------------
+    // TODO/TBD. Endpoints that return a list of systems are all very similar. Main difference is how the search list is
+    //  construct. Use a common method.
+//    List<TSystem> systems = null;
+//    List<SystemBasic> systemsBasic = null;
+//    int totalCount = -1;
+//    List searchResults;
+    Response successResponse;
+    try
+    {
+      successResponse = getSearchResponse(authenticatedUser, searchList, srchParms, allAttributes);
+//      if (allAttributes)
+//      {
+//        systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+//        if (systems == null) systems = Collections.emptyList();
+//        itemCountStr = String.format(SYS_CNT_STR, systems.size());
+//        if (computeTotal && limit <= 0) totalCount = systems.size();
+//      }
+//      else
+//      {
+//        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+//        if (systemsBasic == null) systemsBasic = Collections.emptyList();
+//        itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
+//        if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
+//      }
+//
+//      // If we need the count and there was a limit then we need to make a call
+//      if (computeTotal && limit > 0)
+//      {
+//        totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+//                                                         orderByList, startAfter);
+//      }
     }
     catch (Exception e)
     {
@@ -833,29 +870,32 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    if (systems == null) systems = Collections.emptyList();
-
-    // ---------------------------- Success -------------------------------
-    RespSystemsArray resp1 = new RespSystemsArray(systems);
-//    // TODO Get total count
-//    // TODO Use of metadata in response for non-dedicated search endpoints is TBD
-//    RespSystems resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
-//                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
-    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+//    // ---------------------------- Success -------------------------------
+//    if (allAttributes)
+//    {
+//      resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
+//    }
+//    else
+//    {
+//      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
+//    }
+//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+    return successResponse;
   }
 
   /**
    * searchSystemsQueryParameters
    * Dedicated search endpoint for System resource. Search conditions provided as query parameters.
    * @param securityContext - user identity
+   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Path("search")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
+  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext,
+                                          @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
   {
     String opName = "searchSystemsGet";
     // Trace this request.
@@ -887,13 +927,16 @@ public class SystemResource
 
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First value = " + searchList.get(0));
 
-    // ------------------------- Retrieve records -----------------------------
-    List<TSystem> systems;
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
-    try {
-      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
+
+    // ------------------------- Retrieve records -----------------------------
+    // TODO/TBD. Endpoints that return a list of systems are all very similar. Main difference is how the search list is
+    //  construct. Use a common method.
+    Response successResponse;
+    try
+    {
+      successResponse = getSearchResponse(authenticatedUser, searchList, srchParms, allAttributes);
     }
     catch (Exception e)
     {
@@ -902,37 +945,66 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    if (systems == null) systems = Collections.emptyList();
-
-    // ------------------------- Get total count if limit/skip ignored --------------------------
-    int totalCount = -1;
-    if (srchParms.getComputeTotal())
-    {
-      // If there was no limit we already have the count, else we need to get the count
-      if (srchParms.getLimit() <= 0)
-      {
-        totalCount = systems.size();
-      }
-      else
-      {
-        try
-        {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                  srchParms.getOrderByList(), srchParms.getStartAfter());
-        } catch (Exception e)
-        {
-          String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
-          _log.error(msg, e);
-          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-        }
-      }
-    }
-
     // ---------------------------- Success -------------------------------
-    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
-                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
-    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+    return successResponse;
+//
+//    // ThreadContext designed to never return null for SearchParameters
+//    SearchParameters srchParms = threadContext.getSearchParameters();
+//    // If limit was not specified then use the default
+//    int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
+//    // Set some variables to make code easier to read
+//    int skip = srchParms.getSkip();
+//    String startAfter = srchParms.getStartAfter();
+//
+//    // TODO: cic-3939 Support filtering
+////    List<String> filterList = threadContext.getFilterList();
+////    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
+//
+//    // ------------------------- Retrieve records -----------------------------
+//    List<TSystem> systems;
+//
+//    try {
+//      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
+//                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
+//    }
+//    catch (Exception e)
+//    {
+//      String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//    }
+//
+//    if (systems == null) systems = Collections.emptyList();
+//
+//    // ------------------------- Get total count if limit/skip ignored --------------------------
+//    int totalCount = -1;
+//    if (srchParms.getComputeTotal())
+//    {
+//      // If there was no limit we already have the count, else we need to get the count
+//      if (srchParms.getLimit() <= 0)
+//      {
+//        totalCount = systems.size();
+//      }
+//      else
+//      {
+//        try
+//        {
+//          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+//                  srchParms.getOrderByList(), srchParms.getStartAfter());
+//        } catch (Exception e)
+//        {
+//          String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
+//          _log.error(msg, e);
+//          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//        }
+//      }
+//    }
+//
+//    // ---------------------------- Success -------------------------------
+//    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+//                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
+//    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -941,6 +1013,7 @@ public class SystemResource
    * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
    * @param payloadStream - request body
    * @param securityContext - user identity
+   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @POST
@@ -948,7 +1021,8 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
-                                           @Context SecurityContext securityContext)
+                                           @Context SecurityContext securityContext,
+                                           @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
   {
     String opName = "searchSystemsPost";
     // Trace this request.
@@ -987,10 +1061,10 @@ public class SystemResource
     // Construct final SQL-like search string using the json
     // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
     // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
-    String searchStr;
+    String sqlSearchStr;
     try
     {
-      searchStr = SearchUtils.getSearchFromRequestJson(rawJson);
+      sqlSearchStr = SearchUtils.getSearchFromRequestJson(rawJson);
     }
     catch (JsonSyntaxException e)
     {
@@ -998,14 +1072,15 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
-    _log.debug(String.format("Using search string: %s", searchStr));
+    _log.debug(String.format("Using search string: %s", sqlSearchStr));
 
     // ------------------------- Retrieve records -----------------------------
+    // TODO Enhance getSearchResponse() to handle sqlSearchStr
     List<TSystem> systems;
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
     try {
-      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, searchStr, srchParms.getLimit(),
+      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, srchParms.getLimit(),
                                                            srchParms.getOrderByList(), srchParms.getSkip(),
                                                            srchParms.getStartAfter());
     }
@@ -1043,96 +1118,96 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
+    RespSystems resp1 = new RespSystems(systems, srchParms.getLimit(), srchParms.getOrderBy(),
                                         srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
     String itemCountStr = String.format(SYS_CNT_STR, systems.size());
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
-  /**
-   * matchConstraints
-   * Retrieve details for systems. Use request body to specify constraint conditions as an SQL-like WHERE clause.
-   * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
-   * @param payloadStream - request body
-   * @param securityContext - user identity
-   * @return - list of systems accessible by requester and matching constraint conditions.
-   */
-  @POST
-  @Path("match/constraints")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response matchConstraints(InputStream payloadStream,
-                                   @Context SecurityContext securityContext)
-  {
-    String opName = "matchConstraints";
-    // Trace this request.
-    if (_log.isTraceEnabled()) logRequest(opName);
-
-    // Check that we have all we need from the context, the tenant name and apiUserId
-    // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
-    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
-    if (resp != null) return resp;
-
-    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
-    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
-
-    // ------------------------- Extract and validate payload -------------------------
-    // Read the payload into a string.
-    String rawJson;
-    String msg;
-    try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
-    catch (Exception e)
-    {
-      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
-      _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-    // Create validator specification and validate the json against the schema
-    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_MATCH_REQUEST);
-    try { JsonValidator.validate(spec); }
-    catch (TapisJSONException e)
-    {
-      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
-      _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-
-    // Construct final SQL-like search string using the json
-    // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
-    // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
-    String matchStr;
-    try
-    {
-      matchStr = SearchUtils.getMatchFromRequestJson(rawJson);
-    }
-    catch (JsonSyntaxException e)
-    {
-      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
-      _log.error(msg, e);
-      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-    _log.debug(String.format("Using match string: %s", matchStr));
-
-    // ------------------------- Retrieve records -----------------------------
-    List<TSystem> systems;
-    try {
-      systems = systemsService.getSystemsSatisfyingConstraints(authenticatedUser, matchStr);
-    }
-    catch (Exception e)
-    {
-      msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
-      _log.error(msg, e);
-      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-
-    if (systems == null) systems = Collections.emptyList();
-
-    // ---------------------------- Success -------------------------------
-    RespSystemsArray resp1 = new RespSystemsArray(systems);
-    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
-  }
+//  /**
+//   * matchConstraints
+//   * Retrieve details for systems. Use request body to specify constraint conditions as an SQL-like WHERE clause.
+//   * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
+//   * @param payloadStream - request body
+//   * @param securityContext - user identity
+//   * @return - list of systems accessible by requester and matching constraint conditions.
+//   */
+//  @POST
+//  @Path("match/constraints")
+//  @Consumes(MediaType.APPLICATION_JSON)
+//  @Produces(MediaType.APPLICATION_JSON)
+//  public Response matchConstraints(InputStream payloadStream,
+//                                   @Context SecurityContext securityContext)
+//  {
+//    String opName = "matchConstraints";
+//    // Trace this request.
+//    if (_log.isTraceEnabled()) logRequest(opName);
+//
+//    // Check that we have all we need from the context, the tenant name and apiUserId
+//    // Utility method returns null if all OK and appropriate error response if there was a problem.
+//    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+//    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
+//    if (resp != null) return resp;
+//
+//    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
+//    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+//
+//    // ------------------------- Extract and validate payload -------------------------
+//    // Read the payload into a string.
+//    String rawJson;
+//    String msg;
+//    try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
+//    catch (Exception e)
+//    {
+//      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//    }
+//    // Create validator specification and validate the json against the schema
+//    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_MATCH_REQUEST);
+//    try { JsonValidator.validate(spec); }
+//    catch (TapisJSONException e)
+//    {
+//      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//    }
+//
+//    // Construct final SQL-like search string using the json
+//    // When put together full string must be a valid SQL-like where clause. This will be validated in the service call.
+//    // Not all SQL syntax is supported. See SqlParser.jj in tapis-shared-searchlib.
+//    String matchStr;
+//    try
+//    {
+//      matchStr = SearchUtils.getMatchFromRequestJson(rawJson);
+//    }
+//    catch (JsonSyntaxException e)
+//    {
+//      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//    }
+//    _log.debug(String.format("Using match string: %s", matchStr));
+//
+//    // ------------------------- Retrieve records -----------------------------
+//    List<TSystem> systems;
+//    try {
+//      systems = systemsService.getSystemsSatisfyingConstraints(authenticatedUser, matchStr);
+//    }
+//    catch (Exception e)
+//    {
+//      msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
+//      _log.error(msg, e);
+//      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+//    }
+//
+//    if (systems == null) systems = Collections.emptyList();
+//
+//    // ---------------------------- Success -------------------------------
+//    RespSystems resp1 = new RespSystems(systems);
+//    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
+//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+//  }
 
   /**
    * deleteSystem
@@ -1440,5 +1515,63 @@ public class SystemResource
     resp.version = TapisUtils.getTapisVersion();
     Response r1 = Response.ok(resp).build();
     return r1;
+  }
+
+  /**
+   *  Common method to return a list of systems given a search list and search parameters.
+   */
+  private Response getSearchResponse(AuthenticatedUser authenticatedUser, List<String> searchList,
+                                     SearchParameters srchParms, boolean allAttributes)
+          throws Exception
+  {
+    RespAbstract resp1;
+    List<TSystem> systems = null;
+    List<SystemBasic> systemsBasic = null;
+    int totalCount = -1;
+    String itemCountStr;
+
+    // If limit was not specified then use the default
+    int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
+    // Set some variables to make code easier to read
+    int skip = srchParms.getSkip();
+    String startAfter = srchParms.getStartAfter();
+    boolean computeTotal = srchParms.getComputeTotal();
+    String orderBy = srchParms.getOrderBy();
+    List<OrderBy> orderByList = srchParms.getOrderByList();
+
+    // Retrieve results with all attributes or just some attributes.
+    if (allAttributes)
+    {
+      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      if (systems == null) systems = Collections.emptyList();
+      itemCountStr = String.format(SYS_CNT_STR, systems.size());
+      if (computeTotal && limit <= 0) totalCount = systems.size();
+    }
+    else
+    {
+      systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      if (systemsBasic == null) systemsBasic = Collections.emptyList();
+      itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
+      if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
+    }
+
+    // If we need the count and there was a limit then we need to make a call
+    if (computeTotal && limit > 0)
+    {
+      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
+              orderByList, startAfter);
+    }
+
+    // ---------------------------- Success -------------------------------
+    // NOTE: We need totalCount for metadata so cannot combine this with if(allAttributes) above.
+    if (allAttributes)
+    {
+      resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
+    }
+    else
+    {
+      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
+    }
+    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 }

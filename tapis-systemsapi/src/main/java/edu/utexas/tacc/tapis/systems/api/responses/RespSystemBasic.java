@@ -7,8 +7,5 @@ public final class RespSystemBasic extends RespAbstract
 {
   public SystemBasic result;
 
-  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-// TODO needed?  public RespSystemBasic() { }
-
   public RespSystemBasic(SystemBasic result) { this.result = result; }
 }

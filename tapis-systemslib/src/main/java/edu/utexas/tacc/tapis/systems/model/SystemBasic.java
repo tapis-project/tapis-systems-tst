@@ -24,7 +24,7 @@ public final class SystemBasic
 
   private int seqId;           // Unique database sequence number
   private String tenant;     // Name of the tenant for which the system is defined
-  private String name;       // Name of the system
+  private String id;       // Name of the system
   private TSystem.SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
   private String owner;      // User who owns the system and has full privileges
   private String host;       // Host name or IP address
@@ -49,7 +49,7 @@ public final class SystemBasic
    */
   public SystemBasic(String name1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
   {
-    name = name1;
+    id = name1;
     systemType = systemType1;
     host = host1;
     defaultAuthnMethod = defaultAuthnMethod1;
@@ -65,7 +65,7 @@ public final class SystemBasic
     {
       seqId = tSystem.getSeqId();
       tenant = tSystem.getTenant();
-      name = tSystem.getId();
+      id = tSystem.getId();
       systemType = tSystem.getSystemType();
       host = tSystem.getHost();
       defaultAuthnMethod = tSystem.getDefaultAuthnMethod();
@@ -113,8 +113,8 @@ public final class SystemBasic
   public String getTenant() { return tenant; }
   public SystemBasic setTenant(String s) { tenant = s; return this; }
 
-  public String getName() { return name; }
-  public SystemBasic setName(String s) { name = s; return this; }
+  public String getId() { return id; }
+  public SystemBasic setId(String s) { id = s; return this; }
 
   public SystemType getSystemType() { return systemType; }
 

@@ -92,6 +92,9 @@ public class SystemsServiceImpl implements SystemsService
   private static final String ERROR_ROLLBACK = "SYSLIB_ERROR_ROLLBACK";
   private static final String NOT_FOUND = "SYSLIB_NOT_FOUND";
 
+  // NotAuthorizedException requires a Challenge, although it serves no purpose here.
+  private static final String NO_CHALLENGE = "NoChallenge";
+
   // ************************************************************************
   // *********************** Enums ******************************************
   // ************************************************************************

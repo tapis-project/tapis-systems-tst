@@ -4,8 +4,6 @@ import edu.utexas.tacc.tapis.sharedapi.responses.RespSearch;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultMetadata;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultSearch;
 import edu.utexas.tacc.tapis.systems.api.responses.results.ResultSystem;
-import edu.utexas.tacc.tapis.systems.api.responses.results.ResultSystemBasic;
-import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
 import java.util.ArrayList;
@@ -14,22 +12,20 @@ import java.util.List;
 /*
   Results from a retrieval of TSystem resources.
  */
-public final class RespSystemsBasic extends RespSearch
+public final class RespSystems extends RespSearch
 {
-
   // NOTE: Having this attribute here seems necessary although not clear why since it appears to be unused.
   //       Without it the returned json has java object references listed in the result.search list.
-//  public List<SystemBasic> results;
+//  public List<ResultSystem> results;
 
-  public RespSystemsBasic(List<SystemBasic> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
+  public RespSystems(List<TSystem> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
   {
-//    List<SystemBasic> resultSystems = new ArrayList<>();
-//    for (SystemBasic sys : sList) { resultSystems.add(new ResultSystemBasic(sys)); }
+    List<ResultSystem> resultSystems = new ArrayList<>();
+    for (TSystem sys : sList) { resultSystems.add(new ResultSystem(sys)); }
     result = new ResultSearch();
-//    result.search = resultSystems;
-    result.search = sList;
+    result.search = resultSystems;
     ResultMetadata tmpMeta = new ResultMetadata();
-    tmpMeta.recordCount = sList.size();
+    tmpMeta.recordCount = resultSystems.size();
     tmpMeta.recordLimit = limit;
     tmpMeta.recordsSkipped = skip;
     tmpMeta.orderBy = orderBy;
