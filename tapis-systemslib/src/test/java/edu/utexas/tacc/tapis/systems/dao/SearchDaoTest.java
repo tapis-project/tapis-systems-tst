@@ -12,6 +12,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,6 +77,8 @@ public class SearchDaoTest
 
   private LocalDateTime createBegin;
   private LocalDateTime createEnd;
+  private LocalDateTime created1;
+  private String created1Str;
 
   @BeforeSuite
   public void setup() throws Exception
@@ -107,6 +110,16 @@ public class SearchDaoTest
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
     }
     Thread.sleep(500);
+
+    // Create a single system for testing timestamp equality
+//    boolean itemCreated = dao.createSystem(authenticatedUser, dtnSystem1,  gson.toJson(dtnSystem1), scrubbedJson);
+//    Assert.assertTrue(itemCreated, "Item not created, id: " + dtnSystem1.getId());
+//    TSystem tmpSystem = dao.getSystem(tenantName, dtnSystem1.getId(), false);
+//    Assert.assertNotNull(tmpSystem, "System not created. System name: " + dtnSystem1.getId());
+//    created1 = LocalDateTime.ofInstant(tmpSystem.getCreated(), ZoneOffset.UTC);
+//    created1Str = TapisUtils.getSQLStringFromUTCTime(created1);
+//    System.out.println("Created System with id=" + dtnSystem1.getId() + " and created=" + created1Str);
+
     createEnd = TapisUtils.getUTCTimeNow();
   }
 
@@ -118,6 +131,7 @@ public class SearchDaoTest
     {
       dao.hardDeleteSystem(tenantName, sys.getId());
     }
+//    dao.hardDeleteSystem(tenantName, dtnSystem1.getId());
 
     TSystem tmpSystem = dao.getSystem(tenantName, systems[0].getId(), true);
     Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
@@ -183,7 +197,8 @@ public class SearchDaoTest
     validCaseInputs.put(53, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "host.lte." + hostName1, "host.gt." + hostName7)));
     validCaseInputs.put(54, new CaseData(7, Arrays.asList("id.like." + sysNameLikeAll, "host.between." + hostName1 + "," + hostName7)));
     validCaseInputs.put(55, new CaseData(numSystems - 7, Arrays.asList("id.like." + sysNameLikeAll, "host.nbetween." + hostName1 + "," + hostName7)));
-    // Test timestamp relational
+    // Test timestamp equality and relational
+//    validCaseInputs.put(59, new CaseData(1, Arrays.asList("id.like." + sysNameLikeAll, "created.eq." + created1Str)));
     validCaseInputs.put(60, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "created.gt." + longPast1)));
     validCaseInputs.put(61, new CaseData(numSystems, Arrays.asList("id.like." + sysNameLikeAll, "created.lt." + farFuture1)));
     validCaseInputs.put(62, new CaseData(0, Arrays.asList("id.like." + sysNameLikeAll, "created.lte." + longPast1)));

@@ -19,9 +19,6 @@ public final class RespSystemsSearch extends RespSearch
   //       Without it the returned json has java object references listed in the result.search list.
   public List<TSystem> results;
 
-  // Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-// TODO needed?  public RespSystemsSearch() { }
-
   public RespSystemsSearch(List<TSystem> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
   {
     List<ResultSystem> tmpResults;

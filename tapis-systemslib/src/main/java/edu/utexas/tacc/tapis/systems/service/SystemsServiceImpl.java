@@ -92,6 +92,8 @@ public class SystemsServiceImpl implements SystemsService
   private static final String ERROR_ROLLBACK = "SYSLIB_ERROR_ROLLBACK";
   private static final String NOT_FOUND = "SYSLIB_NOT_FOUND";
 
+  // NotAuthorizedException requires a Challenge, although it serves no purpose here.
+  private static final String NO_CHALLENGE = "NoChallenge";
   // ************************************************************************
   // *********************** Enums ******************************************
   // ************************************************************************
@@ -616,7 +618,7 @@ public class SystemsServiceImpl implements SystemsService
     if (requireExecPerm && !result.getCanExec())
     {
       String msg = LibUtils.getMsgAuth("SYSLIB_NOTEXEC", authenticatedUser, systemId, op.name());
-      throw new NotAuthorizedException(msg);
+      throw new NotAuthorizedException(msg, NO_CHALLENGE);
     }
 
     // Resolve effectiveUserId
@@ -1698,7 +1700,7 @@ public class SystemsServiceImpl implements SystemsService
     // Look up owner. If not found then consider not authorized. Very unlikely at this point.
     String owner = dao.getSystemOwner(tenant, id);
     if (StringUtils.isBlank(owner))
-        throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, id, opStr));
+        throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, id, opStr), NO_CHALLENGE);
     // If owner making the request and owner is the target user for the perm update then reject.
     if (owner.equals(authenticatedUser.getOboUser()) && owner.equals(userName))
     {
@@ -1709,7 +1711,7 @@ public class SystemsServiceImpl implements SystemsService
       //   On the bright side it means at worst operation will be denied when maybe it should be allowed which is better
       //   than the other way around.
       if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
-        throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, id, opStr));
+        throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, id, opStr), NO_CHALLENGE);
       else
         throw new TapisException(LibUtils.getMsgAuth("SYSLIB_PERM_OWNER_UPDATE", authenticatedUser, id, opStr));
     }
@@ -1744,7 +1746,7 @@ public class SystemsServiceImpl implements SystemsService
         else
         {
           throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_AUTH_GETCRED", authenticatedUser,
-                                                               systemId, op.name()));
+                                                               systemId, op.name()), NO_CHALLENGE);
         }
       }
     }
@@ -1755,7 +1757,7 @@ public class SystemsServiceImpl implements SystemsService
       return;
     }
     // Not authorized, throw an exception
-    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()));
+    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()), NO_CHALLENGE);
   }
 
   /**
@@ -1805,7 +1807,7 @@ public class SystemsServiceImpl implements SystemsService
         break;
       case getCred:
         throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_AUTH_GETCRED", authenticatedUser,
-                                                             systemId, op.name()));
+                                                             systemId, op.name()), NO_CHALLENGE);
     }
 
     // Most checks require owner. If no owner specified and owner cannot be determined then log an error and deny.
@@ -1813,7 +1815,7 @@ public class SystemsServiceImpl implements SystemsService
     if (StringUtils.isBlank(owner)) {
       String msg = LibUtils.getMsgAuth("SYSLIB_AUTH_NO_OWNER", authenticatedUser, systemId, op.name());
       _log.error(msg);
-      throw new NotAuthorizedException(msg);
+      throw new NotAuthorizedException(msg, NO_CHALLENGE);
     }
     switch(op) {
       case create:
@@ -1856,7 +1858,7 @@ public class SystemsServiceImpl implements SystemsService
         break;
     }
     // Not authorized, throw an exception
-    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()));
+    throw new NotAuthorizedException(LibUtils.getMsgAuth("SYSLIB_UNAUTH", authenticatedUser, systemId, op.name()), NO_CHALLENGE);
   }
 
   /**

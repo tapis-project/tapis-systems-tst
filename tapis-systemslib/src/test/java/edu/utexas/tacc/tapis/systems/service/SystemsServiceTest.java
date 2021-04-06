@@ -333,7 +333,7 @@ public class SystemsServiceTest
       Assert.fail("Original owner should not have permission to update system after change of ownership. System name: " + sys0.getId() +
               " Old owner: " + authenticatedOwner1.getName() + " New Owner: " + newOwnerName);
     } catch (Exception e) {
-      Assert.assertEquals(e.getMessage(), "HTTP 401 Unauthorized");
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
     }
     // Original owner should not be able to read system
     try {
@@ -341,7 +341,7 @@ public class SystemsServiceTest
       Assert.fail("Original owner should not have permission to read system after change of ownership. System name: " + sys0.getId() +
               " Old owner: " + authenticatedOwner1.getName() + " New Owner: " + newOwnerName);
     } catch (Exception e) {
-      Assert.assertEquals(e.getMessage(), "HTTP 401 Unauthorized");
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
     }
   }
 
@@ -764,7 +764,7 @@ public class SystemsServiceTest
     try { svc.createSystem(authenticatedTestUser0, sys0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -772,7 +772,7 @@ public class SystemsServiceTest
     try { svc.createSystem(authenticatedFilesSvcOwner1, sys0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -791,7 +791,7 @@ public class SystemsServiceTest
     try { svc.getSystem(authenticatedTestUser0, sys0.getId(), false, null, false); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -801,18 +801,17 @@ public class SystemsServiceTest
     try { svc.getSystem(authenticatedTestUser3, sys0.getId(), false, null, true); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
-
 
     // MODIFY Deny user with no READ or MODIFY, deny user with only READ, deny service
     pass = false;
     try { svc.updateSystem(authenticatedTestUser0, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -820,7 +819,7 @@ public class SystemsServiceTest
     try { svc.updateSystem(authenticatedTestUser3, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -828,7 +827,7 @@ public class SystemsServiceTest
     try { svc.updateSystem(authenticatedFilesSvcOwner1, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -838,7 +837,7 @@ public class SystemsServiceTest
     try { svc.softDeleteSystem(authenticatedTestUser3, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -846,7 +845,7 @@ public class SystemsServiceTest
     try { svc.softDeleteSystem(authenticatedFilesSvcOwner1, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -856,7 +855,7 @@ public class SystemsServiceTest
     try { svc.changeSystemOwner(authenticatedTestUser3, sys0.getId(), testUser2); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -864,7 +863,7 @@ public class SystemsServiceTest
     try { svc.changeSystemOwner(authenticatedFilesSvcOwner1, sys0.getId(), testUser2); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -874,7 +873,7 @@ public class SystemsServiceTest
     try { svc.getUserPermissions(authenticatedTestUser0, sys0.getId(), owner1); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -884,7 +883,7 @@ public class SystemsServiceTest
     try { svc.grantUserPermissions(authenticatedTestUser3, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -892,7 +891,7 @@ public class SystemsServiceTest
     try { svc.grantUserPermissions(authenticatedFilesSvcOwner1, sys0.getId(), testUser0, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -902,7 +901,7 @@ public class SystemsServiceTest
     try { svc.revokeUserPermissions(authenticatedTestUser3, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -910,7 +909,7 @@ public class SystemsServiceTest
     try { svc.revokeUserPermissions(authenticatedFilesSvcOwner1, sys0.getId(), owner1, testPermsREADMODIFY, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -920,7 +919,7 @@ public class SystemsServiceTest
     try { svc.createUserCredential(authenticatedTestUser3, sys0.getId(), owner1, cred0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -928,7 +927,7 @@ public class SystemsServiceTest
     try { svc.createUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), owner1, cred0, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -938,7 +937,7 @@ public class SystemsServiceTest
     try { svc.deleteUserCredential(authenticatedTestUser3, sys0.getId(), owner1); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -946,17 +945,17 @@ public class SystemsServiceTest
     try { svc.deleteUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), owner1); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = true;
     }
     Assert.assertTrue(pass);
 
-    // GET_CRED - deny user not owner/admin, deny owner
+    // GET_CRED - deny user not owner/admin, deny owner - with special message
     pass = false;
     try { svc.getUserCredential(authenticatedTestUser3, sys0.getId(), owner1, null); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_AUTH_GETCRED"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -964,7 +963,7 @@ public class SystemsServiceTest
     try { svc.getUserCredential(authenticatedOwner1, sys0.getId(), owner1, null); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_AUTH_GETCRED"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -1001,7 +1000,7 @@ public class SystemsServiceTest
     }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = false;
     }
     Assert.assertTrue(pass);
@@ -1009,7 +1008,7 @@ public class SystemsServiceTest
     try { svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), false, null, false); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = false;
     }
     Assert.assertTrue(pass);
@@ -1021,7 +1020,7 @@ public class SystemsServiceTest
     }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = false;
     }
     Assert.assertTrue(pass);
@@ -1029,7 +1028,7 @@ public class SystemsServiceTest
     try { svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false); }
     catch (NotAuthorizedException e)
     {
-      Assert.assertTrue(e.getMessage().startsWith("HTTP 401 Unauthorized"));
+      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
       pass = false;
     }
     Assert.assertTrue(pass);
