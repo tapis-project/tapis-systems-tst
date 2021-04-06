@@ -1,0 +1,46 @@
+{
+  "$id": "http://tapis.tacc.utexas.edu/SystemUpdateRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for a request to update a system",
+  "additionalProperties": false,
+
+  "type": "object",
+  "properties": {
+    "description": { "type": "string", "maxLength": 2048 },
+    "host": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/HostName" },
+    "effectiveUserId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/UserName" },
+    "defaultAuthnMethod": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/AuthnMethodEnum" },
+    "transferMethods": {
+      "type": "array",
+      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/TransferMethodEnum" }
+    },
+    "port": { "type": "integer" },
+    "useProxy": { "type": "boolean", "default": false },
+    "proxyHost": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/HostName" },
+    "proxyPort": { "type": "integer" },
+    "dtnSystemId": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/SystemId" },
+    "dtnMountPoint": { "type": "string" },
+    "dtnMountSourcePath": { "type": "string" },
+    "jobRuntimes": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/JobRuntimeList" },
+    "jobWorkingDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
+    "jobEnvVariables": {
+      "type": "array",
+      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/KeyValuePair" }
+    },
+    "jobMaxJobs": { "type": "integer" },
+    "jobMaxJobsPerUser": { "type": "integer" },
+    "jobIsBatch": { "type": "boolean" },
+    "batchScheduler": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/SchedulerTypeEnum" },
+    "batchLogicalQueues": {
+      "type": "array",
+      "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/LogicalQueue" }
+    },
+    "batchDefaultLogicalQueue": { "type": "string", "maxLength": 128 },
+    "jobCapabilities": {
+      "type": "array",
+      "items": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/Capability" }
+    },
+    "tags": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/tagsDefinition" },
+    "notes": { "type": "object" }
+  }
+}

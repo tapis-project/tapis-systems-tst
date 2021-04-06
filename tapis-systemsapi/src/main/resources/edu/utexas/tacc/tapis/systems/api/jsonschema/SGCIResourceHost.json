@@ -1,0 +1,178 @@
+{
+  "$id": "http://tapis.tacc.utexas.edu/SGCIResource",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for an SGCI Resource",
+  "additionalProperties": false,
+
+  "type": "object",
+  "required": ["schemaVersion", "host", "name", "storageResources"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "host": { "$ref": "#/definitions/hostName" },
+    "name": { "$ref": "#/definitions/resourceName" },
+    "description": { "type": "string", "maxLength": 2048 },
+    "storageResources": { "$ref": "#/definitions/storageDefinitionList" },
+    "computeResources": { "$ref": "#/definitions/computeDefinitionList" }
+  },
+  "definitions": {
+    "resourceName": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "hostName": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "dirPath": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "connectionDefinition": {
+      "type": "object",
+      "required": ["connectionProtocol","securityProtocol"],
+      "properties": {
+        "connectionProtocol": { "type": "string", "enum": ["SSH","GLOBUS","HTTP","HTTPS","SFTP","SCP","IRODS"] },
+        "securityProtocol": { "type": "string", "enum": ["PASSWORDS","SSHKEYS","APIKEYS","X509","OAUTH2"] },
+        "port": { "type":  "integer" },
+        "useProxy": { "type":  "boolean" },
+        "proxyHost": { "$ref": "#/definitions/hostName" },
+        "proxyPort": { "type": "integer" }
+      }
+    },
+    "storageDefinitionList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/storageDefinition" }
+    },
+    "computeDefinitionList": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/computeDefinition" }
+    },
+    "storageDefinition": {
+      "type": "object",
+      "required": ["storageType", "connections", "fileSystems"],
+      "properties": {
+        "storageType": { "type": "string", "enum": ["POSIX","S3","IRODS"] },
+        "connections": {
+          "type": "array",
+          "minItems":  1,
+          "items":  { "$ref": "#/definitions/connectionDefinition" }
+        },
+        "fileSystems":  {
+          "type": "array",
+          "items":  { "$ref": "#/definitions/fileSystemDefinition" }
+        },
+        "defaultQuota": {
+          "type": "object",
+          "properties": {
+            "bytesPerUser": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "fileSystemDefinition": {
+      "type": "object",
+      "properties": {
+        "mountDir": { "$ref": "#/definitions/dirPath" },
+        "homeDir": { "$ref": "#/definitions/dirPath" },
+        "scratchDir": { "$ref": "#/definitions/dirPath" },
+        "workDir": { "$ref": "#/definitions/dirPath" },
+        "capacity": {
+          "type": "object",
+          "properties": {
+            "totalBytes": { "type":  "integer"}
+          }
+        }
+      }
+    },
+    "computeDefinition": {
+      "type": "object",
+      "oneOf": [
+        { "required": ["schedulerType","connections","batchSystem"] },
+        { "required": ["schedulerType","connections","forkSystem"] }
+
+      ],
+      "properties": {
+        "schedulerType": { "type": "string", "enum": ["FORK", "BATCH", "ON_DEMAND"] },
+        "connections": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/connectionDefinition" }
+        },
+        "executionCommands": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/executionCommandDefinition" }
+        },
+        "batchSystem": { "$ref": "#/definitions/batchSystemDefinition" },
+        "forkSystem": { "$ref": "#/definitions/forkSystemDefinition" }
+      }
+    },
+    "executionCommandDefinition": {
+      "type": "object",
+      "required": ["commandType"],
+      "properties": {
+        "commandType": { "type": "string", "examples": ["serial","mpi","openmp","ccm"] },
+        "commandPrefix": { "type": "string", "examples": ["ibrun","mpirun"]  },
+        "moduleDependencies": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "batchSystemDefinition": {
+      "type": "object",
+      "required": ["jobManager"],
+      "properties": {
+        "jobManager": { "type": "string", "enum": ["SLURM", "SGE", "PBS"] },
+        "commandPaths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/commandPathDefinition" }
+        },
+        "partitions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/partitionDefinition" }
+        }
+      }
+    },
+    "commandPathDefinition": {
+      "type": "object",
+      "required": ["name", "path"],
+      "properties": {
+        "name": { "type": "string", "examples": ["SUBMISSION","JOB_MONITORING","DELETION","CHECK_JOB","SHOW_QUEUE","SHOW_RESERVATION","SHOW_START"]},
+        "path": { "type": "string" }
+      }
+    },
+    "partitionDefinition": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "examples": ["normal","large-mem"] },
+        "totalNodes": { "type":  "integer"},
+        "nodeHardware": { "$ref": "#/definitions/nodeHardwareDefinition" },
+        "computeQuotas" : {
+          "type": "object",
+          "properties": {
+            "maxJobsTotal": { "type": "integer" },
+            "maxJobsPerUser": { "type": "integer" },
+            "maxNodesPerJob": { "type": "integer" },
+            "maxTimePerJob": { "type": "integer" },
+            "maxMemoryPerJob": { "type": "string" },
+            "maxCPUsPerJob": { "type": "integer" },
+            "maxGPUsPerJob": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "forkSystemDefinition": {
+      "type": "object",
+      "required": ["systemType"],
+      "properties": {
+        "systemType": { "type": "string", "enum": ["LINUX", "WINDOWS"] },
+        "version": { "type": "string" },
+        "nodeHardware": { "$ref": "#/definitions/nodeHardwareDefinition" }
+      }
+    },
+    "nodeHardwareDefinition": {
+      "type": "object",
+      "properties": {
+        "cpuType": { "type": "string", "examples": ["Haswell CPUs @ 2.60GHz","Intel Xeon-E5"] },
+        "cpuCount": { "type": "integer"},
+        "gpuType": { "type": "string", "examples": ["NVIDIA Tesla P100","NVIDIA Tesla M2090"] },
+        "gpuCount": { "type": "integer"},
+        "memoryType": { "type": "string" },
+        "memorySize": { "type": "string", "examples": ["64 GB"] }
+      }
+    }
+  }
+}
