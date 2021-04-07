@@ -19,15 +19,14 @@ public final class RespSystemsBasic extends RespSearch
 
   // NOTE: Having this attribute here seems necessary although not clear why since it appears to be unused.
   //       Without it the returned json has java object references listed in the result.search list.
-//  public List<SystemBasic> results;
+//  public List<ResultSystemBasic> results;
 
   public RespSystemsBasic(List<SystemBasic> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
   {
-//    List<SystemBasic> resultSystems = new ArrayList<>();
-//    for (SystemBasic sys : sList) { resultSystems.add(new ResultSystemBasic(sys)); }
+    List<ResultSystemBasic> resultSystems = new ArrayList<>();
+    for (SystemBasic sys : sList) { resultSystems.add(new ResultSystemBasic(sys)); }
     result = new ResultSearch();
-//    result.search = resultSystems;
-    result.search = sList;
+    result.search = resultSystems;
     ResultMetadata tmpMeta = new ResultMetadata();
     tmpMeta.recordCount = sList.size();
     tmpMeta.recordLimit = limit;

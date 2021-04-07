@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
+import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
@@ -38,18 +39,11 @@ public final class SystemBasic
   // ************************************************************************
 
   /**
-   * Zero arg constructor needed to use jersey's SelectableEntityFilteringFeature
-   * NOTE: Adding a default constructor changes jOOQ behavior such that when Record.into() uses the default mapper
-   *       the column names and POJO attribute names must match (with convention an_attr -> anAttr).
-   */
-  public SystemBasic() { }
-
-  /**
    * Constructor using only required attributes.
    */
-  public SystemBasic(String name1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
+  public SystemBasic(String id1, SystemType systemType1, String host1, AuthnMethod defaultAuthnMethod1, boolean canExec1)
   {
-    id = name1;
+    id = id1;
     systemType = systemType1;
     host = host1;
     defaultAuthnMethod = defaultAuthnMethod1;
@@ -75,24 +69,24 @@ public final class SystemBasic
     }
   }
 
-//  /**
-//   * Copy constructor. Returns a deep copy of a SystemBasic object.
-//   * Make defensive copies as needed.
-//   */
-//  public SystemBasic(SystemBasic t)
-//  {
-//    if (t==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
-//    id = t.getId();
-//    created = t.getCreated();
-//    updated = t.getUpdated();
-//    tenant = t.getTenant();
-//    name = t.getName();
-//    systemType = t.getSystemType();
-//    owner = t.getOwner();
-//    host = t.getHost();
-//    defaultAuthnMethod = t.getDefaultAuthnMethod();
-//    canExec = t.getCanExec();
-//  }
+  /**
+   * Copy constructor. Returns a deep copy of a SystemBasic object.
+   * Make defensive copies as needed.
+   */
+  public SystemBasic(SystemBasic t)
+  {
+    if (t==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
+    id = t.getId();
+    created = t.getCreated();
+    updated = t.getUpdated();
+    tenant = t.getTenant();
+    id = t.getId();
+    systemType = t.getSystemType();
+    owner = t.getOwner();
+    host = t.getHost();
+    defaultAuthnMethod = t.getDefaultAuthnMethod();
+    canExec = t.getCanExec();
+  }
 
   // ************************************************************************
   // *********************** Public methods *********************************
@@ -111,21 +105,21 @@ public final class SystemBasic
   public Instant getUpdated() { return updated; }
 
   public String getTenant() { return tenant; }
-  public SystemBasic setTenant(String s) { tenant = s; return this; }
+//  public SystemBasic setTenant(String s) { tenant = s; return this; }
 
   public String getId() { return id; }
-  public SystemBasic setId(String s) { id = s; return this; }
+//  public SystemBasic setId(String s) { id = s; return this; }
 
   public SystemType getSystemType() { return systemType; }
 
   public String getOwner() { return owner; }
-  public SystemBasic setOwner(String s) { owner = s;  return this;}
+//  public SystemBasic setOwner(String s) { owner = s;  return this;}
 
   public String getHost() { return host; }
-  public SystemBasic setHost(String s) { host = s; return this; }
+//  public SystemBasic setHost(String s) { host = s; return this; }
 
   public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
-  public SystemBasic setDefaultAuthnMethod(AuthnMethod a) { defaultAuthnMethod = a; return this; }
+//  public SystemBasic setDefaultAuthnMethod(AuthnMethod a) { defaultAuthnMethod = a; return this; }
 
   public boolean getCanExec() { return canExec; }
 }
