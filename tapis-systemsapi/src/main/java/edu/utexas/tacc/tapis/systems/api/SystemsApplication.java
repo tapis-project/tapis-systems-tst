@@ -85,9 +85,11 @@ public class SystemsApplication extends ResourceConfig
 
     // Register Jersey filtering feature to support returning selected attributes in response.
 //    property(EntityFilteringFeature.ENTITY_FILTERING_SCOPE, new Annotation[] {TSystemFilterView.Factory.get()});
-    register(EntityFilteringFeature.class);
-    register(TapisEntityProcessor.class);
-    register(TapisScopeResolver.class);
+    // Turn off for now. Leaving these next three on can cause search result attributes to be empty. The correct number of
+    // items are in the search results but each item is empty json
+//    register(EntityFilteringFeature.class);
+//    register(TapisEntityProcessor.class);
+//    register(TapisScopeResolver.class);
 
 
     // Use jackson as opposed to Moxy.

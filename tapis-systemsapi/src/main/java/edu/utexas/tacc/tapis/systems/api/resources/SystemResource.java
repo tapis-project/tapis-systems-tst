@@ -66,7 +66,6 @@ import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsSearch;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
@@ -172,7 +171,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -300,7 +299,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -416,7 +415,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -561,7 +560,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -742,7 +741,7 @@ public class SystemResource
 
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
@@ -805,7 +804,7 @@ public class SystemResource
 
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
@@ -817,51 +816,15 @@ public class SystemResource
     List<String> searchList = srchParms.getSearchList();
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
 
-//    // If limit was not specified then use the default
-//    int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
-//    // Set some variables to make code easier to read
-//    int skip = srchParms.getSkip();
-//    String startAfter = srchParms.getStartAfter();
-//    boolean computeTotal = srchParms.getComputeTotal();
-//    String orderBy = srchParms.getOrderBy();
-//    List<OrderBy> orderByList = srchParms.getOrderByList();
-
     // TODO: cic-3939 Support filtering
 //    List<String> filterList = threadContext.getFilterList();
 //    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
 
     // ------------------------- Retrieve records -----------------------------
-    // TODO/TBD. Endpoints that return a list of systems are all very similar. Main difference is how the search list is
-    //  construct. Use a common method.
-//    List<TSystem> systems = null;
-//    List<SystemBasic> systemsBasic = null;
-//    int totalCount = -1;
-//    List searchResults;
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, searchList, srchParms, allAttributes);
-//      if (allAttributes)
-//      {
-//        systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
-//        if (systems == null) systems = Collections.emptyList();
-//        itemCountStr = String.format(SYS_CNT_STR, systems.size());
-//        if (computeTotal && limit <= 0) totalCount = systems.size();
-//      }
-//      else
-//      {
-//        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
-//        if (systemsBasic == null) systemsBasic = Collections.emptyList();
-//        itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
-//        if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
-//      }
-//
-//      // If we need the count and there was a limit then we need to make a call
-//      if (computeTotal && limit > 0)
-//      {
-//        totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-//                                                         orderByList, startAfter);
-//      }
+      successResponse = getSearchResponse(authenticatedUser, searchList, null, srchParms, allAttributes);
     }
     catch (Exception e)
     {
@@ -869,17 +832,6 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
-
-//    // ---------------------------- Success -------------------------------
-//    if (allAttributes)
-//    {
-//      resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
-//    }
-//    else
-//    {
-//      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
-//    }
-//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
     return successResponse;
   }
 
@@ -903,7 +855,7 @@ public class SystemResource
 
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
@@ -930,13 +882,15 @@ public class SystemResource
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
 
+    // TODO: cic-3939 Support filtering
+//    List<String> filterList = threadContext.getFilterList();
+//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
+
     // ------------------------- Retrieve records -----------------------------
-    // TODO/TBD. Endpoints that return a list of systems are all very similar. Main difference is how the search list is
-    //  construct. Use a common method.
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, searchList, srchParms, allAttributes);
+      successResponse = getSearchResponse(authenticatedUser, searchList, null, srchParms, allAttributes);
     }
     catch (Exception e)
     {
@@ -947,64 +901,6 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     return successResponse;
-//
-//    // ThreadContext designed to never return null for SearchParameters
-//    SearchParameters srchParms = threadContext.getSearchParameters();
-//    // If limit was not specified then use the default
-//    int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
-//    // Set some variables to make code easier to read
-//    int skip = srchParms.getSkip();
-//    String startAfter = srchParms.getStartAfter();
-//
-//    // TODO: cic-3939 Support filtering
-////    List<String> filterList = threadContext.getFilterList();
-////    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
-//
-//    // ------------------------- Retrieve records -----------------------------
-//    List<TSystem> systems;
-//
-//    try {
-//      systems = systemsService.getSystems(authenticatedUser, searchList, srchParms.getLimit(),
-//                                          srchParms.getOrderByList(), srchParms.getSkip(), srchParms.getStartAfter());
-//    }
-//    catch (Exception e)
-//    {
-//      String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
-//      _log.error(msg, e);
-//      return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-//    }
-//
-//    if (systems == null) systems = Collections.emptyList();
-//
-//    // ------------------------- Get total count if limit/skip ignored --------------------------
-//    int totalCount = -1;
-//    if (srchParms.getComputeTotal())
-//    {
-//      // If there was no limit we already have the count, else we need to get the count
-//      if (srchParms.getLimit() <= 0)
-//      {
-//        totalCount = systems.size();
-//      }
-//      else
-//      {
-//        try
-//        {
-//          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-//                  srchParms.getOrderByList(), srchParms.getStartAfter());
-//        } catch (Exception e)
-//        {
-//          String msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
-//          _log.error(msg, e);
-//          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-//        }
-//      }
-//    }
-//
-//    // ---------------------------- Success -------------------------------
-//    RespSystemsSearch resp1 = new RespSystemsSearch(systems, srchParms.getLimit(), srchParms.getOrderBy(),
-//                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
-//    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 
   /**
@@ -1030,7 +926,7 @@ public class SystemResource
 
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
 
@@ -1074,15 +970,18 @@ public class SystemResource
     }
     _log.debug(String.format("Using search string: %s", sqlSearchStr));
 
-    // ------------------------- Retrieve records -----------------------------
-    // TODO Enhance getSearchResponse() to handle sqlSearchStr
-    List<TSystem> systems;
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
-    try {
-      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, srchParms.getLimit(),
-                                                           srchParms.getOrderByList(), srchParms.getSkip(),
-                                                           srchParms.getStartAfter());
+
+    // TODO: cic-3939 Support filtering
+//    List<String> filterList = threadContext.getFilterList();
+//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
+
+    // ------------------------- Retrieve records -----------------------------
+    Response successResponse;
+    try
+    {
+      successResponse = getSearchResponse(authenticatedUser, null, sqlSearchStr, srchParms, allAttributes);
     }
     catch (Exception e)
     {
@@ -1091,37 +990,8 @@ public class SystemResource
       return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    if (systems == null) systems = Collections.emptyList();
-
-    // ------------------------- Get total count if limit/skip ignored --------------------------
-    int totalCount = -1;
-    if (srchParms.getComputeTotal())
-    {
-      // If there was no limit we already have the count, else we need to get the count
-      if (srchParms.getLimit() <= 0)
-      {
-        totalCount = systems.size();
-      }
-      else
-      {
-        try
-        {
-          totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-                                                           srchParms.getOrderByList(), srchParms.getStartAfter());
-        } catch (Exception e)
-        {
-          msg = ApiUtils.getMsgAuth(SELECT_ERR, authenticatedUser, e.getMessage());
-          _log.error(msg, e);
-          return Response.status(RestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-        }
-      }
-    }
-
     // ---------------------------- Success -------------------------------
-    RespSystems resp1 = new RespSystems(systems, srchParms.getLimit(), srchParms.getOrderBy(),
-                                        srchParms.getSkip(), srchParms.getStartAfter(), totalCount);
-    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+    return successResponse;
   }
 
 //  /**
@@ -1145,7 +1015,7 @@ public class SystemResource
 //
 //    // Check that we have all we need from the context, the tenant name and apiUserId
 //    // Utility method returns null if all OK and appropriate error response if there was a problem.
-//    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+//    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
 //    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
 //    if (resp != null) return resp;
 //
@@ -1248,7 +1118,7 @@ public class SystemResource
     if (_log.isTraceEnabled()) logRequest(opName);
 
     // ------------------------- Retrieve and validate thread context -------------------------
-    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     // Check that we have all we need from the context, the tenant name and apiUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -1519,8 +1389,10 @@ public class SystemResource
 
   /**
    *  Common method to return a list of systems given a search list and search parameters.
+   *  srchParms must be non-null
+   *  One of searchList or sqlSearchStr must be non-null
    */
-  private Response getSearchResponse(AuthenticatedUser authenticatedUser, List<String> searchList,
+  private Response getSearchResponse(AuthenticatedUser authenticatedUser, List<String> searchList, String sqlSearchStr,
                                      SearchParameters srchParms, boolean allAttributes)
           throws Exception
   {
@@ -1542,14 +1414,20 @@ public class SystemResource
     // Retrieve results with all attributes or just some attributes.
     if (allAttributes)
     {
-      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      if (StringUtils.isBlank(sqlSearchStr))
+        systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      else
+        systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
       if (systems == null) systems = Collections.emptyList();
       itemCountStr = String.format(SYS_CNT_STR, systems.size());
       if (computeTotal && limit <= 0) totalCount = systems.size();
     }
     else
     {
-      systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      if (StringUtils.isBlank(sqlSearchStr))
+        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      else
+        systemsBasic = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
       if (systemsBasic == null) systemsBasic = Collections.emptyList();
       itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
       if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
@@ -1565,13 +1443,10 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     // NOTE: We need totalCount for metadata so cannot combine this with if(allAttributes) above.
     if (allAttributes)
-    {
       resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
-    }
     else
-    {
       resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
-    }
+
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
 }

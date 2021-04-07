@@ -14,9 +14,6 @@ import java.util.List;
  */
 public final class RespSystems extends RespSearch
 {
-  // NOTE: Having this attribute here seems necessary although not clear why since it appears to be unused.
-  //       Without it the returned json has java object references listed in the result.search list.
-//  public List<ResultSystem> results;
 
   public RespSystems(List<TSystem> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
   {
