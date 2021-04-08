@@ -3,7 +3,6 @@ package edu.utexas.tacc.tapis.systems.model;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
 /*
@@ -95,31 +94,14 @@ public final class SystemBasic
   // ************************************************************************
   // *********************** Accessors **************************************
   // ************************************************************************
-
   public int getSeqId() { return seqId; }
-
-  @Schema(type = "string")
   public Instant getCreated() { return created; }
-
-  @Schema(type = "string")
   public Instant getUpdated() { return updated; }
-
   public String getTenant() { return tenant; }
-//  public SystemBasic setTenant(String s) { tenant = s; return this; }
-
   public String getId() { return id; }
-//  public SystemBasic setId(String s) { id = s; return this; }
-
   public SystemType getSystemType() { return systemType; }
-
   public String getOwner() { return owner; }
-//  public SystemBasic setOwner(String s) { owner = s;  return this;}
-
   public String getHost() { return host; }
-//  public SystemBasic setHost(String s) { host = s; return this; }
-
   public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
-//  public SystemBasic setDefaultAuthnMethod(AuthnMethod a) { defaultAuthnMethod = a; return this; }
-
   public boolean getCanExec() { return canExec; }
 }
