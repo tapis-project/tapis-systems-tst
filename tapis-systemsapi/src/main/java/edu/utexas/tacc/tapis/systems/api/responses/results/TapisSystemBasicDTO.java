@@ -6,7 +6,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
 /*
     Class representing a SystemBasic result to be returned
  */
-public final class ResultSystemBasic
+public final class TapisSystemBasicDTO
 {
   public String id;
   public TSystem.SystemType systemType;
@@ -14,7 +14,7 @@ public final class ResultSystemBasic
   public TSystem.AuthnMethod defaultAuthnMethod;
   public boolean canExec;
 
-  public ResultSystemBasic(SystemBasic s)
+  public TapisSystemBasicDTO(SystemBasic s)
   {
     id = s.getId();
     systemType = s.getSystemType();

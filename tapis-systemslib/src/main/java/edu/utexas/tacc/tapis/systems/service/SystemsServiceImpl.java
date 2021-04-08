@@ -94,6 +94,7 @@ public class SystemsServiceImpl implements SystemsService
 
   // NotAuthorizedException requires a Challenge, although it serves no purpose here.
   private static final String NO_CHALLENGE = "NoChallenge";
+
   // ************************************************************************
   // *********************** Enums ******************************************
   // ************************************************************************

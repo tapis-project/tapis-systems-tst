@@ -18,7 +18,7 @@ import java.util.UUID;
 /*
     Class representing a TSystem result to be returned
  */
-public final class ResultSystem
+public final class TapisSystemDTO
 {
   public String tenant;
   public String id;
@@ -61,7 +61,7 @@ public final class ResultSystem
   public Instant created;
   public Instant updated;
 
-  public ResultSystem(TSystem s)
+  public TapisSystemDTO(TSystem s)
   {
     // Convert jobEnvVariables from array of "key=value" to list of KeyValuePair
     jobEnvVariables = ApiUtils.getKeyValuesAsList(s.getJobEnvVariables());

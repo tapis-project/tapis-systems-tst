@@ -3,7 +3,7 @@ package edu.utexas.tacc.tapis.systems.api.responses;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespSearch;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultMetadata;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultSearch;
-import edu.utexas.tacc.tapis.systems.api.responses.results.ResultSystem;
+import edu.utexas.tacc.tapis.systems.api.responses.results.TapisSystemDTO;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ public final class RespSystems extends RespSearch
 
   public RespSystems(List<TSystem> sList, int limit, String orderBy, int skip, String startAfter, int totalCount)
   {
-    List<ResultSystem> resultSystems = new ArrayList<>();
-    for (TSystem sys : sList) { resultSystems.add(new ResultSystem(sys)); }
+    List<TapisSystemDTO> resultSystems = new ArrayList<>();
+    for (TSystem sys : sList) { resultSystems.add(new TapisSystemDTO(sys)); }
     result = new ResultSearch();
     result.search = resultSystems;
     ResultMetadata tmpMeta = new ResultMetadata();
