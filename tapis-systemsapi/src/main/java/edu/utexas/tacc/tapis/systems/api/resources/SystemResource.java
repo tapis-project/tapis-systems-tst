@@ -40,8 +40,6 @@ import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqImportSGCIResource;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSGCISystem;
-import edu.utexas.tacc.tapis.systems.api.responses.RespSystemsBasic;
-import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
@@ -1398,7 +1396,7 @@ public class SystemResource
   {
     RespAbstract resp1;
     List<TSystem> systems = null;
-    List<SystemBasic> systemsBasic = null;
+//    List<SystemBasic> systemsBasic = null;
     int totalCount = -1;
     String itemCountStr;
 
@@ -1411,9 +1409,9 @@ public class SystemResource
     String orderBy = srchParms.getOrderBy();
     List<OrderBy> orderByList = srchParms.getOrderByList();
 
-    // Retrieve results with all attributes or just some attributes.
-    if (allAttributes)
-    {
+//    // Retrieve results with all attributes or just some attributes.
+//    if (allAttributes)
+//    {
       if (StringUtils.isBlank(sqlSearchStr))
         systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
       else
@@ -1421,17 +1419,17 @@ public class SystemResource
       if (systems == null) systems = Collections.emptyList();
       itemCountStr = String.format(SYS_CNT_STR, systems.size());
       if (computeTotal && limit <= 0) totalCount = systems.size();
-    }
-    else
-    {
-      if (StringUtils.isBlank(sqlSearchStr))
-        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
-      else
-        systemsBasic = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
-      if (systemsBasic == null) systemsBasic = Collections.emptyList();
-      itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
-      if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
-    }
+//    }
+//    else
+//    {
+//      if (StringUtils.isBlank(sqlSearchStr))
+//        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+//      else
+//        systemsBasic = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
+//      if (systemsBasic == null) systemsBasic = Collections.emptyList();
+//      itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
+//      if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
+//    }
 
     // If we need the count and there was a limit then we need to make a call
     if (computeTotal && limit > 0)
@@ -1442,10 +1440,10 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     // NOTE: We need totalCount for metadata so cannot combine this with if(allAttributes) above.
-    if (allAttributes)
+//    if (allAttributes)
       resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
-    else
-      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
+//    else
+//      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
 
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
