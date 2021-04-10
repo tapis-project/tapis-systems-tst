@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -20,7 +19,6 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +28,6 @@ import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
-import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
 import static edu.utexas.tacc.tapis.systems.gen.jooq.Tables.*;
@@ -43,6 +40,7 @@ import edu.utexas.tacc.tapis.search.SearchUtils.SearchOperator;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
@@ -577,9 +575,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id) throws TapisException
+  public TSystem getSystem(String tenant, String id, List<String> selectList) throws TapisException
   {
-    return getSystem(tenant, id, false);
+    return getSystem(tenant, id, selectList, false);
   }
 
   /**
@@ -589,9 +587,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
+  public TSystem getSystem(String tenant, String id, List<String> selectList, boolean includeDeleted)
+          throws TapisException {
     // Initialize result.
     TSystem result = null;
+
+    // Check items in select list against DB field names
+    checkSelectListAgainstColumnNames(selectList);
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -637,7 +639,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * getTSystemsCount
+   * getSystemsCount
    * Count all TSystems matching various search and sort criteria.
    *     Search conditions given as a list of strings or an abstract syntax tree (AST).
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
@@ -744,7 +746,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * getTSystems
+   * getSystems
    * Retrieve all TSystems matching various search and sort criteria.
    *     Search conditions given as a list of strings or an abstract syntax tree (AST).
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
@@ -758,12 +760,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param selectList - optional list of which attributes will be returned in the final response. Checked against field names.
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                  int limit, List<OrderBy> orderByList, int skip, String startAfter)
+                             int limit, List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -811,6 +814,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
+
+    // Check items in select list against DB field names
+    checkSelectListAgainstColumnNames(selectList);
 
     // Begin where condition for the query
     Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
@@ -906,7 +912,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * getTSystemsSatisfyingConstraints
+   * getSystemsSatisfyingConstraints
    * Retrieve all TSystems satisfying capability constraint criteria.
    *     Constraint criteria conditions provided as an abstract syntax tree (AST).
    * @param tenant - tenant name
@@ -975,258 +981,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       retList.add(sys);
     }
     return retList;
-  }
-
-  /**
-   * getSystemBasic
-   * @param id - system name
-   * @return SystemBasic object if found, null if not found
-   * @throws TapisException - on error
-   */
-  @Override
-  public SystemBasic getSystemBasic(String tenant, String id) throws TapisException {
-    // Initialize result.
-    SystemBasic systemBasic = null;
-    TSystem result = null;
-
-    // Build list of attributes we will be returning.
-    List<TableField> fieldList = new ArrayList<>();
-    fieldList.add(SYSTEMS.SEQ_ID);
-    fieldList.add(SYSTEMS.TENANT);
-    fieldList.add(SYSTEMS.ID);
-    fieldList.add(SYSTEMS.SYSTEM_TYPE);
-    fieldList.add(SYSTEMS.OWNER);
-    fieldList.add(SYSTEMS.HOST);
-    fieldList.add(SYSTEMS.DEFAULT_AUTHN_METHOD);
-    fieldList.add(SYSTEMS.CAN_EXEC);
-
-    // ------------------------- Call SQL ----------------------------
-    Connection conn = null;
-    try
-    {
-      // Get a database connection.
-      conn = getConnection();
-      DSLContext db = DSL.using(conn);
-      SystemsRecord r = db.select(fieldList).from(SYSTEMS)
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false))
-              .fetchOne().into(SYSTEMS);
-      if (r == null) return null;
-      else result = r.into(TSystem.class);
-
-      // Close out and commit
-      LibUtils.closeAndCommitDB(conn, null, null);
-    }
-    catch (Exception e)
-    {
-      // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenant, id, e.getMessage());
-    }
-    finally
-    {
-      // Always return the connection back to the connection pool.
-      LibUtils.finalCloseDB(conn);
-    }
-    if (result != null)
-    {
-      systemBasic = new SystemBasic(result);
-    }
-    return systemBasic;
-  }
-
-  /**
-   * getSystemsBasic
-   * TODO: This method and getTSystems are very similar. Factor out some helper methods?
-   * Retrieve all System matching various search and sort criteria.
-   *     Search conditions given as a list of strings or an abstract syntax tree (AST).
-   * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
-   *   prior to this call for proper validation and treatment of special characters.
-   * WARNING: If both searchList and searchAST provided only searchList is used.
-   * @param tenant - tenant name
-   * @param searchList - optional list of conditions used for searching
-   * @param searchAST - AST containing search conditions
-   * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
-   * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
-   * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
-   * @return - list of SystemBasic objects
-   * @throws TapisException - on error
-   */
-  @Override
-  public List<SystemBasic> getSystemsBasic(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                                           int limit, List<OrderBy> orderByList, int skip, String startAfter)
-          throws TapisException
-  {
-    // TODO - for now just use the major (i.e. first in list) orderBy item.
-    String majorOrderBy = null;
-    String majorSortDirection = "ASC";
-    if (orderByList != null && !orderByList.isEmpty())
-    {
-      majorOrderBy = orderByList.get(0).getOrderByAttr();
-      majorSortDirection = orderByList.get(0).getOrderByDir().name();
-    }
-
-    // The result list should always be non-null.
-    var retList = new ArrayList<SystemBasic>();
-
-    // Negative skip indicates no skip
-    if (skip < 0) skip = 0;
-
-    boolean sortAsc = true;
-    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
-
-    // If startAfter is given then orderBy is required
-    if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
-    {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
-      throw new TapisException(msg);
-    }
-
-    // If no IDs in list then we are done.
-    if (setOfIDs != null && setOfIDs.isEmpty()) return retList;
-
-    // Determine and check orderBy column
-    Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(majorOrderBy)));
-    if (!StringUtils.isBlank(majorOrderBy) && colOrderBy == null)
-    {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
-      throw new TapisException(msg);
-    }
-
-    // Begin where condition for the query
-    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
-
-    // Add searchList or searchAST to where condition
-    if (searchList != null)
-    {
-      whereCondition = addSearchListToWhere(whereCondition, searchList);
-    }
-    else if (searchAST != null)
-    {
-      Condition astCondition = createConditionFromAst(searchAST);
-      if (astCondition != null) whereCondition = whereCondition.and(astCondition);
-    }
-
-    // Add startAfter
-    if (!StringUtils.isBlank(startAfter))
-    {
-      // Build search string so we can re-use code for checking and adding a condition
-      String searchStr;
-      if (sortAsc) searchStr = majorOrderBy + ".gt." + startAfter;
-      else searchStr = majorOrderBy + ".lt." + startAfter;
-      whereCondition = addSearchCondStrToWhere(whereCondition, searchStr, "AND");
-    }
-
-    // Add IN condition for list of IDs
-    if (setOfIDs != null && !setOfIDs.isEmpty()) whereCondition = whereCondition.and(SYSTEMS.ID.in(setOfIDs));
-
-    // Build list of attributes we will be returning.
-    List<TableField> fieldList = new ArrayList<>();
-    fieldList.add(SYSTEMS.SEQ_ID);
-    fieldList.add(SYSTEMS.TENANT);
-    fieldList.add(SYSTEMS.ID);
-    fieldList.add(SYSTEMS.SYSTEM_TYPE);
-    fieldList.add(SYSTEMS.OWNER);
-    fieldList.add(SYSTEMS.HOST);
-    fieldList.add(SYSTEMS.DEFAULT_AUTHN_METHOD);
-    fieldList.add(SYSTEMS.CAN_EXEC);
-
-    // ------------------------- Build and execute SQL ----------------------------
-    Connection conn = null;
-    try
-    {
-      // Get a database connection.
-      conn = getConnection();
-      DSLContext db = DSL.using(conn);
-
-      // Execute the select including limit, orderByAttrList, skip and startAfter
-      // NOTE: LIMIT + OFFSET is not standard among DBs and often very difficult to get right.
-      //       Jooq claims to handle it well.
-      Result<SystemsRecord> results;
-      org.jooq.SelectConditionStep condStep = db.select(fieldList).from(SYSTEMS).where(whereCondition);
-      if (!StringUtils.isBlank(majorOrderBy) &&  limit >= 0)
-      {
-        // We are ordering and limiting
-        if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
-        else results = condStep.orderBy(colOrderBy.desc()).limit(limit).offset(skip).fetchInto(SYSTEMS);
-      }
-      else if (!StringUtils.isBlank(majorOrderBy))
-      {
-        // We are ordering but not limiting
-        if (sortAsc) results = condStep.orderBy(colOrderBy.asc()).fetchInto(SYSTEMS);
-        else results = condStep.orderBy(colOrderBy.desc()).fetchInto(SYSTEMS);
-      }
-      else if (limit >= 0)
-      {
-        // We are limiting but not ordering
-        results = condStep.limit(limit).offset(skip).fetchInto(SYSTEMS);
-      }
-      else
-      {
-        // We are not limiting and not ordering
-        results = condStep.fetchInto(SYSTEMS);
-      }
-
-      if (results == null || results.isEmpty()) return retList;
-
-      // Create SystemBasic objects from TSystem objects.
-      for (SystemsRecord r : results)
-      {
-        TSystem s = r.into(TSystem.class);
-        retList.add(new SystemBasic(s));
-      }
-
-      // Close out and commit
-      LibUtils.closeAndCommitDB(conn, null, null);
-    }
-    catch (Exception e)
-    {
-      // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
-    }
-    finally
-    {
-      // Always return the connection back to the connection pool.
-      LibUtils.finalCloseDB(conn);
-    }
-    return retList;
-  }
-
-  /**
-   * getSystemNames
-   * @param tenant - tenant name
-   * @return - List of system names
-   * @throws TapisException - on error
-   */
-  @Override
-  public Set<String> getSystemNames(String tenant) throws TapisException
-  {
-    // The result list is always non-null.
-    var names = new HashSet<String>();
-
-    Connection conn = null;
-    try
-    {
-      // Get a database connection.
-      conn = getConnection();
-      // ------------------------- Call SQL ----------------------------
-      // Use jOOQ to build query string
-      DSLContext db = DSL.using(conn);
-      Result<?> result = db.select(SYSTEMS.ID).from(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant)).fetch();
-      // Iterate over result
-      for (Record r : result) { names.add(r.get(SYSTEMS.ID)); }
-    }
-    catch (Exception e)
-    {
-      // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
-    }
-    finally
-    {
-      // Always return the connection back to the connection pool.
-      LibUtils.finalCloseDB(conn);
-    }
-    return names;
   }
 
   /**
@@ -1300,6 +1054,42 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       LibUtils.finalCloseDB(conn);
     }
     return effectiveUserId;
+  }
+
+  /**
+   * getSystemDefaultAuthnMethod
+   * @param tenant - name of tenant
+   * @param id - name of system
+   * @return Default AuthnMethod or null if no system found
+   * @throws TapisException - on error
+   */
+  @Override
+  public AuthnMethod getSystemDefaultAuthnMethod(String tenant, String id) throws TapisException
+  {
+    AuthnMethod authnMethod = null;
+    // ------------------------- Call SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+      authnMethod = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.DEFAULT_AUTHN_METHOD);
+
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_QUERY_ERROR", "systems", e.getMessage());
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+    return authnMethod;
   }
 
   /**
@@ -2006,5 +1796,22 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       retList.add(s);
     }
     return retList;
+  }
+
+  /**
+   * Check items in select list against DB field names
+   * @param selectList - list of items to check
+   */
+  private static void checkSelectListAgainstColumnNames(List<String> selectList) throws TapisException
+  {
+    for (String selectItem : selectList)
+    {
+      Field<?> colSelectItem = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(selectItem)));
+      if (!StringUtils.isBlank(selectItem) && colSelectItem == null)
+      {
+        String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SELECT", SYSTEMS.getName(), DSL.name(selectItem));
+        throw new TapisException(msg);
+      }
+    }
   }
 }

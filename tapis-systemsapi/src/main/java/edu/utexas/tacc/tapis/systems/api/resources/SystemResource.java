@@ -756,10 +756,14 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
+    // TODO: cic-3939 Support filtering
+    List<String> selectList = threadContext.getSearchParameters().getSelectList();
+    if (selectList != null && !selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
+
     TSystem tSystem;
     try
     {
-      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
+      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm, selectList);
     }
     catch (Exception e)
     {
@@ -787,14 +791,12 @@ public class SystemResource
    * NOTE: The query parameters pretty, search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
-   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystems(@Context SecurityContext securityContext,
-                             @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
+  public Response getSystems(@Context SecurityContext securityContext)
   {
     String opName = "getSystems";
     // Trace this request.
@@ -811,18 +813,12 @@ public class SystemResource
 
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
-    List<String> searchList = srchParms.getSearchList();
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
-
-    // TODO: cic-3939 Support filtering
-//    List<String> filterList = threadContext.getFilterList();
-//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
 
     // ------------------------- Retrieve records -----------------------------
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, searchList, null, srchParms, allAttributes);
+      successResponse = getSearchResponse(authenticatedUser, null, srchParms);
     }
     catch (Exception e)
     {
@@ -837,15 +833,13 @@ public class SystemResource
    * searchSystemsQueryParameters
    * Dedicated search endpoint for System resource. Search conditions provided as query parameters.
    * @param securityContext - user identity
-   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Path("search")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext,
-                                          @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
+  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
   {
     String opName = "searchSystemsGet";
     // Trace this request.
@@ -880,15 +874,11 @@ public class SystemResource
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
 
-    // TODO: cic-3939 Support filtering
-//    List<String> filterList = threadContext.getFilterList();
-//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
-
     // ------------------------- Retrieve records -----------------------------
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, searchList, null, srchParms, allAttributes);
+      successResponse = getSearchResponse(authenticatedUser, null, srchParms);
     }
     catch (Exception e)
     {
@@ -907,7 +897,6 @@ public class SystemResource
    * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
    * @param payloadStream - request body
    * @param securityContext - user identity
-   * @param allAttributes - return all resource attributes or just a few.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @POST
@@ -915,8 +904,7 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
-                                           @Context SecurityContext securityContext,
-                                           @QueryParam("allAttributes") @DefaultValue("false") boolean allAttributes)
+                                           @Context SecurityContext securityContext)
   {
     String opName = "searchSystemsPost";
     // Trace this request.
@@ -971,15 +959,11 @@ public class SystemResource
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
 
-    // TODO: cic-3939 Support filtering
-//    List<String> filterList = threadContext.getFilterList();
-//    if (filterList != null && !filterList.isEmpty()) _log.debug("Using filterList. First item in list = " + filterList.get(0));
-
     // ------------------------- Retrieve records -----------------------------
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, null, sqlSearchStr, srchParms, allAttributes);
+      successResponse = getSearchResponse(authenticatedUser, sqlSearchStr, srchParms);
     }
     catch (Exception e)
     {
@@ -1266,7 +1250,7 @@ public class SystemResource
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false);
+        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false, null);
       }
       catch (NotAuthorizedException e)
       {
@@ -1388,17 +1372,22 @@ public class SystemResource
   /**
    *  Common method to return a list of systems given a search list and search parameters.
    *  srchParms must be non-null
-   *  One of searchList or sqlSearchStr must be non-null
+   *  One of srchParms.searchList or sqlSearchStr must be non-null
    */
-  private Response getSearchResponse(AuthenticatedUser authenticatedUser, List<String> searchList, String sqlSearchStr,
-                                     SearchParameters srchParms, boolean allAttributes)
+  private Response getSearchResponse(AuthenticatedUser authenticatedUser, String sqlSearchStr, SearchParameters srchParms)
           throws Exception
   {
     RespAbstract resp1;
     List<TSystem> systems = null;
-//    List<SystemBasic> systemsBasic = null;
     int totalCount = -1;
     String itemCountStr;
+
+    List<String> searchList = srchParms.getSearchList();
+    List<String> selectList = srchParms.getSelectList();
+
+    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
+    // TODO: cic-3939 Support filtering
+    if (selectList != null && !selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
 
     // If limit was not specified then use the default
     int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
@@ -1409,41 +1398,23 @@ public class SystemResource
     String orderBy = srchParms.getOrderBy();
     List<OrderBy> orderByList = srchParms.getOrderByList();
 
-//    // Retrieve results with all attributes or just some attributes.
-//    if (allAttributes)
-//    {
-      if (StringUtils.isBlank(sqlSearchStr))
-        systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
-      else
-        systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
-      if (systems == null) systems = Collections.emptyList();
-      itemCountStr = String.format(SYS_CNT_STR, systems.size());
-      if (computeTotal && limit <= 0) totalCount = systems.size();
-//    }
-//    else
-//    {
-//      if (StringUtils.isBlank(sqlSearchStr))
-//        systemsBasic = systemsService.getSystemsBasic(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
-//      else
-//        systemsBasic = systemsService.getSystemsBasicUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip, startAfter);
-//      if (systemsBasic == null) systemsBasic = Collections.emptyList();
-//      itemCountStr = String.format(SYS_CNT_STR, systemsBasic.size());
-//      if (computeTotal && limit <= 0) totalCount = systemsBasic.size();
-//    }
+    if (StringUtils.isBlank(sqlSearchStr))
+      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter, selectList);
+    else
+      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip,
+                                                           startAfter, selectList);
+    if (systems == null) systems = Collections.emptyList();
+    itemCountStr = String.format(SYS_CNT_STR, systems.size());
+    if (computeTotal && limit <= 0) totalCount = systems.size();
 
     // If we need the count and there was a limit then we need to make a call
     if (computeTotal && limit > 0)
     {
-      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, srchParms.getSearchList(),
-              orderByList, startAfter);
+      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, searchList, orderByList, startAfter);
     }
 
     // ---------------------------- Success -------------------------------
-    // NOTE: We need totalCount for metadata so cannot combine this with if(allAttributes) above.
-//    if (allAttributes)
-      resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
-//    else
-//      resp1 = new RespSystemsBasic(systemsBasic, limit, orderBy, skip, startAfter, totalCount);
+    resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
 
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }

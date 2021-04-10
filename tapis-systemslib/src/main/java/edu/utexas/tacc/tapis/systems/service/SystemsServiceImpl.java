@@ -53,7 +53,6 @@ import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.model.Credential;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
-import edu.utexas.tacc.tapis.systems.model.SystemBasic;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
@@ -310,7 +309,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Retrieve the system being patched and create fully populated TSystem with changes merged in
-    TSystem origTSystem = dao.getSystem(systemTenantName, systemId);
+    TSystem origTSystem = dao.getSystem(systemTenantName, systemId, null);
     TSystem patchedTSystem = createPatchedTSystem(origTSystem, patchSystem);
 
     // ------------------------- Check service level authorization -------------------------
@@ -584,7 +583,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds,
-                           AuthnMethod accMethod, boolean requireExecPerm)
+                           AuthnMethod accMethod, boolean requireExecPerm, List<String> selectList)
           throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -612,7 +611,7 @@ public class SystemsServiceImpl implements SystemsService
                     systemId, null, null, null);
     }
 
-    TSystem result = dao.getSystem(systemTenantName, systemId);
+    TSystem result = dao.getSystem(systemTenantName, systemId, selectList);
     if (result == null) return null;
 
     // If flag is set to also require EXECUTE perm then system must support execute
@@ -704,7 +703,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                  List<OrderBy> orderByList, int skip, String startAfter)
+                                  List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -741,7 +740,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(systemTenantName, verifiedSearchList, null, allowedSysIDs,
-                                            limit, orderByList, skip, startAfter);
+                                            limit, orderByList, skip, startAfter, selectList);
 
     for (TSystem system : systems)
     {
@@ -765,11 +764,12 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                                   List<OrderBy> orderByList, int skip, String startAfter)
+                                        List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip,
+                                                             startAfter, selectList);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -803,7 +803,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
-                                                          limit, orderByList, skip, startAfter);
+                                                          limit, orderByList, skip, startAfter, selectList);
 
     for (TSystem system : systems)
     {
@@ -856,161 +856,6 @@ public class SystemsServiceImpl implements SystemsService
               authenticatedUser.getName()));
     }
     return systems;
-  }
-
-  /**
-   * getSystemBasic
-   * @param authenticatedUser - principal user containing tenant and user info
-   * @param systemId - Name of the system
-   * @return SystemBasic - populated instance or null if not found or user not authorized.
-   * @throws TapisException - for Tapis related exceptions
-   * @throws NotAuthorizedException - unauthorized
-   */
-  @Override
-  public SystemBasic getSystemBasic(AuthenticatedUser authenticatedUser, String systemId)
-          throws TapisException, NotAuthorizedException, TapisClientException
-  {
-    SystemOperation op = SystemOperation.read;
-    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
-    if (StringUtils.isBlank(systemId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
-    // Extract various names for convenience
-    String systemTenantName = authenticatedUser.getTenantId();
-    // For service request use oboTenant for tenant associated with the system
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
-
-    // We need owner to check auth and if system not there cannot find owner, so
-    // if system does not exist then return null
-    if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
-
-    // ------------------------- Check service level authorization -------------------------
-    checkAuth(authenticatedUser, op, systemId, null, null, null);
-
-    // Retrieve the system
-    return dao.getSystemBasic(systemTenantName, systemId);
-  }
-
-  /**
-   * Get all systems matching certain criteria and for which user has READ permission
-   * @param authenticatedUser - principal user containing tenant and user info
-   * @param searchList - optional list of conditions used for searching
-   * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
-   * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
-   * @return List of TSystem objects
-   * @throws TapisException - for Tapis related exceptions
-   */
-  @Override
-  public List<SystemBasic> getSystemsBasic(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                           List<OrderBy> orderByList, int skip, String startAfter)
-          throws TapisException, TapisClientException
-  {
-    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
-    // Determine tenant scope for user
-    String systemTenantName = authenticatedUser.getTenantId();
-    // For service request use oboTenant for tenant associated with the user
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
-      systemTenantName = authenticatedUser.getOboTenantId();
-
-    // Build verified list of search conditions
-    var verifiedSearchList = new ArrayList<String>();
-    if (searchList != null && !searchList.isEmpty())
-    {
-      try
-      {
-        for (String cond : searchList)
-        {
-          // Use SearchUtils to validate condition
-          String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(cond);
-          verifiedSearchList.add(verifiedCondStr);
-        }
-      }
-      catch (Exception e)
-      {
-        String msg = LibUtils.getMsgAuth("SYSLIB_SEARCH_ERROR", authenticatedUser, e.getMessage());
-        _log.error(msg, e);
-        throw new IllegalArgumentException(msg);
-      }
-    }
-
-    // Get list of IDs of systems for which requester has READ permission.
-    // This is either all systems (null) or a list of IDs.
-    Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
-
-    // Get all allowed systems matching the search conditions
-    return dao.getSystemsBasic(systemTenantName, verifiedSearchList, null, allowedSysIDs,
-                               limit, orderByList, skip, startAfter);
-  }
-
-  /**
-   * Get all systems for which user has READ permission.
-   * Use provided string containing a valid SQL where clause for the search.
-   * @param authenticatedUser - principal user containing tenant and user info
-   * @param sqlSearchStr - string containing a valid SQL where clause
-   * @param limit - indicates maximum number of results to be included, -1 for unlimited
-   * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
-   * @param skip - number of results to skip (may not be used with startAfter)
-   * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
-   * @return List of TSystem objects
-   * @throws TapisException - for Tapis related exceptions
-   */
-  @Override
-  public List<SystemBasic> getSystemsBasicUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                                            List<OrderBy> orderByList, int skip, String startAfter)
-          throws TapisException, TapisClientException
-  {
-    // If search string is empty delegate to getSystemsBasic()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystemsBasic(authenticatedUser, null, limit, orderByList, skip, startAfter);
-
-    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
-    // Determine tenant scope for user
-    String systemTenantName = authenticatedUser.getTenantId();
-    // For service request use oboTenant for tenant associated with the user
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
-      systemTenantName = authenticatedUser.getOboTenantId();
-
-    ASTNode searchAST;
-    try { searchAST = ASTParser.parse(sqlSearchStr); }
-    catch (Exception e)
-    {
-      String msg = LibUtils.getMsgAuth("SYSLIB_SEARCH_ERROR", authenticatedUser, e.getMessage());
-      _log.error(msg, e);
-      throw new IllegalArgumentException(msg);
-    }
-
-    // Get list of IDs of systems for which requester has READ permission.
-    // This is either all systems (null) or a list of IDs.
-    Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
-
-    // Get all allowed systems matching the search conditions
-    return dao.getSystemsBasic(systemTenantName, null, searchAST, allowedSysIDs,
-                                                    limit, orderByList, skip, startAfter);
-  }
-
-  /**
-   * Get list of system names
-   * @param authenticatedUser - principal user containing tenant and user info
-   * @return - list of systems
-   * @throws TapisException - for Tapis related exceptions
-   */
-  @Override
-  public Set<String> getSystemIDs(AuthenticatedUser authenticatedUser) throws TapisException
-  {
-    SystemOperation op = SystemOperation.read;
-    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
-    // Get all system names
-    Set<String> systemIds = dao.getSystemNames(authenticatedUser.getTenantId());
-    var allowedNames = new HashSet<String>();
-    // Filter based on user authorization
-    for (String name: systemIds)
-    {
-      try {
-        checkAuth(authenticatedUser, op, name, null, null, null);
-        allowedNames.add(name);
-      }
-      catch (NotAuthorizedException | TapisClientException e) { }
-    }
-    return allowedNames;
   }
 
   /**
@@ -1426,9 +1271,9 @@ public class SystemsServiceImpl implements SystemsService
     // If authnMethod not passed in fill in with default from system
     if (authnMethod == null)
     {
-      TSystem sys = dao.getSystem(systemTenantName, systemId);
-      if (sys == null)  throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
-      authnMethod = sys.getDefaultAuthnMethod();
+      AuthnMethod defaultAuthnMethod= dao.getSystemDefaultAuthnMethod(systemTenantName, systemId);
+      if (defaultAuthnMethod == null)  throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+      authnMethod = defaultAuthnMethod;
     }
 
     Credential credential = null;
@@ -1575,7 +1420,7 @@ public class SystemsServiceImpl implements SystemsService
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = dao.getSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId());
+        dtnSystem = dao.getSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId(), null);
       }
       catch (TapisException e)
       {
@@ -2094,7 +1939,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Fetch the system. If system not found then return
-    TSystem system = dao.getSystem(systemTenantName, systemId, true);
+    TSystem system = dao.getSystem(systemTenantName, systemId, null, true);
     if (system == null) return;
 
     // Resolve effectiveUserId if necessary
@@ -2115,7 +1960,8 @@ public class SystemsServiceImpl implements SystemsService
    * Revoke permissions
    * No checks are done for incoming arguments and the system must exist
    */
-  private static int revokePermissions(SKClient skClient, String systemTenantName, String systemId, String userName, Set<Permission> permissions)
+  private static int revokePermissions(SKClient skClient, String systemTenantName, String systemId, String userName,
+                                       Set<Permission> permissions)
           throws TapisClientException
   {
     // Create a set of individual permSpec entries based on the list passed in

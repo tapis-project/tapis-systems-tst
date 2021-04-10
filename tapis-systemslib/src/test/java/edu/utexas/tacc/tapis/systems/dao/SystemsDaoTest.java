@@ -58,8 +58,8 @@ public class SystemsDaoTest
       dao.hardDeleteSystem(tenantName, systems[i].getId());
     }
 
-    TSystem tmpSystem = dao.getSystem(tenantName, systems[0].getId(), true);
-    Assert.assertNull(tmpSystem, "System not deleted. System name: " + systems[0].getId());
+    Assert.assertFalse(dao.checkForSystem(tenantName, systems[0].getId(), true),
+                       "System not deleted. System name: " + systems[0].getId());
   }
 
   // Test create for a single item
@@ -77,7 +77,7 @@ public class SystemsDaoTest
     TSystem sys0 = systems[1];
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
     Assert.assertEquals(tmpSys.getId(), sys0.getId());
@@ -176,25 +176,6 @@ public class SystemsDaoTest
     Assert.assertNotNull(tmpSys.getUpdated(), "Fetched updated timestamp should not be null");
   }
 
-  // Test retrieving all system names
-  @Test
-  public void testGetSystemNames() throws Exception {
-    // Create 2 systems
-    TSystem sys0 = systems[2];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    sys0 = systems[3];
-    itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    // Get all systems
-    Set<String> systemNames = dao.getSystemNames(tenantName);
-    for (String name : systemNames) {
-      System.out.println("Found item: " + name);
-    }
-    Assert.assertTrue(systemNames.contains(systems[2].getId()), "List of systems did not contain system name: " + systems[2].getId());
-    Assert.assertTrue(systemNames.contains(systems[3].getId()), "List of systems did not contain system name: " + systems[3].getId());
-  }
-
   // Test retrieving all systems
   @Test
   public void testGetSystems() throws Exception {
@@ -202,7 +183,7 @@ public class SystemsDaoTest
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     List<TSystem> systems = dao.getSystems(tenantName, null, null, null, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull);
+                                            DEFAULT_SKIP, startAfterNull, null);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -223,7 +204,7 @@ public class SystemsDaoTest
     sysIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
     List<TSystem> systems = dao.getSystems(tenantName, null, null, sysIdList, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull);
+                                            DEFAULT_SKIP, startAfterNull, null);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(sysIdList.contains(system.getId()));
@@ -239,13 +220,13 @@ public class SystemsDaoTest
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     System.out.println("Created item, id: " + sys0.getId() + " enabled: " + sys0.isEnabled());
     // Enabled should start off true, then become false and finally true again.
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertTrue(tmpSys.isEnabled());
     dao.updateEnabled(authenticatedUser, sys0.getId(), false);
-    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
+    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertFalse(tmpSys.isEnabled());
     dao.updateEnabled(authenticatedUser, sys0.getId(), true);
-    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
+    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertTrue(tmpSys.isEnabled());
   }
 
@@ -257,7 +238,7 @@ public class SystemsDaoTest
     System.out.println("Created item with systemId: " + sys0.getId());
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     dao.updateSystemOwner(authenticatedUser, sys0.getId(), "newOwner");
-    TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId());
+    TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
 
@@ -297,7 +278,7 @@ public class SystemsDaoTest
     sys0.setProxyPort(-1);
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
     Assert.assertEquals(tmpSys.getId(), sys0.getId());
@@ -353,7 +334,7 @@ public class SystemsDaoTest
       pass = true;
     }
     Assert.assertTrue(pass);
-    Assert.assertNull(dao.getSystem(tenantName, fakeSystemName));
+    Assert.assertNull(dao.getSystem(tenantName, fakeSystemName, null));
     Assert.assertNull(dao.getSystemOwner(tenantName, fakeSystemName));
   }
 }

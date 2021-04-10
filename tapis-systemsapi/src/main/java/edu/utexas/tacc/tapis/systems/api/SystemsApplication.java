@@ -11,8 +11,6 @@ import edu.utexas.tacc.tapis.sharedapi.jaxrs.filters.JWTValidateRequestFilter;
 import edu.utexas.tacc.tapis.sharedapi.providers.ObjectMapperContextResolver;
 import edu.utexas.tacc.tapis.sharedapi.providers.TapisExceptionMapper;
 import edu.utexas.tacc.tapis.sharedapi.providers.ValidationExceptionMapper;
-import edu.utexas.tacc.tapis.systems.api.filtering.TapisEntityProcessor;
-import edu.utexas.tacc.tapis.systems.api.filtering.TapisScopeResolver;
 import edu.utexas.tacc.tapis.systems.config.RuntimeParameters;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDao;
 import edu.utexas.tacc.tapis.systems.dao.SystemsDaoImpl;
@@ -27,7 +25,6 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -67,30 +64,6 @@ public class SystemsApplication extends ResourceConfig
     // Log our existence.
     // Output version information on startup
     System.out.println("**** Starting tapis-systems. Version: " + TapisUtils.getTapisFullVersion() + " ****");
-
-    // TODO clean up comments once filtering is implemented.
-    // Setup and register Jersey's dynamic filtering
-    // This allows for returning selected attributes in a return result
-    //   using the query parameter select, e.g.
-    //   /v3/systems?select=result.id,result.name,result.host,result.enabled
-//    property(SelectableEntityFilteringFeature.QUERY_PARAM_NAME, "select");
-//    register(SelectableEntityFilteringFeature.class);
-    // Register either Jackson or Moxy for SelectableEntityFiltering
-    // NOTE: Using shaded jar and Moxy works when running from Intellij IDE but breaks things when running in docker.
-    // NOTE: Using Jackson results in following TSystem attributes not being returned: notes, created, updated.
-    // NOTE: Using unshaded jar and Moxy appears to resolve all issues.
-//    register(new MoxyJsonConfig().resolver());
-// NOTE on Selectable feature: gave up on this (for now) as too cumbersome and limited. Awkward to specify attributes
-//      and could not get it to work when list of systems nested in results->search.
-
-    // Register Jersey filtering feature to support returning selected attributes in response.
-//    property(EntityFilteringFeature.ENTITY_FILTERING_SCOPE, new Annotation[] {TSystemFilterView.Factory.get()});
-    // Turn off for now. Leaving these next three on can cause search result attributes to be empty. The correct number of
-    // items are in the search results but each item is empty json
-//    register(EntityFilteringFeature.class);
-//    register(TapisEntityProcessor.class);
-//    register(TapisScopeResolver.class);
-
 
     // Use jackson as opposed to Moxy.
     // Initially there were problems with notes and authnCredential but with a custom objectmapper
