@@ -49,28 +49,47 @@ public final class TSystem
   private static final String[] ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
 
   // Attribute names, also used as field names in Json
+  public static final String TENANT_FIELD = "tenant";
   public static final String ID_FIELD = "id";
   public static final String DESCRIPTION_FIELD = "description";
-  public static final String OWNER_FIELD = "owner";
-  public static final String EFFUSRID_FIELD = "effectiveUserId";
-  public static final String BUCKETNAME_FIELD = "bucketName";
-  public static final String DTNSYSID_FIELD = "dtnSystemId";
-  public static final String DTNMOUNTPOINT_FIELD = "dtnMountPoint";
-  public static final String DTNMOUNTSRCPATH_FIELD = "dtnMountSourcePath";
-  public static final String JOBWRKDIR_FIELD = "jobWorkingDir";
-  public static final String NOTES_FIELD = "notes";
   public static final String SYSTEM_TYPE_FIELD = "systemType";
+  public static final String OWNER_FIELD = "owner";
   public static final String HOST_FIELD = "host";
-  public static final String CANEXEC_FIELD = "canExec";
-  public static final String ROOTDIR_FIELD = "rootDir";
+  public static final String ENABLED_FIELD = "enabled";
+  public static final String EFFECTIVE_USER_ID_FIELD = "effectiveUserId";
+  public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
+  public static final String BUCKET_NAME_FIELD = "bucketName";
+  public static final String ROOT_DIR_FIELD = "rootDir";
+  public static final String TRANSFER_METHODS_FIELD = "transferMethods";
+  public static final String PORT_FIELD = "port";
+  public static final String USE_PROXY_FIELD = "useProxy";
+  public static final String PROXY_HOST_FIELD = "proxyHost";
+  public static final String PROXY_PORT_FIELD = "proxyPort";
+  public static final String DTN_SYSTEM_ID_FIELD = "dtnSystemId";
+  public static final String DTN_MOUNT_POINT_FIELD = "dtnMountPoint";
+  public static final String DTN_MOUNT_SOURCE_PATH_FIELD = "dtnMountSourcePath";
+  public static final String IS_DTN_FIELD = "isDtn";
+  public static final String CAN_EXEC_FIELD = "canExec";
+  public static final String JOB_RUNTIMES_FIELD = "jobRuntimes";
+  public static final String JOB_WORKING_DIR_FIELD = "jobWorkingDir";
+  public static final String JOB_ENV_VARIABLES_FIELD = "jobEnvVariables";
+  public static final String JOB_MAX_JOBS_FIELD = "jobMaxJobs";
+  public static final String JOB_MAX_JOBS_PER_USER_FIELD = "jobMaxJobsPerUser";
+  public static final String JOB_IS_BATCH_FIELD = "jobsIsBatch";
+  public static final String BATCH_SCHEDULER_FIELD = "batchScheduler";
+  public static final String BATCH_LOGICAL_QUEUES_FIELD = "batchLogicalQueues";
+  public static final String BATCH_DEFAULT_LOGICAL_QUEUE_FIELD = "batchDefaultLogicalQueue";
+  public static final String JOB_CAPABILITIES_FIELD = "jobCapabilities";
+  public static final String TAGS_FIELD = "tags";
+  public static final String NOTES_FIELD = "notes";
+  public static final String UUID_FIELD = "uuid";
 
   // Default values
   public static final String[] EMPTY_STR_ARRAY = new String[0];
   public static final String DEFAULT_OWNER = APIUSERID_VAR;
   public static final boolean DEFAULT_ENABLED = true;
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
-  public static final String DEFAULT_AUTHN_METHOD_FIELD = "defaultAuthnMethod";
   public static final String[] DEFAULT_JOBENV_VARIABLES = EMPTY_STR_ARRAY;
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
   public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
@@ -405,7 +424,7 @@ public final class TSystem
 
     if (!StringUtils.isBlank(dtnSystemId) && dtnSystemId.length() > MAX_ID_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNSYSID_FIELD, MAX_ID_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTN_SYSTEM_ID_FIELD, MAX_ID_LEN));
     }
 
     if (!StringUtils.isBlank(description) && description.length() > MAX_DESCRIPTION_LEN)
@@ -420,32 +439,32 @@ public final class TSystem
 
     if (!StringUtils.isBlank(effectiveUserId) && effectiveUserId.length() > MAX_USERNAME_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, EFFUSRID_FIELD, MAX_USERNAME_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, EFFECTIVE_USER_ID_FIELD, MAX_USERNAME_LEN));
     }
 
     if (!StringUtils.isBlank(bucketName) && bucketName.length() > MAX_BUCKETNAME_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, BUCKETNAME_FIELD, MAX_BUCKETNAME_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, BUCKET_NAME_FIELD, MAX_BUCKETNAME_LEN));
     }
 
     if (!StringUtils.isBlank(rootDir) && rootDir.length() > MAX_PATH_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, ROOTDIR_FIELD, MAX_PATH_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, ROOT_DIR_FIELD, MAX_PATH_LEN));
     }
 
     if (!StringUtils.isBlank(dtnMountPoint) && dtnMountPoint.length() > MAX_PATH_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNMOUNTPOINT_FIELD, MAX_PATH_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTN_MOUNT_POINT_FIELD, MAX_PATH_LEN));
     }
 
     if (!StringUtils.isBlank(dtnMountSourcePath) && dtnMountSourcePath.length() > MAX_PATH_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTNMOUNTSRCPATH_FIELD, MAX_PATH_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, DTN_MOUNT_SOURCE_PATH_FIELD, MAX_PATH_LEN));
     }
 
     if (!StringUtils.isBlank(jobWorkingDir) && jobWorkingDir.length() > MAX_PATH_LEN)
     {
-      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, JOBWRKDIR_FIELD, MAX_PATH_LEN));
+      errMessages.add(LibUtils.getMsg(TOO_LONG_ATTR, JOB_WORKING_DIR_FIELD, MAX_PATH_LEN));
     }
   }
 

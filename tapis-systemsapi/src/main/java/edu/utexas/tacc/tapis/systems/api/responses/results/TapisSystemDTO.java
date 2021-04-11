@@ -1,16 +1,15 @@
 package edu.utexas.tacc.tapis.systems.api.responses.results;
 
-import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
+import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.Capability;
@@ -19,23 +18,49 @@ import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
-import static edu.utexas.tacc.tapis.systems.model.TSystem.CANEXEC_FIELD;
+import static edu.utexas.tacc.tapis.systems.api.resources.SystemResource.SUMMARY_ATTRS;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.AUTHN_CREDENTIAL_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.BATCH_DEFAULT_LOGICAL_QUEUE_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.BATCH_LOGICAL_QUEUES_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.BATCH_SCHEDULER_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.BUCKET_NAME_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.CAN_EXEC_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_AUTHN_METHOD_FIELD;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.EFFUSRID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DESCRIPTION_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DTN_MOUNT_POINT_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DTN_MOUNT_SOURCE_PATH_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DTN_SYSTEM_ID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.EFFECTIVE_USER_ID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.ENABLED_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.HOST_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.ID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.IS_DTN_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_CAPABILITIES_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_ENV_VARIABLES_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_IS_BATCH_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_MAX_JOBS_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_MAX_JOBS_PER_USER_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_RUNTIMES_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.JOB_WORKING_DIR_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.NOTES_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.OWNER_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.PORT_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.PROXY_HOST_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.PROXY_PORT_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.ROOT_DIR_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.SYSTEM_TYPE_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.TAGS_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.TENANT_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.TRANSFER_METHODS_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.USE_PROXY_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.UUID_FIELD;
 
 /*
     Class representing a TSystem result to be returned
  */
 public final class TapisSystemDTO
 {
-
-  private static final Set<String> SUMMARY_ATTRS =
-          new HashSet<>(Set.of(ID_FIELD, SYSTEM_TYPE_FIELD, OWNER_FIELD, HOST_FIELD,
-                               EFFUSRID_FIELD, DEFAULT_AUTHN_METHOD_FIELD, CANEXEC_FIELD));
+  private static final Gson gson = TapisGsonUtils.getGson();
 
   public String tenant;
   public String id;
@@ -138,24 +163,105 @@ public final class TapisSystemDTO
    * If selectSet contains one item:
    *    and that item is "allAttributes" then all attributes are included.
    *    and that item is "summaryAttributes" then only summary attributes are included.
-   * @return JsonObject containing attributes in the select set.
+   * @return JsonObject containing attributes in the select list.
    */
-  public JsonObject getDisplayObject(List<String> selectSet)
+  public JsonObject getDisplayObject(List<String> selectList)
+  {
+    // Check for special cases of returning all or summary attributes
+    if (selectList == null || selectList.isEmpty() ||
+        (selectList.size() == 1 && selectList.get(0).equals("allAttributes")))
+    {
+      return allAttrs();
+    }
+    if (selectList.size() == 1 && selectList.get(0).equals("summaryAttributes"))
+    {
+      return summaryAttrs();
+    }
+
+    // Include specified list of attributes
+    var retObj = new JsonObject();
+    // If ID not in list we add it anyway.
+    if (!selectList.contains(ID_FIELD)) addDisplayField(retObj, ID_FIELD);
+    for (String attrName : selectList)
+    {
+      addDisplayField(retObj, attrName);
+    }
+    return retObj;
+  }
+
+  // Build a JsonObject with all displayable attributes
+  private JsonObject allAttrs()
+  {
+    String jsonStr = gson.toJson(this);
+    return gson.fromJson(jsonStr, JsonObject.class).getAsJsonObject();
+  }
+
+  // Build a JsonObject with just the summary attributes
+  private JsonObject summaryAttrs()
   {
     var retObj = new JsonObject();
-    Field[] fields = TapisSystemDTO.class.getDeclaredFields();
-    for (Field f : fields) System.out.println("Found field: " + f.getName());
-//    for (Field f : fields)
-//    {
-//      attributeSet.add(f.getName());
-//    }
-    retObj.addProperty(ID_FIELD, id);
-    retObj.addProperty(SYSTEM_TYPE_FIELD, systemType.name());
-    retObj.addProperty(OWNER_FIELD, owner);
-    retObj.addProperty(HOST_FIELD, host);
-    retObj.addProperty(EFFUSRID_FIELD, effectiveUserId);
-    retObj.addProperty(DEFAULT_AUTHN_METHOD_FIELD, defaultAuthnMethod.name());
-    retObj.addProperty(CANEXEC_FIELD, Boolean.toString(canExec));
+    for (String attrName: SUMMARY_ATTRS)
+    {
+      addDisplayField(retObj, attrName);
+    }
     return retObj;
+  }
+
+  /**
+   * Add specified attribute name to the JsonObject that is to be returned as the displayable object.
+   * If attribute does not exist in this class then it is a no-op.
+   *
+   * @param jsonObject Base JsonObject that will be returned.
+   * @param attrName Attribute name to add to the JsonObject
+   */
+  private void addDisplayField(JsonObject jsonObject, String attrName)
+  {
+    String jsonStr;
+    switch (attrName) {
+      case TENANT_FIELD -> jsonObject.addProperty(TENANT_FIELD, tenant);
+      case ID_FIELD -> jsonObject.addProperty(ID_FIELD, id);
+      case DESCRIPTION_FIELD ->jsonObject.addProperty(DESCRIPTION_FIELD, description);
+      case SYSTEM_TYPE_FIELD -> jsonObject.addProperty(SYSTEM_TYPE_FIELD, systemType.name());
+      case OWNER_FIELD -> jsonObject.addProperty(OWNER_FIELD, owner);
+      case HOST_FIELD -> jsonObject.addProperty(HOST_FIELD, host);
+      case ENABLED_FIELD -> jsonObject.addProperty(ENABLED_FIELD, Boolean.toString(enabled));
+      case EFFECTIVE_USER_ID_FIELD -> jsonObject.addProperty(EFFECTIVE_USER_ID_FIELD, effectiveUserId);
+      case DEFAULT_AUTHN_METHOD_FIELD -> jsonObject.addProperty(DEFAULT_AUTHN_METHOD_FIELD, defaultAuthnMethod.name());
+      case AUTHN_CREDENTIAL_FIELD -> {
+        jsonStr = gson.toJson(authnCredential);
+        jsonObject.add(AUTHN_CREDENTIAL_FIELD, gson.fromJson(jsonStr, JsonObject.class));
+      }
+      case BUCKET_NAME_FIELD -> jsonObject.addProperty(BUCKET_NAME_FIELD, bucketName);
+      case ROOT_DIR_FIELD -> jsonObject.addProperty(ROOT_DIR_FIELD, rootDir);
+      case TRANSFER_METHODS_FIELD -> jsonObject.add(TRANSFER_METHODS_FIELD, gson.toJsonTree(transferMethods));
+      case PORT_FIELD -> jsonObject.addProperty(PORT_FIELD, port);
+      case USE_PROXY_FIELD -> jsonObject.addProperty(USE_PROXY_FIELD, Boolean.toString(useProxy));
+      case PROXY_HOST_FIELD -> jsonObject.addProperty(PROXY_HOST_FIELD, proxyHost);
+      case PROXY_PORT_FIELD -> jsonObject.addProperty(PROXY_PORT_FIELD, proxyPort);
+      case DTN_MOUNT_POINT_FIELD -> jsonObject.addProperty(DTN_MOUNT_POINT_FIELD, dtnMountPoint);
+      case DTN_MOUNT_SOURCE_PATH_FIELD -> jsonObject.addProperty(DTN_MOUNT_SOURCE_PATH_FIELD, dtnMountSourcePath);
+      case DTN_SYSTEM_ID_FIELD -> jsonObject.addProperty(DTN_SYSTEM_ID_FIELD, dtnSystemId);
+      case IS_DTN_FIELD -> jsonObject.addProperty(IS_DTN_FIELD, Boolean.toString(isDtn));
+      case CAN_EXEC_FIELD -> jsonObject.addProperty(CAN_EXEC_FIELD, Boolean.toString(canExec));
+      case JOB_RUNTIMES_FIELD -> jsonObject.add(JOB_RUNTIMES_FIELD, gson.toJsonTree(jobRuntimes));
+      case JOB_WORKING_DIR_FIELD -> jsonObject.addProperty(JOB_WORKING_DIR_FIELD, jobWorkingDir);
+      case JOB_ENV_VARIABLES_FIELD -> jsonObject.add(JOB_ENV_VARIABLES_FIELD, gson.toJsonTree(jobEnvVariables));
+      case JOB_MAX_JOBS_FIELD -> jsonObject.addProperty(JOB_MAX_JOBS_FIELD, jobMaxJobs);
+      case JOB_MAX_JOBS_PER_USER_FIELD -> jsonObject.addProperty(JOB_MAX_JOBS_PER_USER_FIELD, jobMaxJobsPerUser);
+      case JOB_IS_BATCH_FIELD -> jsonObject.addProperty(JOB_IS_BATCH_FIELD, Boolean.toString(jobIsBatch));
+      case BATCH_SCHEDULER_FIELD -> jsonObject.addProperty(BATCH_SCHEDULER_FIELD, batchScheduler.name());
+      case BATCH_LOGICAL_QUEUES_FIELD -> jsonObject.add(BATCH_LOGICAL_QUEUES_FIELD, gson.toJsonTree(batchLogicalQueues));
+      case BATCH_DEFAULT_LOGICAL_QUEUE_FIELD -> jsonObject.addProperty(BATCH_DEFAULT_LOGICAL_QUEUE_FIELD, batchDefaultLogicalQueue);
+      case JOB_CAPABILITIES_FIELD -> jsonObject.add(JOB_CAPABILITIES_FIELD, gson.toJsonTree(jobCapabilities));
+      case TAGS_FIELD -> jsonObject.add(TAGS_FIELD, gson.toJsonTree(tags));
+      case NOTES_FIELD -> {
+        jsonStr = gson.toJson(notes);
+        jsonObject.add(NOTES_FIELD, gson.fromJson(jsonStr, JsonObject.class));
+      }
+      case UUID_FIELD -> {
+        jsonStr = gson.toJson(uuid);
+        jsonObject.add(UUID_FIELD, gson.fromJson(jsonStr, JsonObject.class));
+      }
+    }
   }
 }

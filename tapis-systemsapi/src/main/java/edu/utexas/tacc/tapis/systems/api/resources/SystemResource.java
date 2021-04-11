@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems.api.resources;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -71,8 +72,15 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 
 import static edu.utexas.tacc.tapis.systems.model.Credential.SECRETS_MASK;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.CAN_EXEC_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_AUTHN_METHOD_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.EFFECTIVE_USER_ID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.HOST_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.ID_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.NOTES_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.AUTHN_CREDENTIAL_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.OWNER_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.SYSTEM_TYPE_FIELD;
 
 /*
  * JAX-RS REST resource for a Tapis System (edu.utexas.tacc.tapis.systems.model.TSystem)
@@ -122,6 +130,13 @@ public class SystemResource
 
   // Always return a nicely formatted response
   private static final boolean PRETTY = true;
+
+
+  // Top level summary attributes to be included by default in some cases.
+  public static final List<String> SUMMARY_ATTRS =
+          new ArrayList<>(List.of(ID_FIELD, SYSTEM_TYPE_FIELD, OWNER_FIELD, HOST_FIELD,
+                  EFFECTIVE_USER_ID_FIELD, DEFAULT_AUTHN_METHOD_FIELD, CAN_EXEC_FIELD));
+
 
   // ************************************************************************
   // *********************** Fields *****************************************
@@ -756,7 +771,6 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    // TODO: cic-3939 Support filtering
     List<String> selectList = threadContext.getSearchParameters().getSelectList();
     if (selectList != null && !selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
 
@@ -1384,10 +1398,10 @@ public class SystemResource
 
     List<String> searchList = srchParms.getSearchList();
     List<String> selectList = srchParms.getSelectList();
+    if (selectList == null || selectList.isEmpty()) selectList = SUMMARY_ATTRS;
 
     if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
-    // TODO: cic-3939 Support filtering
-    if (selectList != null && !selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
+    if (!selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
 
     // If limit was not specified then use the default
     int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();
@@ -1414,7 +1428,7 @@ public class SystemResource
     }
 
     // ---------------------------- Success -------------------------------
-    resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount);
+    resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount, selectList);
 
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
   }
