@@ -1,6 +1,15 @@
 package edu.utexas.tacc.tapis.systems.api.responses.results;
 
+import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.gson.JsonObject;
+
 import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
@@ -10,16 +19,24 @@ import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.CANEXEC_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_AUTHN_METHOD_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.EFFUSRID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.HOST_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.ID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.OWNER_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.SYSTEM_TYPE_FIELD;
 
 /*
     Class representing a TSystem result to be returned
  */
 public final class TapisSystemDTO
 {
+
+  private static final Set<String> SUMMARY_ATTRS =
+          new HashSet<>(Set.of(ID_FIELD, SYSTEM_TYPE_FIELD, OWNER_FIELD, HOST_FIELD,
+                               EFFUSRID_FIELD, DEFAULT_AUTHN_METHOD_FIELD, CANEXEC_FIELD));
+
   public String tenant;
   public String id;
   public String description;
@@ -95,8 +112,11 @@ public final class TapisSystemDTO
     jobIsBatch = s.getJobIsBatch();
     batchScheduler = s.getBatchScheduler();
     batchLogicalQueues = new ArrayList<>();
-    if (s.getBatchLogicalQueues() != null )
-      for (LogicalQueue q : s.getBatchLogicalQueues()) { batchLogicalQueues.add(new ResultLogicalQueue(q)); }
+    if (s.getBatchLogicalQueues() != null)
+      for (LogicalQueue q : s.getBatchLogicalQueues())
+      {
+        batchLogicalQueues.add(new ResultLogicalQueue(q));
+      }
     batchDefaultLogicalQueue = s.getBatchDefaultLogicalQueue();
     jobCapabilities = s.getJobCapabilities();
     tags = s.getTags();
@@ -109,5 +129,33 @@ public final class TapisSystemDTO
     //   As requested by Jobs service.
     if (jobMaxJobs < 0) jobMaxJobs = Integer.MAX_VALUE;
     if (jobMaxJobsPerUser < 0) jobMaxJobsPerUser = Integer.MAX_VALUE;
+  }
+
+  /**
+   * Create a JsonObject containing the id attribute and any attribute in the selectSet that matches the name
+   * of a public field in this class
+   * If selectSet is null or empty then all attributes are included.
+   * If selectSet contains one item:
+   *    and that item is "allAttributes" then all attributes are included.
+   *    and that item is "summaryAttributes" then only summary attributes are included.
+   * @return JsonObject containing attributes in the select set.
+   */
+  public JsonObject getDisplayObject(Set<String> selectSet)
+  {
+    var retObj = new JsonObject();
+    Field[] fields = TapisSystemDTO.class.getDeclaredFields();
+    for (Field f : fields) System.out.println("Found field: " + f.getName());
+//    for (Field f : fields)
+//    {
+//      attributeSet.add(f.getName());
+//    }
+    retObj.addProperty(ID_FIELD, id);
+    retObj.addProperty(SYSTEM_TYPE_FIELD, systemType.name());
+    retObj.addProperty(OWNER_FIELD, owner);
+    retObj.addProperty(HOST_FIELD, host);
+    retObj.addProperty(EFFUSRID_FIELD, effectiveUserId);
+    retObj.addProperty(DEFAULT_AUTHN_METHOD_FIELD, defaultAuthnMethod.name());
+    retObj.addProperty(CANEXEC_FIELD, Boolean.toString(canExec));
+    return retObj;
   }
 }

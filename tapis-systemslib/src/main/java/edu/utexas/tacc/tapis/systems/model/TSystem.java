@@ -61,6 +61,7 @@ public final class TSystem
   public static final String NOTES_FIELD = "notes";
   public static final String SYSTEM_TYPE_FIELD = "systemType";
   public static final String HOST_FIELD = "host";
+  public static final String CANEXEC_FIELD = "canExec";
   public static final String ROOTDIR_FIELD = "rootDir";
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
 
