@@ -575,9 +575,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id, List<String> selectList) throws TapisException
+  public TSystem getSystem(String tenant, String id) throws TapisException
   {
-    return getSystem(tenant, id, selectList, false);
+    return getSystem(tenant, id, false);
   }
 
   /**
@@ -587,13 +587,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id, List<String> selectList, boolean includeDeleted)
+  public TSystem getSystem(String tenant, String id, boolean includeDeleted)
           throws TapisException {
     // Initialize result.
     TSystem result = null;
-
-    // Check items in select list against DB field names
-    checkSelectListAgainstColumnNames(selectList);
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -760,13 +757,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
-   * @param selectList - optional list of which attributes will be returned in the final response. Checked against field names.
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                             int limit, List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                             int limit, List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -814,9 +810,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
-
-    // Check items in select list against DB field names
-    checkSelectListAgainstColumnNames(selectList);
 
     // Begin where condition for the query
     Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));

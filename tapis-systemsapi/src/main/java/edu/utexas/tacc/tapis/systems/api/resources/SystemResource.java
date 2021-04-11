@@ -40,7 +40,6 @@ import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqImportSGCIResource;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSGCISystem;
-import edu.utexas.tacc.tapis.systems.api.responses.results.TapisSystemDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
@@ -764,7 +763,7 @@ public class SystemResource
     TSystem tSystem;
     try
     {
-      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm, selectList);
+      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
     }
     catch (Exception e)
     {
@@ -782,7 +781,7 @@ public class SystemResource
 
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the system information.
-    RespSystem resp1 = new RespSystem(tSystem);
+    RespSystem resp1 = new RespSystem(tSystem, selectList);
     return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, "System", systemId), resp1);
   }
 
@@ -1251,7 +1250,7 @@ public class SystemResource
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false, null);
+        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false);
       }
       catch (NotAuthorizedException e)
       {
@@ -1400,10 +1399,10 @@ public class SystemResource
     List<OrderBy> orderByList = srchParms.getOrderByList();
 
     if (StringUtils.isBlank(sqlSearchStr))
-      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter, selectList);
+      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
     else
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip,
-                                                           startAfter, selectList);
+                                                           startAfter);
     if (systems == null) systems = Collections.emptyList();
     itemCountStr = String.format(SYS_CNT_STR, systems.size());
     if (computeTotal && limit <= 0) totalCount = systems.size();

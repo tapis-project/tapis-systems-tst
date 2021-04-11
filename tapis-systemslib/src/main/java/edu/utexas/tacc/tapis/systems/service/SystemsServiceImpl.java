@@ -309,7 +309,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Retrieve the system being patched and create fully populated TSystem with changes merged in
-    TSystem origTSystem = dao.getSystem(systemTenantName, systemId, null);
+    TSystem origTSystem = dao.getSystem(systemTenantName, systemId);
     TSystem patchedTSystem = createPatchedTSystem(origTSystem, patchSystem);
 
     // ------------------------- Check service level authorization -------------------------
@@ -583,7 +583,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds,
-                           AuthnMethod accMethod, boolean requireExecPerm, List<String> selectList)
+                           AuthnMethod accMethod, boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
@@ -611,7 +611,7 @@ public class SystemsServiceImpl implements SystemsService
                     systemId, null, null, null);
     }
 
-    TSystem result = dao.getSystem(systemTenantName, systemId, selectList);
+    TSystem result = dao.getSystem(systemTenantName, systemId);
     if (result == null) return null;
 
     // If flag is set to also require EXECUTE perm then system must support execute
@@ -703,7 +703,7 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                  List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                                  List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -740,7 +740,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(systemTenantName, verifiedSearchList, null, allowedSysIDs,
-                                            limit, orderByList, skip, startAfter, selectList);
+                                            limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
     {
@@ -764,12 +764,12 @@ public class SystemsServiceImpl implements SystemsService
    */
   @Override
   public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                        List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                                        List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
     if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip,
-                                                             startAfter, selectList);
+                                                             startAfter);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -803,7 +803,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
-                                                          limit, orderByList, skip, startAfter, selectList);
+                                                          limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
     {
@@ -1420,7 +1420,7 @@ public class SystemsServiceImpl implements SystemsService
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = dao.getSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId(), null);
+        dtnSystem = dao.getSystem(tSystem1.getTenant(), tSystem1.getDtnSystemId());
       }
       catch (TapisException e)
       {
@@ -1939,7 +1939,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Fetch the system. If system not found then return
-    TSystem system = dao.getSystem(systemTenantName, systemId, null, true);
+    TSystem system = dao.getSystem(systemTenantName, systemId, true);
     if (system == null) return;
 
     // Resolve effectiveUserId if necessary

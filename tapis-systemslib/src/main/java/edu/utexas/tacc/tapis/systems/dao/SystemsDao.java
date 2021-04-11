@@ -38,15 +38,15 @@ public interface SystemsDao
 
   boolean checkForSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
-  TSystem getSystem(String tenant, String id, List<String> selectList) throws TapisException;
+  TSystem getSystem(String tenant, String id) throws TapisException;
 
-  TSystem getSystem(String tenant, String id, List<String> selectList, boolean includeDeleted) throws TapisException;
+  TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
   int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
                       List<OrderBy> orderByList, String startAfter) throws TapisException;
 
   List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                           List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                           List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException;
 
   List<TSystem> getSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;

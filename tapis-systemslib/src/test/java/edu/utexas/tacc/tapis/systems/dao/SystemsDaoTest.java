@@ -77,7 +77,7 @@ public class SystemsDaoTest
     TSystem sys0 = systems[1];
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
     Assert.assertEquals(tmpSys.getId(), sys0.getId());
@@ -183,7 +183,7 @@ public class SystemsDaoTest
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     List<TSystem> systems = dao.getSystems(tenantName, null, null, null, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull, null);
+                                            DEFAULT_SKIP, startAfterNull);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -204,7 +204,7 @@ public class SystemsDaoTest
     sysIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
     List<TSystem> systems = dao.getSystems(tenantName, null, null, sysIdList, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull, null);
+                                            DEFAULT_SKIP, startAfterNull);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(sysIdList.contains(system.getId()));
@@ -220,13 +220,13 @@ public class SystemsDaoTest
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     System.out.println("Created item, id: " + sys0.getId() + " enabled: " + sys0.isEnabled());
     // Enabled should start off true, then become false and finally true again.
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
     dao.updateEnabled(authenticatedUser, sys0.getId(), false);
-    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isEnabled());
     dao.updateEnabled(authenticatedUser, sys0.getId(), true);
-    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
   }
 
@@ -238,7 +238,7 @@ public class SystemsDaoTest
     System.out.println("Created item with systemId: " + sys0.getId());
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     dao.updateSystemOwner(authenticatedUser, sys0.getId(), "newOwner");
-    TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
 
@@ -278,7 +278,7 @@ public class SystemsDaoTest
     sys0.setProxyPort(-1);
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), null);
+    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
     System.out.println("Found item: " + sys0.getId());
     Assert.assertEquals(tmpSys.getId(), sys0.getId());
@@ -334,7 +334,7 @@ public class SystemsDaoTest
       pass = true;
     }
     Assert.assertTrue(pass);
-    Assert.assertNull(dao.getSystem(tenantName, fakeSystemName, null));
+    Assert.assertNull(dao.getSystem(tenantName, fakeSystemName));
     Assert.assertNull(dao.getSystemOwner(tenantName, fakeSystemName));
   }
 }

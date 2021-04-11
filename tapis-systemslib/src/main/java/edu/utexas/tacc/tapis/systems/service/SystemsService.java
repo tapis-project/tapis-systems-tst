@@ -45,18 +45,18 @@ public interface SystemsService
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds, AuthnMethod authnMethod,
-                    boolean requireExecPerm, List<String> selectList)
+                    boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList, List<OrderBy> orderByList,
                            String startAfter) throws TapisException, TapisClientException;
 
   List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                           List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                           List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String searchStr, int limit,
-                                        List<OrderBy> orderByList, int skip, String startAfter, List<String> selectList)
+                                        List<OrderBy> orderByList, int skip, String startAfter)
           throws TapisException, TapisClientException;
 
   List<TSystem> getSystemsSatisfyingConstraints(AuthenticatedUser authenticatedUser, String matchStr)

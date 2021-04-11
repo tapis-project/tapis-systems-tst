@@ -140,7 +140,7 @@ public final class TapisSystemDTO
    *    and that item is "summaryAttributes" then only summary attributes are included.
    * @return JsonObject containing attributes in the select set.
    */
-  public JsonObject getDisplayObject(Set<String> selectSet)
+  public JsonObject getDisplayObject(List<String> selectSet)
   {
     var retObj = new JsonObject();
     Field[] fields = TapisSystemDTO.class.getDeclaredFields();
