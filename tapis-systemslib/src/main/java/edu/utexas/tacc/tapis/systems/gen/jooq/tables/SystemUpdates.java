@@ -38,7 +38,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
 
-    private static final long serialVersionUID = -57819640;
+    private static final long serialVersionUID = 516497815;
 
     /**
      * The reference instance of <code>tapis_sys.system_updates</code>
@@ -86,7 +86,7 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     /**
      * The column <code>tapis_sys.system_updates.operation</code>. Type of update operation
      */
-    public final TableField<SystemUpdatesRecord, SystemOperation> OPERATION = createField(DSL.name("operation"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.OperationType.class), this, "Type of update operation", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.OperationType, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.OperationType.class, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation.class));
+    public final TableField<SystemUpdatesRecord, SystemOperation> OPERATION = createField(DSL.name("operation"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Type of update operation", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation.class));
 
     /**
      * The column <code>tapis_sys.system_updates.upd_json</code>. JSON representing the update - with secrets scrubbed

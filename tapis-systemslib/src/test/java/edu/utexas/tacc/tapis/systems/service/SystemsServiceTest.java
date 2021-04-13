@@ -145,8 +145,8 @@ public class SystemsServiceTest
     svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem2.getId());
     svcImpl.hardDeleteSystem(authenticatedAdminUser, dtnSystem1.getId());
 
-    Assert.assertTrue(svc.checkForSystem(authenticatedAdminUser, systems[0].getId()),
-                      "System not deleted. System name: " + systems[0].getId());
+    Assert.assertFalse(svc.checkForSystem(authenticatedAdminUser, systems[0].getId()),
+                       "System not deleted. System name: " + systems[0].getId());
   }
 
   @Test
