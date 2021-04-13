@@ -102,7 +102,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (system.getTags() != null) tagsStrArray = system.getTags();
     JsonObject notesObj = TSystem.DEFAULT_NOTES;
     if (system.getNotes() != null) notesObj = (JsonObject) system.getNotes();
-    String batchScheduler = (system.getBatchScheduler())==null ? null : system.getBatchScheduler().name();
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -120,12 +119,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.TENANT, system.getTenant())
               .set(SYSTEMS.ID, system.getId())
               .set(SYSTEMS.DESCRIPTION, system.getDescription())
-              .set(SYSTEMS.SYSTEM_TYPE, system.getSystemType().name())
+              .set(SYSTEMS.SYSTEM_TYPE, system.getSystemType())
               .set(SYSTEMS.OWNER, owner)
               .set(SYSTEMS.HOST, system.getHost())
               .set(SYSTEMS.ENABLED, system.isEnabled())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
-              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, system.getDefaultAuthnMethod().name())
+              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, system.getDefaultAuthnMethod())
               .set(SYSTEMS.BUCKET_NAME, system.getBucketName())
               .set(SYSTEMS.ROOT_DIR, system.getRootDir())
               .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
@@ -143,7 +142,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.JOB_MAX_JOBS, system.getJobMaxJobs())
               .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, system.getJobMaxJobsPerUser())
               .set(SYSTEMS.JOB_IS_BATCH, system.getJobIsBatch())
-              .set(SYSTEMS.BATCH_SCHEDULER, batchScheduler)
+              .set(SYSTEMS.BATCH_SCHEDULER, system.getBatchScheduler())
               .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, system.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
@@ -242,13 +241,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       boolean doesExist = checkForSystem(db, tenant, systemId, false);
       if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
 
-      String batchScheduler = (patchedSystem.getBatchScheduler())==null ? null : patchedSystem.getBatchScheduler().name();
 
       int seqId = db.update(SYSTEMS)
               .set(SYSTEMS.DESCRIPTION, patchedSystem.getDescription())
               .set(SYSTEMS.HOST, patchedSystem.getHost())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
-              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod().name())
+              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
               .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
               .set(SYSTEMS.PORT, patchedSystem.getPort())
               .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
@@ -262,7 +260,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.JOB_MAX_JOBS, patchedSystem.getJobMaxJobs())
               .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, patchedSystem.getJobMaxJobsPerUser())
               .set(SYSTEMS.JOB_IS_BATCH, patchedSystem.getJobIsBatch())
-              .set(SYSTEMS.BATCH_SCHEDULER, batchScheduler)
+              .set(SYSTEMS.BATCH_SCHEDULER, patchedSystem.getBatchScheduler())
               .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
               .set(SYSTEMS.TAGS, tagsStrArray)
               .set(SYSTEMS.NOTES, notesObj)
@@ -1062,7 +1060,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   public AuthnMethod getSystemDefaultAuthnMethod(String tenant, String id) throws TapisException
   {
     AuthnMethod authnMethod = null;
-    String authnMethodStr = null;
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
     try
@@ -1070,8 +1067,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      authnMethodStr = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.DEFAULT_AUTHN_METHOD);
-      authnMethod = AuthnMethod.valueOf(authnMethodStr);
+      authnMethod = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.DEFAULT_AUTHN_METHOD);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1156,7 +1152,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
             .set(SYSTEM_UPDATES.SYSTEM_ID, id)
             .set(SYSTEM_UPDATES.USER_TENANT, authenticatedUser.getOboTenantId())
             .set(SYSTEM_UPDATES.USER_NAME, authenticatedUser.getOboUser())
-            .set(SYSTEM_UPDATES.OPERATION, op.name())
+            .set(SYSTEM_UPDATES.OPERATION, op)
             .set(SYSTEM_UPDATES.UPD_JSON, TapisGsonUtils.getGson().fromJson(updJsonStr, JsonElement.class))
             .set(SYSTEM_UPDATES.UPD_TEXT, upd_text)
             .set(SYSTEM_UPDATES.UUID, uuid)
@@ -1214,7 +1210,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       db.insertInto(CAPABILITIES).set(CAPABILITIES.SYSTEM_SEQ_ID, seqId)
               .set(CAPABILITIES.CATEGORY, cap.getCategory())
               .set(CAPABILITIES.NAME, cap.getName())
-              .set(CAPABILITIES.DATATYPE, cap.getDatatype().name())
+              .set(CAPABILITIES.DATATYPE, cap.getDatatype())
               .set(CAPABILITIES.PRECEDENCE, precedence)
               .set(CAPABILITIES.VALUE, valStr)
               .execute();
@@ -1230,7 +1226,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (jobRuntimes == null || jobRuntimes.isEmpty()) return;
     for (JobRuntime runtime : jobRuntimes) {
       db.insertInto(JOB_RUNTIMES).set(JOB_RUNTIMES.SYSTEM_SEQ_ID, seqId)
-            .set(JOB_RUNTIMES.RUNTIME_TYPE, runtime.getRuntimeType().name())
+            .set(JOB_RUNTIMES.RUNTIME_TYPE, runtime.getRuntimeType())
             .set(JOB_RUNTIMES.VERSION, runtime.getVersion())
               .execute();
     }

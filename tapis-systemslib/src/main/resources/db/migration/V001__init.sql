@@ -35,6 +35,16 @@ SET search_path TO tapis_sys;
 -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA tapis_sys TO tapis_sys;
 -- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA tapis_sys TO tapis_sys;
 
+-- Types
+CREATE TYPE system_type_type AS ENUM ('LINUX', 'OBJECT_STORE');
+CREATE TYPE operation_type AS ENUM ('create', 'modify', 'softDelete', 'hardDelete', 'changeOwner',
+                                    'enable', 'disable', 'grantPerms', 'revokePerms', 'setCred', 'removeCred');
+CREATE TYPE job_runtime_type AS ENUM ('DOCKER', 'SINGULARITY');
+CREATE TYPE authn_meth_type AS ENUM ('PASSWORD', 'PKI_KEYS', 'ACCESS_KEY', 'CERT');
+CREATE TYPE capability_category_type AS ENUM ('SCHEDULER', 'OS', 'HARDWARE', 'SOFTWARE', 'JOB', 'CONTAINER', 'MISC', 'CUSTOM');
+CREATE TYPE capability_datatype_type AS ENUM ('STRING', 'INTEGER', 'BOOLEAN', 'NUMBER', 'TIMESTAMP');
+CREATE TYPE scheduler_type_type AS ENUM ('SLURM', 'CONDOR', 'PBS', 'SGE', 'UGE', 'TORQUE');
+
 -- ----------------------------------------------------------------------------------------
 --                                     SYSTEMS
 -- ----------------------------------------------------------------------------------------
@@ -46,12 +56,12 @@ CREATE TABLE systems
   tenant      TEXT NOT NULL,
   id          TEXT NOT NULL,
   description TEXT,
-  system_type TEXT NOT NULL,
+  system_type system_type_type NOT NULL,
   owner       TEXT NOT NULL,
   host        TEXT NOT NULL,
   enabled     BOOLEAN NOT NULL DEFAULT true,
   effective_user_id TEXT NOT NULL,
-  default_authn_method  TEXT NOT NULL,
+  default_authn_method  authn_meth_type NOT NULL,
   bucket_name    TEXT,
   root_dir       TEXT,
   transfer_methods TEXT[],
@@ -69,7 +79,7 @@ CREATE TABLE systems
   job_max_jobs INTEGER NOT NULL DEFAULT -1,
   job_max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
   job_is_batch BOOLEAN NOT NULL DEFAULT false,
-  batch_scheduler TEXT,
+  batch_scheduler scheduler_type_type,
   batch_default_logical_queue TEXT,
   tags       TEXT[] NOT NULL,
   notes      JSONB NOT NULL,
@@ -128,7 +138,7 @@ CREATE TABLE system_updates
     system_id TEXT NOT NULL,
     user_tenant TEXT NOT NULL,
     user_name TEXT NOT NULL,
-    operation TEXT NOT NULL,
+    operation operation_type NOT NULL,
     upd_json JSONB NOT NULL,
     upd_text TEXT,
     uuid uuid NOT NULL,
@@ -186,7 +196,7 @@ CREATE TABLE job_runtimes
 (
     seq_id SERIAL PRIMARY KEY,
     system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
-    runtime_type TEXT NOT NULL,
+    runtime_type job_runtime_type NOT NULL,
     version TEXT NOT NULL DEFAULT ''
 );
 ALTER TABLE job_runtimes OWNER TO tapis_sys;
@@ -201,9 +211,9 @@ CREATE TABLE capabilities
 (
     seq_id SERIAL PRIMARY KEY,
     system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
-    category TEXT NOT NULL,
+    category capability_category_type NOT NULL,
     name TEXT NOT NULL DEFAULT '',
-    datatype TEXT NOT NULL,
+    datatype capability_datatype_type NOT NULL,
     precedence INTEGER NOT NULL DEFAULT 100,
     value  TEXT NOT NULL DEFAULT '',
     UNIQUE (system_seq_id, category, name)
