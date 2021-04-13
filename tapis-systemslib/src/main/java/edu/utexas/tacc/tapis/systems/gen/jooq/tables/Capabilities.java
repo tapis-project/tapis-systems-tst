@@ -8,7 +8,6 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.CapabilitiesRecord;
 import edu.utexas.tacc.tapis.systems.model.Capability.Category;
-import edu.utexas.tacc.tapis.systems.model.Capability.Datatype;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = 467962194;
+    private static final long serialVersionUID = 1706151256;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -62,7 +61,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     /**
      * The column <code>tapis_sys.capabilities.category</code>. Category for grouping of capabilities
      */
-    public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class), this, "Category for grouping of capabilities", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType, edu.utexas.tacc.tapis.systems.model.Capability.Category>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityCategoryType.class, edu.utexas.tacc.tapis.systems.model.Capability.Category.class));
+    public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Category for grouping of capabilities", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.Capability.Category>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.Capability.Category.class));
 
     /**
      * The column <code>tapis_sys.capabilities.name</code>. Name of capability
@@ -72,7 +71,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     /**
      * The column <code>tapis_sys.capabilities.datatype</code>. Datatype associated with the value
      */
-    public final TableField<CapabilitiesRecord, Datatype> DATATYPE = createField(DSL.name("datatype"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType.class), this, "Datatype associated with the value", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType, edu.utexas.tacc.tapis.systems.model.Capability.Datatype>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.CapabilityDatatypeType.class, edu.utexas.tacc.tapis.systems.model.Capability.Datatype.class));
+    public final TableField<CapabilitiesRecord, String> DATATYPE = createField(DSL.name("datatype"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Datatype associated with the value");
 
     /**
      * The column <code>tapis_sys.capabilities.precedence</code>. Precedence where higher number has higher precedence
@@ -177,7 +176,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<Integer, Integer, Category, String, Datatype, Integer, String> fieldsRow() {
+    public Row7<Integer, Integer, Category, String, String, Integer, String> fieldsRow() {
         return (Row7) super.fieldsRow();
     }
 }

@@ -11,9 +11,6 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.Indexes;
 import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
-import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
-import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -41,7 +38,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Systems extends TableImpl<SystemsRecord> {
 
-    private static final long serialVersionUID = 819017828;
+    private static final long serialVersionUID = -924530102;
 
     /**
      * The reference instance of <code>tapis_sys.systems</code>
@@ -79,7 +76,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.system_type</code>. Type of system
      */
-    public final TableField<SystemsRecord, SystemType> SYSTEM_TYPE = createField(DSL.name("system_type"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SystemTypeType.class), this, "Type of system", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.SystemTypeType, edu.utexas.tacc.tapis.systems.model.TSystem.SystemType>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SystemTypeType.class, edu.utexas.tacc.tapis.systems.model.TSystem.SystemType.class));
+    public final TableField<SystemsRecord, String> SYSTEM_TYPE = createField(DSL.name("system_type"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Type of system");
 
     /**
      * The column <code>tapis_sys.systems.owner</code>. User name of system owner
@@ -104,7 +101,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.default_authn_method</code>. Enum for how authorization is handled by default
      */
-    public final TableField<SystemsRecord, AuthnMethod> DEFAULT_AUTHN_METHOD = createField(DSL.name("default_authn_method"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType.class), this, "Enum for how authorization is handled by default", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType, edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.AuthnMethType.class, edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod.class));
+    public final TableField<SystemsRecord, String> DEFAULT_AUTHN_METHOD = createField(DSL.name("default_authn_method"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Enum for how authorization is handled by default");
 
     /**
      * The column <code>tapis_sys.systems.bucket_name</code>. Name of the bucket for an S3 system
@@ -194,7 +191,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.batch_scheduler</code>. Type of scheduler used when running batch jobs
      */
-    public final TableField<SystemsRecord, SchedulerType> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.VARCHAR.asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType.class), this, "Type of scheduler used when running batch jobs", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType, edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.SchedulerTypeType.class, edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType.class));
+    public final TableField<SystemsRecord, String> BATCH_SCHEDULER = createField(DSL.name("batch_scheduler"), org.jooq.impl.SQLDataType.CLOB, this, "Type of scheduler used when running batch jobs");
 
     /**
      * The column <code>tapis_sys.systems.batch_default_logical_queue</code>. Default logical batch queue for the system

@@ -7,7 +7,6 @@ package edu.utexas.tacc.tapis.systems.gen.jooq.tables;
 import edu.utexas.tacc.tapis.systems.gen.jooq.Keys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.TapisSys;
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.JobRuntimesRecord;
-import edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
 
-    private static final long serialVersionUID = -1770857074;
+    private static final long serialVersionUID = 858576286;
 
     /**
      * The reference instance of <code>tapis_sys.job_runtimes</code>
@@ -61,7 +60,7 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
     /**
      * The column <code>tapis_sys.job_runtimes.runtime_type</code>.
      */
-    public final TableField<JobRuntimesRecord, RuntimeType> RUNTIME_TYPE = createField(DSL.name("runtime_type"), org.jooq.impl.SQLDataType.VARCHAR.nullable(false).asEnumDataType(edu.utexas.tacc.tapis.systems.gen.jooq.enums.JobRuntimeType.class), this, "", new org.jooq.impl.EnumConverter<edu.utexas.tacc.tapis.systems.gen.jooq.enums.JobRuntimeType, edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType>(edu.utexas.tacc.tapis.systems.gen.jooq.enums.JobRuntimeType.class, edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType.class));
+    public final TableField<JobRuntimesRecord, String> RUNTIME_TYPE = createField(DSL.name("runtime_type"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>tapis_sys.job_runtimes.version</code>.
@@ -161,7 +160,7 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Integer, Integer, RuntimeType, String> fieldsRow() {
+    public Row4<Integer, Integer, String, String> fieldsRow() {
         return (Row4) super.fieldsRow();
     }
 }

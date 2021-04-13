@@ -250,42 +250,6 @@
                     <includeExpression>capabilities\.category</includeExpression>
                     <includeTypes>.*</includeTypes>
                   </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.Capability.Datatype</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>capabilities\.datatype</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>system_updates\.operation</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.SystemType</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>systems\.system_type</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>job_runtimes\.runtime_type</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>systems\.batch_scheduler</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
-                  <forcedType>
-                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod</userType>
-                    <enumConverter>true</enumConverter>
-                    <includeExpression>systems\.default_authn_method</includeExpression>
-                    <includeTypes>.*</includeTypes>
-                  </forcedType>
 <!--                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod</userType>-->
 <!--                      <enumConverter>true</enumConverter>-->
 <!--                      <includeExpression>systems\.transfer_methods</includeExpression>-->
