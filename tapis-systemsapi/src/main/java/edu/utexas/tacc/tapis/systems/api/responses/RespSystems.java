@@ -4,9 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import edu.utexas.tacc.tapis.shared.utils.JsonArraySerializer;
-import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultListMetadata;
 import edu.utexas.tacc.tapis.systems.api.responses.results.TapisSystemDTO;
@@ -37,7 +35,6 @@ public final class RespSystems extends RespAbstract
     meta.orderBy = orderBy;
     meta.startAfter = startAfter;
     meta.totalCount = totalCount;
-    String metaJsonStr = TapisGsonUtils.getGson().toJson(meta);
-    metadata = TapisGsonUtils.getGson().fromJson(metaJsonStr, JsonObject.class);
+    metadata = meta;
   }
 }
