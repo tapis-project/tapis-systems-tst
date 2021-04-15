@@ -24,9 +24,9 @@ import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
 import edu.utexas.tacc.tapis.shared.utils.CallSiteToggle;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
-import edu.utexas.tacc.tapis.sharedapi.dto.ResponseWrapper;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespBasic;
 import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils;
+import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils.RESPONSE_STATUS;
 import edu.utexas.tacc.tapis.systems.api.SystemsApplication;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.service.SystemsServiceImpl;
@@ -129,7 +129,7 @@ public class SystemsResource
     RespBasic resp = new RespBasic("Health check received. Count: " + checkNum);
 
     // Manually create a success response with git info included in version
-    resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
+    resp.status = RESPONSE_STATUS.success.name();
     resp.message = MsgUtils.getMsg("TAPIS_HEALTHY", "Systems Service");
     resp.version = TapisUtils.getTapisFullVersion();
     return Response.ok(resp).build();
@@ -238,7 +238,7 @@ public class SystemsResource
     // Create the response payload.
     RespBasic resp = new RespBasic("Ready check passed. Count: " + checkNum);
     // Manually create a success response with git info included in version
-    resp.status = ResponseWrapper.RESPONSE_STATUS.success.name();
+    resp.status = RESPONSE_STATUS.success.name();
     resp.message = MsgUtils.getMsg("TAPIS_READY", "Systems Service");
     resp.version = TapisUtils.getTapisFullVersion();
     return Response.ok(resp).build();
