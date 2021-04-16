@@ -36,9 +36,7 @@ import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
-import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils;
-import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils.RESPONSE_STATUS;
 
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import org.apache.commons.io.IOUtils;
@@ -283,8 +281,7 @@ public class SystemResource
     ResultResourceUrl respUrl = new ResultResourceUrl();
     respUrl.url = _request.getRequestURL().toString() + "/" + systemId;
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
-    return Response.status(Status.CREATED).entity(TapisRestUtils.createSuccessResponse(
-      ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemId), PRETTY, resp1)).build();
+    return createSuccessResponse(Status.CREATED, ApiUtils.getMsgAuth("SYSAPI_CREATED", authenticatedUser, systemId), resp1);
   }
 
   /**
@@ -400,8 +397,7 @@ public class SystemResource
     ResultResourceUrl respUrl = new ResultResourceUrl();
     respUrl.url = _request.getRequestURL().toString();
     RespResourceUrl resp1 = new RespResourceUrl(respUrl);
-    return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), PRETTY, resp1)).build();
+    return createSuccessResponse(Status.OK, ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), resp1);
   }
 
   /**
@@ -520,7 +516,7 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     // Success means we retrieved the system information.
     RespSystem resp1 = new RespSystem(tSystem, selectList);
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, "System", systemId), resp1);
+    return createSuccessResponse(Status.OK, MsgUtils.getMsg(TAPIS_FOUND, "System", systemId), resp1);
   }
 
   /**
@@ -796,7 +792,7 @@ public class SystemResource
 //    // ---------------------------- Success -------------------------------
 //    RespSystems resp1 = new RespSystems(systems);
 //    String itemCountStr = String.format(SYS_CNT_STR, systems.size());
-//    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+//    return createSuccessResponse(Status.OK, MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
 //  }
 
   /**
@@ -912,8 +908,7 @@ public class SystemResource
     ResultChangeCount count = new ResultChangeCount();
     count.changes = changeCount;
     RespChangeCount resp1 = new RespChangeCount(count);
-    return Response.status(Status.OK).entity(TapisRestUtils.createSuccessResponse(
-            ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), PRETTY, resp1)).build();
+    return createSuccessResponse(Status.OK, ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), resp1);
   }
 
   /**
@@ -1093,21 +1088,6 @@ public class SystemResource
   }
 
   /**
-   * Create an OK response given message and base response to put in result
-   * @param msg - message for resp.message
-   * @param resp - base response (the result)
-   * @return - Final response to return to client
-   */
-  private static Response createSuccessResponse(String msg, RespAbstract resp)
-  {
-    resp.message = msg;
-    resp.status = RESPONSE_STATUS.success.name();
-    resp.version = TapisUtils.getTapisVersion();
-    Response r1 = Response.ok(resp).build();
-    return r1;
-  }
-
-  /**
    *  Common method to return a list of systems given a search list and search parameters.
    *  srchParms must be non-null
    *  One of srchParms.searchList or sqlSearchStr must be non-null
@@ -1154,6 +1134,17 @@ public class SystemResource
     // ---------------------------- Success -------------------------------
     resp1 = new RespSystems(systems, limit, orderBy, skip, startAfter, totalCount, selectList);
 
-    return createSuccessResponse(MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+    return createSuccessResponse(Status.OK, MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
+  }
+
+  /**
+   * Create an OK response given message and base response to put in result
+   * @param msg - message for resp.message
+   * @param resp - base response (the result)
+   * @return - Final response to return to client
+   */
+  private static Response createSuccessResponse(Status status, String msg, RespAbstract resp)
+  {
+    return Response.status(status).entity(TapisRestUtils.createSuccessResponse(msg, PRETTY, resp)).build();
   }
 }
