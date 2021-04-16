@@ -65,11 +65,6 @@ public class SystemsApplication extends ResourceConfig
     // Output version information on startup
     System.out.println("**** Starting tapis-systems. Version: " + TapisUtils.getTapisFullVersion() + " ****");
 
-    // Use jackson as opposed to Moxy.
-    // Initially there were problems with notes and authnCredential but with a custom objectmapper
-    // and custom jsonobject serializer the problems were resolved.
-    register(JacksonFeature.class);
-
     // Needed for properly returning timestamps
     // Also allows for setting a breakpoint when response is being constructed.
     register(ObjectMapperContextResolver.class);

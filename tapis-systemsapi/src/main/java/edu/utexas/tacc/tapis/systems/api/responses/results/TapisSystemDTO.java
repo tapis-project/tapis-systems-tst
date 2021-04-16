@@ -4,11 +4,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import edu.utexas.tacc.tapis.shared.utils.JsonObjectSerializer;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
@@ -95,8 +93,6 @@ public final class TapisSystemDTO
   public String batchDefaultLogicalQueue;
   public List<Capability> jobCapabilities;
   public String[] tags;
-  // Json objects require special serializer for Jackson to handle properly in outgoing response.
-  @JsonSerialize(using = JsonObjectSerializer.class)
   public Object notes;
   public UUID uuid;
   public boolean deleted;

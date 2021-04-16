@@ -97,6 +97,7 @@ public class SystemResource
   private static final Logger _log = LoggerFactory.getLogger(SystemResource.class);
 
   private static final String SYSTEMS_SVC = StringUtils.capitalize(TapisConstants.SERVICE_NAME_SYSTEMS);
+
   // Json schema resource files.
   private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemCreateRequest.json";
   private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateRequest.json";
@@ -127,12 +128,10 @@ public class SystemResource
   // Always return a nicely formatted response
   private static final boolean PRETTY = true;
 
-
   // Top level summary attributes to be included by default in some cases.
   public static final List<String> SUMMARY_ATTRS =
           new ArrayList<>(List.of(ID_FIELD, SYSTEM_TYPE_FIELD, OWNER_FIELD, HOST_FIELD,
                   EFFECTIVE_USER_ID_FIELD, DEFAULT_AUTHN_METHOD_FIELD, CAN_EXEC_FIELD));
-
 
   // ************************************************************************
   // *********************** Fields *****************************************

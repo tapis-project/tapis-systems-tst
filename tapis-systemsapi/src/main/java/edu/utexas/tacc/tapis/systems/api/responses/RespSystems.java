@@ -2,9 +2,7 @@ package edu.utexas.tacc.tapis.systems.api.responses;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.JsonArray;
-import edu.utexas.tacc.tapis.shared.utils.JsonArraySerializer;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultListMetadata;
 import edu.utexas.tacc.tapis.systems.api.responses.results.TapisSystemDTO;
@@ -15,8 +13,6 @@ import edu.utexas.tacc.tapis.systems.model.TSystem;
  */
 public final class RespSystems extends RespAbstract
 {
-  // Json objects require special serializer for Jackson to handle properly in outgoing response.
-  @JsonSerialize(using = JsonArraySerializer.class)
   public JsonArray result;
 
   public RespSystems(List<TSystem> sList, int limit, String orderBy, int skip, String startAfter, int totalCount,
