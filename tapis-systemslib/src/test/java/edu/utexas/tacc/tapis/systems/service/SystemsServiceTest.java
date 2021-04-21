@@ -59,7 +59,7 @@ public class SystemsServiceTest
           authenticatedFilesSvcOwner1, authenticatedFilesSvcTestUser3, authenticatedFilesSvcTestUser4;
 
   // Create test system definitions in memory
-  int numSystems = 23;
+  int numSystems = 24;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -458,16 +458,28 @@ public class SystemsServiceTest
   }
 
   @Test
-  public void testSoftDelete() throws Exception
+  public void testDelete() throws Exception
   {
-    // Create the system
+    // Create a system with no credentials
     TSystem sys0 = systems[5];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Soft delete the system
     int changeCount = svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
-    TSystem tmpSys2 = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
-    Assert.assertNull(tmpSys2, "System not deleted. System name: " + sys0.getId());
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertNull(tmpSys, "System without credentials not deleted. System name: " + sys0.getId());
+
+    // Create a system with credentials for owner and another user
+    sys0 = systems[23];
+    Credential cred0 = new Credential(null, "fakePrivateKey", "fakePublicKey", null, null, null);
+    sys0.setAuthnCredential(cred0);
+    svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+
+    // Soft delete the system
+    changeCount = svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertNull(tmpSys, "System with credentials not deleted. System name: " + sys0.getId());
   }
 
   @Test

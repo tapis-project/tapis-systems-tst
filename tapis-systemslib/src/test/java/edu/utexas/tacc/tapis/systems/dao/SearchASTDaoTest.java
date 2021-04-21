@@ -38,7 +38,7 @@ public class SearchASTDaoTest
 
   // Test data
   private static final String testKey = "SrchAST";
-  private static final String sysNameLikeAll = sq("%" + testKey + "%");
+  private static final String sysNameLikeAll = "id LIKE '" + "%" + testKey + "%'";
 
   // Strings for searches involving special characters
   private static final String specialChar3Str = ".:_"; // Values containing these must be surrounded by single quotes.
@@ -129,92 +129,92 @@ public class SearchASTDaoTest
     for (int i = 0; i < numSystems; i++) hostNames[i] = systems[i].getHost();
     TSystem sys0 = systems[0];
     String sys0Name = sys0.getId();
-    String nameList = "('noSuchName1','noSuchName2'," + sq(sys0Name) + ",'noSuchName3')";
+    String nameList = String.format("('noSuchName1','noSuchName2','%s','noSuchName3')", sys0Name);
     // Create all input and validation data for tests
-    // NOTE: Some cases require "id LIKE " + sysNameLikeAll in the list of conditions since maven runs the tests in
+    // NOTE: Some cases require sysNameLikeAll in the list of conditions since maven runs the tests in
     //       parallel and not all attribute names are unique across integration tests
     class CaseData {public final int count; public final String sqlSearchStr; CaseData(int c, String s) { count = c; sqlSearchStr = s; }}
     var validCaseInputs = new HashMap<Integer, CaseData>();
     // TODO Support NLIKE, NBETWEEN, NIN
     // Test basic types and operators
-    validCaseInputs.put( 1,new CaseData(1, "id = " + sq(sys0Name))); // 1 has specific name
-    validCaseInputs.put( 2,new CaseData(1, "description = " + sq(sys0.getDescription())));
-    validCaseInputs.put( 3,new CaseData(1, "host = " + sq(sys0.getHost())));
-    validCaseInputs.put( 4,new CaseData(1, "bucket_name = " + sq(sys0.getBucketName())));
-    validCaseInputs.put( 5,new CaseData(1, "root_dir = " + sq(sys0.getRootDir())));
-    validCaseInputs.put( 6,new CaseData(1, "job_working_dir = " + sq(sys0.getJobWorkingDir())));
-    validCaseInputs.put( 7,new CaseData(20, "id LIKE " + sysNameLikeAll + "AND batch_scheduler = " + sq(sys0.getBatchScheduler().name())));
-    validCaseInputs.put( 8,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + "AND batch_default_logical_queue = " + sq(sys0.getBatchDefaultLogicalQueue())));
-    validCaseInputs.put(10,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner1)));  // Half owned by one user
-    validCaseInputs.put(11,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND owner = " + sq(owner2))); // and half owned by another
-    validCaseInputs.put(12,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND enabled = true"));  // All are enabled
-    validCaseInputs.put(13,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted = false")); // none are deleted
-    validCaseInputs.put(14,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND deleted <> true")); // none are deleted
-    validCaseInputs.put(15,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND deleted = true"));           // none are deleted
-    validCaseInputs.put(16,new CaseData(1, "id LIKE " + sq(sys0Name)));
+    validCaseInputs.put( 1,new CaseData(1, String.format("id = '%s'",sys0Name))); // 1 has specific name
+    validCaseInputs.put( 2,new CaseData(1, String.format("description = '%s'",sys0.getDescription())));
+    validCaseInputs.put( 3,new CaseData(1, String.format("host = '%s'",sys0.getHost())));
+    validCaseInputs.put( 4,new CaseData(1, String.format("bucket_name = '%s'",sys0.getBucketName())));
+    validCaseInputs.put( 5,new CaseData(1, String.format("root_dir = '%s'",sys0.getRootDir())));
+    validCaseInputs.put( 6,new CaseData(1, String.format("job_working_dir = '%s'",sys0.getJobWorkingDir())));
+    validCaseInputs.put( 7,new CaseData(20, sysNameLikeAll + String.format(" AND batch_scheduler = '%s'",sys0.getBatchScheduler().name())));
+    validCaseInputs.put( 8,new CaseData(numSystems, sysNameLikeAll + String.format("AND batch_default_logical_queue = '%s'",sys0.getBatchDefaultLogicalQueue())));
+    validCaseInputs.put(10,new CaseData(numSystems/2, sysNameLikeAll + String.format(" AND owner = '%s'",owner1)));  // Half owned by one user
+    validCaseInputs.put(11,new CaseData(numSystems/2, sysNameLikeAll + String.format(" AND owner = '%s'",owner2))); // and half owned by another
+    validCaseInputs.put(12,new CaseData(numSystems, sysNameLikeAll + " AND enabled = true"));  // All are enabled
+    validCaseInputs.put(13,new CaseData(numSystems, sysNameLikeAll + " AND deleted = false")); // none are deleted
+    validCaseInputs.put(14,new CaseData(numSystems, sysNameLikeAll + " AND deleted <> true")); // none are deleted
+    validCaseInputs.put(15,new CaseData(0, sysNameLikeAll + " AND deleted = true"));           // none are deleted
+    validCaseInputs.put(16,new CaseData(1, String.format("id LIKE '%s'",sys0Name)));
     validCaseInputs.put(17,new CaseData(0, "id LIKE 'NOSUCHSYSTEMxFM2c29bc8RpKWeE2sht7aZrJzQf3s'"));
-    validCaseInputs.put(18,new CaseData(numSystems, "id LIKE " + sysNameLikeAll));
-//    validCaseInputs.put(19,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll + " AND id NLIKE " + sq(sys0Name))); // TODO support NLIKE
-    validCaseInputs.put(20,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND id IN " + nameList));
-//    validCaseInputs.put(21,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll + " AND id.NIN." + nameList)); // TODO support NIN
-    validCaseInputs.put(22,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND system_type = LINUX"));
-    validCaseInputs.put(23,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll +  " AND system_type = LINUX AND owner <> " + sq(owner2)));
+    validCaseInputs.put(18,new CaseData(numSystems, sysNameLikeAll));
+//    validCaseInputs.put(19,new CaseData(numSystems-1, sysNameLikeAll + String.format(" AND id NLIKE '%s'",sys0Name))); // TODO support NLIKE
+    validCaseInputs.put(20,new CaseData(1, sysNameLikeAll + " AND id IN " + nameList));
+//    validCaseInputs.put(21,new CaseData(numSystems-1, sysNameLikeAll + " AND id NIN " + nameList)); // TODO support NIN
+    validCaseInputs.put(22,new CaseData(numSystems, sysNameLikeAll + " AND system_type = LINUX"));
+    validCaseInputs.put(23,new CaseData(numSystems/2, sysNameLikeAll +  String.format(" AND system_type = LINUX AND owner <> '%s'",owner2)));
 
     // Check various special characters require modified handling in AST. Special chars in value: _:.
-    validCaseInputs.put(30,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND description = " + sq(specialChar3Str)));
-    validCaseInputs.put(31,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND description LIKE " + sq(specialChar3Str)));
+    validCaseInputs.put(30,new CaseData(1, sysNameLikeAll + String.format(" AND description = '%s'",specialChar3Str)));
+    validCaseInputs.put(31,new CaseData(1, sysNameLikeAll + String.format(" AND description LIKE '%s'",specialChar3Str)));
 
     // Test numeric relational
-    validCaseInputs.put(50,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND port BETWEEN '1' AND '" + numSystems/2 + "'"));
-    validCaseInputs.put(51,new CaseData(numSystems/2-1, "id LIKE " + sysNameLikeAll + " AND port BETWEEN '2' AND '" + numSystems/2 + "'"));
-//    validCaseInputs.put(52,new CaseData(numSystems/2, "id LIKE " + sysNameLikeAll + " AND port NBETWEEN '1' AND '" + numSystems/2 + "'"));
+    validCaseInputs.put(50,new CaseData(numSystems/2, sysNameLikeAll + String.format(" AND port BETWEEN '%d' AND '%d'",1,numSystems/2)));
+    validCaseInputs.put(51,new CaseData(numSystems/2-1, sysNameLikeAll + String.format(" AND port BETWEEN '%d' AND '%d'",2,numSystems/2)));
+//    validCaseInputs.put(52,new CaseData(numSystems/2, sysNameLikeAll + String.format(" AND port NBETWEEN '%d' AND '%d'",1,numSystems/2)));
 
-    validCaseInputs.put(53,new CaseData(13, "id LIKE " + sysNameLikeAll + " AND enabled = true AND port <= 13"));
-    validCaseInputs.put(54,new CaseData(5, "id LIKE " + sysNameLikeAll + " AND enabled = true AND port > 1 AND port < 7"));
+    validCaseInputs.put(53,new CaseData(13, sysNameLikeAll + " AND enabled = true AND port <= '13'"));
+    validCaseInputs.put(54,new CaseData(5, sysNameLikeAll + " AND enabled = true AND port > '1' AND port < '7'"));
 //    // Test char relational
-    validCaseInputs.put(70,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND host < " + sq(hostNames[1])));
-    validCaseInputs.put(71,new CaseData(numSystems-8, "id LIKE " + sysNameLikeAll + " AND enabled = true AND host > " + sq(hostNames[7])));
-    validCaseInputs.put(72,new CaseData(5, "id LIKE " + sysNameLikeAll + " AND host > " + sq(hostNames[1]) + " AND host < " + sq(hostNames[7])));
-    validCaseInputs.put(73,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND host < " + sq(hostNames[1]) + " AND host > " + sq(hostNames[7])));
-    validCaseInputs.put(74,new CaseData(7, "id LIKE " + sysNameLikeAll + " AND host BETWEEN " + sq(hostNames[1]) + " AND " + sq(hostNames[7])));
-//    validCaseInputs.put(75,new CaseData(numSystems-7, "id LIKE " + sysNameLikeAll + " AND host NBEWTEEN " + sq(hostNames[1]) + " AND " + sq(hostNames[7])));
+    validCaseInputs.put(70,new CaseData(1, sysNameLikeAll + String.format(" AND host < '%s'",hostNames[1])));
+    validCaseInputs.put(71,new CaseData(numSystems-8, sysNameLikeAll + String.format(" AND enabled = true AND host > '%s'",hostNames[7])));
+    validCaseInputs.put(72,new CaseData(5, sysNameLikeAll + String.format(" AND host > '%s' AND host < '%s'",hostNames[1],hostNames[7])));
+    validCaseInputs.put(73,new CaseData(0, sysNameLikeAll + String.format(" AND host < '%s' AND host > '%s'",hostNames[1],hostNames[7])));
+    validCaseInputs.put(74,new CaseData(7, sysNameLikeAll + String.format(" AND host BETWEEN '%s' AND '%s'",hostNames[1],hostNames[7])));
+//    validCaseInputs.put(75,new CaseData(numSystems-7, sysNameLikeAll + String.format(" AND host NBEWTEEN '%s' AND '%s'",hostNames[1],hostNames[7])));
 
 //    // Test timestamp relational
-    validCaseInputs.put(90,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created > " + sq(longPast1)));
-    validCaseInputs.put(91,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture1)));
-    validCaseInputs.put(92,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND created <= " + sq(longPast1)));
-    validCaseInputs.put(93,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND created >= " + sq(farFuture1)));
-    validCaseInputs.put(94,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created BETWEEN " + sq(longPast1) + " AND " + sq(farFuture1)));
-//    validCaseInputs.put(95,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND created NBETWEEN " + sq(longPast1) + " AND " + sq(farFuture1)));
+    validCaseInputs.put(90,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created > '%s'",longPast1)));
+    validCaseInputs.put(91,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture1)));
+    validCaseInputs.put(92,new CaseData(0, sysNameLikeAll + String.format(" AND created <= '%s'",longPast1)));
+    validCaseInputs.put(93,new CaseData(0, sysNameLikeAll + String.format(" AND created >= '%s'",farFuture1)));
+    validCaseInputs.put(94,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created BETWEEN '%s' AND '%s'",longPast1,farFuture1)));
+//    validCaseInputs.put(95,new CaseData(0, sysNameLikeAll + " AND created NBETWEEN '%s' AND '%s'",longPast1,farFuture1)));
     // Variations of timestamp format
-    validCaseInputs.put(96,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture2)));
-    validCaseInputs.put(97,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture3)));
-    validCaseInputs.put(98,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture4)));
-    validCaseInputs.put(99,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture5)));
-    validCaseInputs.put(100,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture6)));
-    validCaseInputs.put(101,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture7)));
-    validCaseInputs.put(102,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture8)));
-    validCaseInputs.put(103,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture9)));
-    validCaseInputs.put(104,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture10)));
-    validCaseInputs.put(105,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture11)));
-    validCaseInputs.put(106,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture12)));
-    validCaseInputs.put(107,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture13)));
-    validCaseInputs.put(108,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture14)));
-    validCaseInputs.put(109,new CaseData(numSystems, "id LIKE " + sysNameLikeAll + " AND created < " + sq(farFuture15)));
+    validCaseInputs.put(96,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture2)));
+    validCaseInputs.put(97,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture3)));
+    validCaseInputs.put(98,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture4)));
+    validCaseInputs.put(99,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture5)));
+    validCaseInputs.put(100,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture6)));
+    validCaseInputs.put(101,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture7)));
+    validCaseInputs.put(102,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture8)));
+    validCaseInputs.put(103,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture9)));
+    validCaseInputs.put(104,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture10)));
+    validCaseInputs.put(105,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture11)));
+    validCaseInputs.put(106,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture12)));
+    validCaseInputs.put(107,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture13)));
+    validCaseInputs.put(108,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture14)));
+    validCaseInputs.put(109,new CaseData(numSystems, sysNameLikeAll + String.format(" AND created < '%s'",farFuture15)));
 
     //    // Test wildcards
     validCaseInputs.put(130,new CaseData(numSystems, "enabled = true AND host LIKE 'host" + testKey + "%'"));
-//    validCaseInputs.put(131,new CaseData(0, "id LIKE " + sysNameLikeAll + " AND enabled = true AND host NLIKE 'host" + testKey + "%'"));
-    validCaseInputs.put(132,new CaseData(9, "id LIKE " + sysNameLikeAll + " AND enabled = true AND host LIKE 'host" + testKey + "00_.test.org'"));
-//    validCaseInputs.put(133,new CaseData(11, "id LIKE " + sysNameLikeAll + " AND enabled = true AND host NLIKE 'host" + testKey + "00_.test.org'"));
+//    validCaseInputs.put(131,new CaseData(0, sysNameLikeAll + " AND enabled = true AND host NLIKE 'host" + testKey + "%'"));
+    validCaseInputs.put(132,new CaseData(9, sysNameLikeAll + " AND enabled = true AND host LIKE 'host" + testKey + "00_.test.org'"));
+//    validCaseInputs.put(133,new CaseData(11, sysNameLikeAll + " AND enabled = true AND host NLIKE 'host" + testKey + "00_.test.org'"));
 
     // Check various special characters in description. 7 special chars in value: ,()~*!\
-    validCaseInputs.put(171,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND description LIKE " + sq(specialChar7LikeSearchStr)));
-//    validCaseInputs.put(172,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll + " AND description NLIKE " + sq(specialChar7LikeSearchStr2)));
-    validCaseInputs.put(173,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND description = " + sq(specialChar7Str)));
-    validCaseInputs.put(174,new CaseData(numSystems-1, "id LIKE " + sysNameLikeAll + " AND description <> " + sq(specialChar7Str)));
+    validCaseInputs.put(171,new CaseData(1, sysNameLikeAll + String.format(" AND description LIKE '%s'",specialChar7LikeSearchStr)));
+//    validCaseInputs.put(172,new CaseData(numSystems-1, sysNameLikeAll + String.format(" AND description NLIKE '%s'",specialChar7LikeSearchStr2)));
+    validCaseInputs.put(173,new CaseData(1, sysNameLikeAll + String.format(" AND description = '%s'",specialChar7Str)));
+    validCaseInputs.put(174,new CaseData(numSystems-1, sysNameLikeAll + String.format(" AND description <> '%s'",specialChar7Str)));
 //    // Escaped comma in a list of values
-    validCaseInputs.put(200,new CaseData(1, "id LIKE " + sysNameLikeAll + " AND job_working_dir IN (" + sq("noSuchDir") + "," + sq(escapedCommanInListValue) + ")"));
+    validCaseInputs.put(200,new CaseData(1, sysNameLikeAll + String.format(" AND job_working_dir IN ('noSuchDir','%s')",escapedCommanInListValue)));
 
     // Iterate over valid cases
     for (Map.Entry<Integer,CaseData> item : validCaseInputs.entrySet())
@@ -238,7 +238,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testLimitSkip() throws Exception
   {
-    String searchStr = "id LIKE " + sysNameLikeAll;
+    String searchStr = sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -296,7 +296,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testSortingSkip() throws Exception
   {
-    String searchStr = "id LIKE " + sysNameLikeAll;
+    String searchStr = sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -340,7 +340,7 @@ public class SearchASTDaoTest
   @Test(groups={"integration"})
   public void testSortingStartAfter() throws Exception
   {
-    String searchStr = "id LIKE " + sysNameLikeAll;
+    String searchStr = sysNameLikeAll;
     ASTNode searchAST = ASTParser.parse(searchStr);
     System.out.println("SearchSQL: " + searchStr);
     List<TSystem> searchResults;
@@ -396,9 +396,4 @@ public class SearchASTDaoTest
       }
     }
   }
-
-  /**
-   * Wrap a string in single quotes
-   */
-  private static String sq(String s) { return "'" + s + "'"; }
 }
