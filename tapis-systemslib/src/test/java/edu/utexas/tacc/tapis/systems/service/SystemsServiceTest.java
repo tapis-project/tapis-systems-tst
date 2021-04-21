@@ -59,7 +59,7 @@ public class SystemsServiceTest
           authenticatedFilesSvcOwner1, authenticatedFilesSvcTestUser3, authenticatedFilesSvcTestUser4;
 
   // Create test system definitions in memory
-  int numSystems = 24;
+  int numSystems = 25;
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
 
   @BeforeSuite
@@ -533,28 +533,107 @@ public class SystemsServiceTest
     TSystem sys0 = systems[19];
     sys0.setAuthnCredential(credInvalidPrivateSshKey);
     // Test system create
-    boolean pass = false;
     try {
       svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
       Assert.fail("System create call should have thrown an exception when private ssh key is invalid");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY1"));
-      pass = true;
     }
-    Assert.assertTrue(pass, "System create call should fail when private ssh key is invalid");
 
     // Test credential update
     sys0.setAuthnCredential(null);
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    pass = false;
     try {
       svc.createUserCredential(authenticatedOwner1, sys0.getId(), sys0.getOwner(), credInvalidPrivateSshKey, scrubbedJson);
       Assert.fail("Credential update call should have thrown an exception when private ssh key is invalid");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("SYSLIB_CRED_INVALID_PRIVATE_SSHKEY2"));
+    }
+  }
+
+  // Test that attempting to create a system with invalid attribute combinations fails
+  // Note that these checks are in addition to other similar tests such as: testReservedNames, testInvalidPrivateSshKey
+  // NOTE: Not all combinations are checked.
+  // - If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
+  // - If isDtn is true then canExec must be false and the following attributes may not be set:
+  //       dtnSystemId, dtnMountSourcePath, dtnMountPoint, all job execution related attributes.
+  // - If jobIsBatch is true
+  //     batchScheduler must be specified
+  //     batchLogicalQueues must not be empty
+  //     batchLogicalDefaultQueue must be set
+  //     batchLogicalDefaultQueue must be in the list of queues
+  //     If batchLogicalQueues has more then one item then batchDefaultLogicalQueue must be set
+  //     batchDefaultLogicalQueue must be in the list of logical queues.
+  // - If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
+  // - If systemType is LINUX then rootDir is required.
+  // - effectiveUserId is restricted.
+  // - If transfer mechanism S3 is supported then bucketName must be set.
+  // - If effectiveUserId is dynamic then providing credentials is disallowed
+  // - If credential is provided and contains ssh keys then validate them
+  @Test
+  public void testCreateInvalidMiscFail()
+  {
+    TSystem sys0 = systems[24];
+    // If canExec is true then jobWorkingDir must be set and jobRuntimes must have at least one entry.
+    String tmpJobWorkingDir = sys0.getJobWorkingDir();
+    sys0.setJobWorkingDir(null);
+    boolean pass = false;
+    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
+    catch (Exception e)
+    {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_CANEXEC_NO_JOBWORKINGDIR_INPUT"));
       pass = true;
     }
-    Assert.assertTrue(pass, "Credential update call should fail when private ssh key is invalid");
+    Assert.assertTrue(pass);
+    sys0.setJobWorkingDir(tmpJobWorkingDir);
+    pass = false;
+    sys0.setJobRuntimes(null);
+    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
+    catch (Exception e)
+    {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_CANEXEC_NO_JOBRUNTIME_INPUT"));
+      pass = true;
+    }
+    Assert.assertTrue(pass);
+    sys0.setJobRuntimes(runtimeList1);
+
+    // If jobIsBatch is true
+    //     batchScheduler must be specified
+    pass = false;
+    sys0.setBatchScheduler(null);
+    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
+    catch (Exception e)
+    {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_ISBATCH_NOSCHED"));
+      pass = true;
+    }
+    Assert.assertTrue(pass);
+    sys0.setBatchScheduler(batchScheduler1);
+
+    // If systemType is LINUX then rootDir is required.
+    pass = false;
+    sys0.setRootDir(null);
+    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
+    catch (Exception e)
+    {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_LINUX_NOROOTDIR"));
+      pass = true;
+    }
+    Assert.assertTrue(pass);
+    sys0.setRootDir(rootDir1);
+
+    // If transfer mechanism S3 is supported then bucketName must be set.
+    pass = false;
+    String tmpBucketName = sys0.getBucketName();
+    sys0.setBucketName(null);
+    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
+    catch (Exception e)
+    {
+      Assert.assertTrue(e.getMessage().contains("SYSLIB_S3_NOBUCKET_INPUT"));
+      pass = true;
+    }
+    Assert.assertTrue(pass);
+    sys0.setBucketName(tmpBucketName);
   }
 
   // Test creating, reading and deleting user permissions for a system
@@ -579,24 +658,18 @@ public class SystemsServiceTest
     for (Permission perm: testPermsREADMODIFY) { if (userPerms.contains(perm)) Assert.fail("User perms should not contain permission: " + perm.name()); }
 
     // Owner should not be able to update perms. It would be confusing since owner always authorized. Perms not checked.
-    boolean pass = false;
     try {
       svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), sys0.getOwner(), testPermsREAD, scrubbedJson);
       Assert.fail("Update of perms by owner for owner should have thrown an exception");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("SYSLIB_PERM_OWNER_UPDATE"));
-      pass = true;
     }
-    Assert.assertTrue(pass, "Update of perms by owner for owner did not throw correct exception");
-    pass = false;
     try {
       svc.revokeUserPermissions(authenticatedOwner1, sys0.getId(), sys0.getOwner(), testPermsREAD, scrubbedJson);
       Assert.fail("Update of perms by owner for owner should have thrown an exception");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("SYSLIB_PERM_OWNER_UPDATE"));
-      pass = true;
     }
-    Assert.assertTrue(pass, "Update of perms by owner for owner did not throw correct exception");
   }
 
   // Test creating, reading and deleting user credentials for a system
@@ -1109,7 +1182,7 @@ public class SystemsServiceTest
     // Verify notes
     Assert.assertNotNull(sys0.getNotes(), "Orig Notes should not be null");
     Assert.assertNotNull(tmpSys.getNotes(), "Fetched Notes should not be null");
-    System.out.println("Found notes: " + sys0.getNotes().toString());
+    System.out.println("Found notes: " + sys0.getNotes());
     JsonObject tmpObj = (JsonObject) tmpSys.getNotes();
     JsonObject origNotes = (JsonObject) sys0.getNotes();
     Assert.assertTrue(tmpObj.has("project"));
