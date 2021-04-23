@@ -53,7 +53,6 @@ Here are the current enumerations and the locations where they are defined. Note
   SystemOperation     <N/A>                     model.TSystem     Yes
   Permission          PermsRequest.json         model.TSystem     No
   AuthnMethod        Definitions.json          model.TSystem     Yes
-  TransferMethod      SystemCreateRequest.json  model.TSystem     No
   Capability          Definitions.json          model.Capability  Yes
 
 ------------

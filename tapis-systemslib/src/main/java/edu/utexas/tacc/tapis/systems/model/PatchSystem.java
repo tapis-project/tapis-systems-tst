@@ -1,7 +1,6 @@
 package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ public final class PatchSystem
   private final String host;
   private final String effectiveUserId;
   private final AuthnMethod defaultAuthnMethod;
-  private final List<TransferMethod> transferMethods;
   private final Integer port;
   private final Boolean useProxy;
   private final String proxyHost;
@@ -52,7 +50,7 @@ public final class PatchSystem
    * Constructor setting all final attributes.
    */
   public PatchSystem(String description1, String host1, String effectiveUserId1,
-                     AuthnMethod defaultAuthnMethod1, List<TransferMethod> transferMethods1,
+                     AuthnMethod defaultAuthnMethod1,
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1,
                      String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1,
                      List<JobRuntime> jobRuntimes1, String jobWorkingDir1, String[] jobEnvVariables1,
@@ -64,7 +62,6 @@ public final class PatchSystem
     host = host1;
     effectiveUserId = effectiveUserId1;
     defaultAuthnMethod = defaultAuthnMethod1;
-    transferMethods = (transferMethods1 == null) ? null : new ArrayList<>(transferMethods1);
     port = port1;
     useProxy = useProxy1;
     proxyHost = proxyHost1;
@@ -102,10 +99,6 @@ public final class PatchSystem
   public String getEffectiveUserId() { return effectiveUserId; }
 
   public AuthnMethod getDefaultAuthnMethod() { return defaultAuthnMethod; }
-
-  public List<TransferMethod> getTransferMethods() {
-    return (transferMethods == null) ? null : new ArrayList<>(transferMethods);
-  }
 
   public Integer getPort() { return port; }
 

@@ -15,7 +15,6 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -29,6 +28,8 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.EnumConverter;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -38,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
 
-    private static final long serialVersionUID = 516497815;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>tapis_sys.system_updates</code>
@@ -56,63 +57,64 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     /**
      * The column <code>tapis_sys.system_updates.seq_id</code>. System update request sequence id
      */
-    public final TableField<SystemUpdatesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('system_updates_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "System update request sequence id");
+    public final TableField<SystemUpdatesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "System update request sequence id");
 
     /**
      * The column <code>tapis_sys.system_updates.system_seq_id</code>. Sequence id of system being updated
      */
-    public final TableField<SystemUpdatesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "Sequence id of system being updated");
+    public final TableField<SystemUpdatesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), SQLDataType.INTEGER, this, "Sequence id of system being updated");
 
     /**
      * The column <code>tapis_sys.system_updates.system_tenant</code>. Tenant of system being updated
      */
-    public final TableField<SystemUpdatesRecord, String> SYSTEM_TENANT = createField(DSL.name("system_tenant"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Tenant of system being updated");
+    public final TableField<SystemUpdatesRecord, String> SYSTEM_TENANT = createField(DSL.name("system_tenant"), SQLDataType.CLOB.nullable(false), this, "Tenant of system being updated");
 
     /**
      * The column <code>tapis_sys.system_updates.system_id</code>. Id of system being updated
      */
-    public final TableField<SystemUpdatesRecord, String> SYSTEM_ID = createField(DSL.name("system_id"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Id of system being updated");
+    public final TableField<SystemUpdatesRecord, String> SYSTEM_ID = createField(DSL.name("system_id"), SQLDataType.CLOB.nullable(false), this, "Id of system being updated");
 
     /**
      * The column <code>tapis_sys.system_updates.user_tenant</code>. Tenant of user who requested the update
      */
-    public final TableField<SystemUpdatesRecord, String> USER_TENANT = createField(DSL.name("user_tenant"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Tenant of user who requested the update");
+    public final TableField<SystemUpdatesRecord, String> USER_TENANT = createField(DSL.name("user_tenant"), SQLDataType.CLOB.nullable(false), this, "Tenant of user who requested the update");
 
     /**
      * The column <code>tapis_sys.system_updates.user_name</code>. Name of user who requested the update
      */
-    public final TableField<SystemUpdatesRecord, String> USER_NAME = createField(DSL.name("user_name"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Name of user who requested the update");
+    public final TableField<SystemUpdatesRecord, String> USER_NAME = createField(DSL.name("user_name"), SQLDataType.CLOB.nullable(false), this, "Name of user who requested the update");
 
     /**
      * The column <code>tapis_sys.system_updates.operation</code>. Type of update operation
      */
-    public final TableField<SystemUpdatesRecord, SystemOperation> OPERATION = createField(DSL.name("operation"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Type of update operation", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation.class));
+    public final TableField<SystemUpdatesRecord, SystemOperation> OPERATION = createField(DSL.name("operation"), SQLDataType.CLOB.nullable(false), this, "Type of update operation", new EnumConverter<String, SystemOperation>(String.class, SystemOperation.class));
 
     /**
      * The column <code>tapis_sys.system_updates.upd_json</code>. JSON representing the update - with secrets scrubbed
      */
-    public final TableField<SystemUpdatesRecord, JsonElement> UPD_JSON = createField(DSL.name("upd_json"), org.jooq.impl.SQLDataType.JSONB.nullable(false), this, "JSON representing the update - with secrets scrubbed", new JSONBToJsonElementBinding());
+    public final TableField<SystemUpdatesRecord, JsonElement> UPD_JSON = createField(DSL.name("upd_json"), SQLDataType.JSONB.nullable(false), this, "JSON representing the update - with secrets scrubbed", new JSONBToJsonElementBinding());
 
     /**
      * The column <code>tapis_sys.system_updates.upd_text</code>. Text data supplied by client - secrets should be scrubbed
      */
-    public final TableField<SystemUpdatesRecord, String> UPD_TEXT = createField(DSL.name("upd_text"), org.jooq.impl.SQLDataType.CLOB, this, "Text data supplied by client - secrets should be scrubbed");
+    public final TableField<SystemUpdatesRecord, String> UPD_TEXT = createField(DSL.name("upd_text"), SQLDataType.CLOB, this, "Text data supplied by client - secrets should be scrubbed");
 
     /**
      * The column <code>tapis_sys.system_updates.uuid</code>.
      */
-    public final TableField<SystemUpdatesRecord, UUID> UUID = createField(DSL.name("uuid"), org.jooq.impl.SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<SystemUpdatesRecord, java.util.UUID> UUID = createField(DSL.name("uuid"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>tapis_sys.system_updates.created</code>. UTC time for when record was created
      */
-    public final TableField<SystemUpdatesRecord, LocalDateTime> CREATED = createField(DSL.name("created"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("timezone('utc'::text, now())", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "UTC time for when record was created");
+    public final TableField<SystemUpdatesRecord, LocalDateTime> CREATED = createField(DSL.name("created"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field("timezone('utc'::text, now())", SQLDataType.LOCALDATETIME)), this, "UTC time for when record was created");
 
-    /**
-     * Create a <code>tapis_sys.system_updates</code> table reference
-     */
-    public SystemUpdates() {
-        this(DSL.name("system_updates"), null);
+    private SystemUpdates(Name alias, Table<SystemUpdatesRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private SystemUpdates(Name alias, Table<SystemUpdatesRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -129,12 +131,11 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
         this(alias, SYSTEM_UPDATES);
     }
 
-    private SystemUpdates(Name alias, Table<SystemUpdatesRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private SystemUpdates(Name alias, Table<SystemUpdatesRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>tapis_sys.system_updates</code> table reference
+     */
+    public SystemUpdates() {
+        this(DSL.name("system_updates"), null);
     }
 
     public <O extends Record> SystemUpdates(Table<O> child, ForeignKey<O, SystemUpdatesRecord> key) {
@@ -148,7 +149,7 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
 
     @Override
     public Identity<SystemUpdatesRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_SYSTEM_UPDATES;
+        return (Identity<SystemUpdatesRecord, Integer>) super.getIdentity();
     }
 
     @Override
@@ -166,8 +167,13 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
         return Arrays.<ForeignKey<SystemUpdatesRecord, ?>>asList(Keys.SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY);
     }
 
+    private transient Systems _systems;
+
     public Systems systems() {
-        return new Systems(this, Keys.SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY);
+        if (_systems == null)
+            _systems = new Systems(this, Keys.SYSTEM_UPDATES__SYSTEM_UPDATES_SYSTEM_SEQ_ID_FKEY);
+
+        return _systems;
     }
 
     @Override
@@ -201,7 +207,7 @@ public class SystemUpdates extends TableImpl<SystemUpdatesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row11<Integer, Integer, String, String, String, String, SystemOperation, JsonElement, String, UUID, LocalDateTime> fieldsRow() {
+    public Row11<Integer, Integer, String, String, String, String, SystemOperation, JsonElement, String, java.util.UUID, LocalDateTime> fieldsRow() {
         return (Row11) super.fieldsRow();
     }
 }

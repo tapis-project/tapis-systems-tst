@@ -18,11 +18,6 @@
     "authnCredential": {"$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/Credential" },
     "bucketName": { "type": "string", "maxLength": 63 },
     "rootDir": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/DirPath" },
-    "transferMethods": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/TransferMethodEnum" }
-    },
     "port": { "type": "integer" },
     "useProxy": { "type": "boolean", "default": false },
     "proxyHost": { "$ref": "resource:///edu/utexas/tacc/tapis/systems/api/jsonschema/Definitions.json#/HostName" },

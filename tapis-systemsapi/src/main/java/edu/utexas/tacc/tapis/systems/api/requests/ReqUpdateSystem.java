@@ -5,7 +5,6 @@ import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.util.List;
@@ -22,7 +21,6 @@ public final class ReqUpdateSystem
   public String host;
   public String effectiveUserId;
   public AuthnMethod defaultAuthnMethod;
-  public List<TransferMethod> transferMethods;
   public Integer port;
   public Boolean useProxy;
   public String proxyHost;

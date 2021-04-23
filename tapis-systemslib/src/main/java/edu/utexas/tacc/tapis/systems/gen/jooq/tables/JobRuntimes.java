@@ -24,6 +24,8 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.EnumConverter;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -33,7 +35,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
 
-    private static final long serialVersionUID = 47839129;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>tapis_sys.job_runtimes</code>
@@ -51,28 +53,29 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
     /**
      * The column <code>tapis_sys.job_runtimes.seq_id</code>.
      */
-    public final TableField<JobRuntimesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('job_runtimes_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JobRuntimesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>tapis_sys.job_runtimes.system_seq_id</code>.
      */
-    public final TableField<JobRuntimesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<JobRuntimesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>tapis_sys.job_runtimes.runtime_type</code>.
      */
-    public final TableField<JobRuntimesRecord, RuntimeType> RUNTIME_TYPE = createField(DSL.name("runtime_type"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.JobRuntime.RuntimeType.class));
+    public final TableField<JobRuntimesRecord, RuntimeType> RUNTIME_TYPE = createField(DSL.name("runtime_type"), SQLDataType.CLOB.nullable(false), this, "", new EnumConverter<String, RuntimeType>(String.class, RuntimeType.class));
 
     /**
      * The column <code>tapis_sys.job_runtimes.version</code>.
      */
-    public final TableField<JobRuntimesRecord, String> VERSION = createField(DSL.name("version"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<JobRuntimesRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
-    /**
-     * Create a <code>tapis_sys.job_runtimes</code> table reference
-     */
-    public JobRuntimes() {
-        this(DSL.name("job_runtimes"), null);
+    private JobRuntimes(Name alias, Table<JobRuntimesRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private JobRuntimes(Name alias, Table<JobRuntimesRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -89,12 +92,11 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
         this(alias, JOB_RUNTIMES);
     }
 
-    private JobRuntimes(Name alias, Table<JobRuntimesRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private JobRuntimes(Name alias, Table<JobRuntimesRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>tapis_sys.job_runtimes</code> table reference
+     */
+    public JobRuntimes() {
+        this(DSL.name("job_runtimes"), null);
     }
 
     public <O extends Record> JobRuntimes(Table<O> child, ForeignKey<O, JobRuntimesRecord> key) {
@@ -108,7 +110,7 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
 
     @Override
     public Identity<JobRuntimesRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_JOB_RUNTIMES;
+        return (Identity<JobRuntimesRecord, Integer>) super.getIdentity();
     }
 
     @Override
@@ -126,8 +128,13 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
         return Arrays.<ForeignKey<JobRuntimesRecord, ?>>asList(Keys.JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY);
     }
 
+    private transient Systems _systems;
+
     public Systems systems() {
-        return new Systems(this, Keys.JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY);
+        if (_systems == null)
+            _systems = new Systems(this, Keys.JOB_RUNTIMES__JOB_RUNTIMES_SYSTEM_SEQ_ID_FKEY);
+
+        return _systems;
     }
 
     @Override

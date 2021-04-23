@@ -23,6 +23,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -32,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
-    private static final long serialVersionUID = 1500958841;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>tapis_sys.logical_queues</code>
@@ -50,58 +51,59 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     /**
      * The column <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
      */
-    public final TableField<LogicalQueuesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('logical_queues_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Logical queue sequence id");
+    public final TableField<LogicalQueuesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "Logical queue sequence id");
 
     /**
      * The column <code>tapis_sys.logical_queues.system_seq_id</code>. Sequence id of system associated with the logical queue
      */
-    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "Sequence id of system associated with the logical queue");
+    public final TableField<LogicalQueuesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), SQLDataType.INTEGER, this, "Sequence id of system associated with the logical queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.name</code>. Name of logical queue
      */
-    public final TableField<LogicalQueuesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Name of logical queue");
+    public final TableField<LogicalQueuesRecord, String> NAME = createField(DSL.name("name"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Name of logical queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.hpc_queue_name</code>. Name of the associated hpc queue
      */
-    public final TableField<LogicalQueuesRecord, String> HPC_QUEUE_NAME = createField(DSL.name("hpc_queue_name"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Name of the associated hpc queue");
+    public final TableField<LogicalQueuesRecord, String> HPC_QUEUE_NAME = createField(DSL.name("hpc_queue_name"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Name of the associated hpc queue");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_jobs</code>. Maximum total number of jobs that can be queued or running in this queue at a given time.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_JOBS = createField(DSL.name("max_jobs"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum total number of jobs that can be queued or running in this queue at a given time.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_JOBS = createField(DSL.name("max_jobs"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum total number of jobs that can be queued or running in this queue at a given time.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_jobs_per_user</code>. Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_JOBS_PER_USER = createField(DSL.name("max_jobs_per_user"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_JOBS_PER_USER = createField(DSL.name("max_jobs_per_user"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_node_count</code>. Maximum number of nodes that can be requested when submitting a job to the queue.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_NODE_COUNT = createField(DSL.name("max_node_count"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum number of nodes that can be requested when submitting a job to the queue.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_NODE_COUNT = createField(DSL.name("max_node_count"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of nodes that can be requested when submitting a job to the queue.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_cores_per_node</code>. Maximum number of cores per node that can be requested when submitting a job to the queue.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_CORES_PER_NODE = createField(DSL.name("max_cores_per_node"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum number of cores per node that can be requested when submitting a job to the queue.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_CORES_PER_NODE = createField(DSL.name("max_cores_per_node"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of cores per node that can be requested when submitting a job to the queue.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_memory_mb</code>. Maximum memory in megabytes that can be requested when submitting a job to the queue.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_MEMORY_MB = createField(DSL.name("max_memory_mb"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum memory in megabytes that can be requested when submitting a job to the queue.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_MEMORY_MB = createField(DSL.name("max_memory_mb"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum memory in megabytes that can be requested when submitting a job to the queue.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_minutes</code>. Maximum run time in minutes that can be requested when submitting a job to the queue.
      */
-    public final TableField<LogicalQueuesRecord, Integer> MAX_MINUTES = createField(DSL.name("max_minutes"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("'-1'::integer", org.jooq.impl.SQLDataType.INTEGER)), this, "Maximum run time in minutes that can be requested when submitting a job to the queue.");
+    public final TableField<LogicalQueuesRecord, Integer> MAX_MINUTES = createField(DSL.name("max_minutes"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum run time in minutes that can be requested when submitting a job to the queue.");
 
-    /**
-     * Create a <code>tapis_sys.logical_queues</code> table reference
-     */
-    public LogicalQueues() {
-        this(DSL.name("logical_queues"), null);
+    private LogicalQueues(Name alias, Table<LogicalQueuesRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private LogicalQueues(Name alias, Table<LogicalQueuesRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -118,12 +120,11 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
         this(alias, LOGICAL_QUEUES);
     }
 
-    private LogicalQueues(Name alias, Table<LogicalQueuesRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private LogicalQueues(Name alias, Table<LogicalQueuesRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>tapis_sys.logical_queues</code> table reference
+     */
+    public LogicalQueues() {
+        this(DSL.name("logical_queues"), null);
     }
 
     public <O extends Record> LogicalQueues(Table<O> child, ForeignKey<O, LogicalQueuesRecord> key) {
@@ -137,7 +138,7 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
 
     @Override
     public Identity<LogicalQueuesRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_LOGICAL_QUEUES;
+        return (Identity<LogicalQueuesRecord, Integer>) super.getIdentity();
     }
 
     @Override
@@ -155,8 +156,13 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
         return Arrays.<ForeignKey<LogicalQueuesRecord, ?>>asList(Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY);
     }
 
+    private transient Systems _systems;
+
     public Systems systems() {
-        return new Systems(this, Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY);
+        if (_systems == null)
+            _systems = new Systems(this, Keys.LOGICAL_QUEUES__LOGICAL_QUEUES_SYSTEM_SEQ_ID_FKEY);
+
+        return _systems;
     }
 
     @Override

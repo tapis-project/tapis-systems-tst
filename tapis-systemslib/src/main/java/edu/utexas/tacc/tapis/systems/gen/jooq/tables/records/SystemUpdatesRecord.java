@@ -25,7 +25,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SystemUpdatesRecord extends UpdatableRecordImpl<SystemUpdatesRecord> implements Record11<Integer, Integer, String, String, String, String, SystemOperation, JsonElement, String, UUID, LocalDateTime> {
 
-    private static final long serialVersionUID = -2032133392;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>tapis_sys.system_updates.seq_id</code>. System update request sequence id
@@ -468,16 +468,16 @@ public class SystemUpdatesRecord extends UpdatableRecordImpl<SystemUpdatesRecord
     public SystemUpdatesRecord(Integer seqId, Integer systemSeqId, String systemTenant, String systemId, String userTenant, String userName, SystemOperation operation, JsonElement updJson, String updText, UUID uuid, LocalDateTime created) {
         super(SystemUpdates.SYSTEM_UPDATES);
 
-        set(0, seqId);
-        set(1, systemSeqId);
-        set(2, systemTenant);
-        set(3, systemId);
-        set(4, userTenant);
-        set(5, userName);
-        set(6, operation);
-        set(7, updJson);
-        set(8, updText);
-        set(9, uuid);
-        set(10, created);
+        setSeqId(seqId);
+        setSystemSeqId(systemSeqId);
+        setSystemTenant(systemTenant);
+        setSystemId(systemId);
+        setUserTenant(userTenant);
+        setUserName(userName);
+        setOperation(operation);
+        setUpdJson(updJson);
+        setUpdText(updText);
+        setUuid(uuid);
+        setCreated(created);
     }
 }

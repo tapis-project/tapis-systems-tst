@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Set;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
 
 import static edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters.*;
@@ -89,16 +88,6 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-
-    // Verify txfr methods
-    List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
-    Assert.assertNotNull(tMethodsList);
-    List<TransferMethod> sys0TMethodsList = sys0.getTransferMethods();
-    Assert.assertNotNull(sys0TMethodsList);
-    for (TransferMethod txfrMethod : sys0TMethodsList)
-    {
-      Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
-    }
 
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
@@ -268,38 +257,6 @@ public class SystemsDaoTest
     Assert.assertFalse(dao.checkForSystem(sys0.getTenant(), sys0.getId(), true),"System not deleted. System name: " + sys0.getId());
   }
 
-  // Test create and get for a single item with no transfer methods supported and unusual port settings
-  @Test
-  public void testNoTxfr() throws Exception
-  {
-    TSystem sys0 = systems[10];
-    sys0.setTransferMethods(txfrMethodsEmpty);
-    sys0.setPort(-1);
-    sys0.setProxyPort(-1);
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-    Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
-    Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
-    System.out.println("Found item: " + sys0.getId());
-    Assert.assertEquals(tmpSys.getId(), sys0.getId());
-    Assert.assertEquals(tmpSys.getDescription(), sys0.getDescription());
-    Assert.assertEquals(tmpSys.getSystemType().name(), sys0.getSystemType().name());
-    Assert.assertEquals(tmpSys.getOwner(), sys0.getOwner());
-    Assert.assertEquals(tmpSys.getHost(), sys0.getHost());
-    Assert.assertEquals(tmpSys.getEffectiveUserId(), sys0.getEffectiveUserId());
-    Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
-    Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-    Assert.assertEquals(tmpSys.getJobWorkingDir(), sys0.getJobWorkingDir());
-    Assert.assertEquals(tmpSys.getDefaultAuthnMethod(), sys0.getDefaultAuthnMethod());
-    Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
-    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
-    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
-    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
-    List<TransferMethod> txfrMethodsList = tmpSys.getTransferMethods();
-    Assert.assertNotNull(txfrMethodsList);
-    Assert.assertEquals(txfrMethodsList.size(), 0);
-  }
-
   // Test behavior when system is missing, especially for cases where service layer depends on the behavior.
   //  update - throws not found exception
   //  get - returns null
@@ -309,15 +266,14 @@ public class SystemsDaoTest
   public void testMissingSystem() throws Exception {
     String fakeSystemName = "AMissingSystemName";
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            prot2.getAuthnMethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, runtimeList1, jobWorkingDir1, jobEnvVariables1,
             jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, logicalQueueList1, batchDefaultLogicalQueue1,
             capList1, tags1, notes1);
     patchSys.setTenant(tenantName);
     patchSys.setId(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabledTrue,
-            "effUser", prot2.getAuthnMethod(), "bucket", "/root", prot2.getTransferMethods(),
+            "effUser", prot2.getAuthnMethod(), "bucket", "/root",
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse, canExecTrue, "jobWorkDir",
             jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, "batchDefaultLogicalQueue",

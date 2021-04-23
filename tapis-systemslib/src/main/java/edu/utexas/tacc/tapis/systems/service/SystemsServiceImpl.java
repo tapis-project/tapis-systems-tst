@@ -266,7 +266,7 @@ public class SystemsServiceImpl implements SystemsService
    * Update a system object given a PatchSystem and the text used to create the PatchSystem.
    * Secrets in the text should be masked.
    * Attributes that can be updated:
-   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   description, host, effectiveUserId, defaultAuthnMethod,
    *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
    *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
    *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
@@ -1749,11 +1749,7 @@ public class SystemsServiceImpl implements SystemsService
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? authenticatedUser.getTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? authenticatedUser.getName() : userToCheck);
-    // TODO: Remove this when admin access is available Jira cic-3964
-    if ("testuser9".equalsIgnoreCase(userName)) return true;
-//    var skClient = getSKClient();
-//    return skClient.isAdmin(tenantName, userName);
-    return false;
+    return getSKClient().isAdmin(tenantName, userName);
   }
 
   /**
@@ -1977,7 +1973,7 @@ public class SystemsServiceImpl implements SystemsService
   /**
    * Merge a patch into an existing TSystem
    * Attributes that can be updated:
-   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   description, host, effectiveUserId, defaultAuthnMethod,
    *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
    *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
    *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
@@ -1997,7 +1993,6 @@ public class SystemsServiceImpl implements SystemsService
       }
     }
     if (p.getDefaultAuthnMethod() != null) p1.setDefaultAuthnMethod(p.getDefaultAuthnMethod());
-    if (p.getTransferMethods() != null) p1.setTransferMethods(p.getTransferMethods());
     if (p.getPort() != null) p1.setPort(p.getPort());
     if (p.isUseProxy() != null) p1.setUseProxy(p.isUseProxy());
     if (p.getProxyHost() != null) p1.setProxyHost(p.getProxyHost());

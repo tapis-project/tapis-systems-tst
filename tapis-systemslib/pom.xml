@@ -221,9 +221,9 @@
                   <!-- Register custom types -->
 <!--                  <customTypes>-->
 <!--                    <customType>-->
-<!--                      <name>TransferMethodArrayType</name>-->
-<!--                      <type>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod[]</type>-->
-<!--                      <converter>edu.utexas.tacc.tapis.systems.dao.TransferMethodArrayConverter</converter>-->
+<!--                      <name>MyType</name>-->
+<!--                      <type>edu.utexas.tacc.tapis.systems.model.TSystem.MyType[]</type>-->
+<!--                      <converter>edu.utexas.tacc.tapis.systems.dao.MyTypeArrayConverter</converter>-->
 <!--                    </customType>-->
 <!--                  </customTypes>-->
 
@@ -286,29 +286,6 @@
                     <includeExpression>systems\.default_authn_method</includeExpression>
                     <includeTypes>.*</includeTypes>
                   </forcedType>
-<!--                    <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod</userType>-->
-<!--                      <enumConverter>true</enumConverter>-->
-<!--                      <includeExpression>systems\.transfer_methods</includeExpression>-->
-<!--                      <includeTypes>.*</includeTypes>-->
-<!--                  </forcedType>-->
-<!--                  <forcedType>-->
-<!--                      <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod[]</userType>-->
-<!--                      <converter>edu.utexas.tacc.tapis.systems.dao.TransferMethodArrayConverter</converter>-->
-<!--                      <includeExpression>systems\.transfer_methods</includeExpression>-->
-<!--                      <includeTypes>.*</includeTypes>-->
-<!--                    </forcedType>-->
-<!--                    <forcedType>-->
-<!--                      <name>TransferMethodArrayType</name>-->
-<!--                      <expression>systems\.transfer_methods</expression>-->
-<!--&lt;!&ndash;                      <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod</userType>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <enumConverter>true</enumConverter>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <includeExpression>.*</includeExpression>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <includeTypes>transfer_meth_type</includeTypes>&ndash;&gt;-->
-<!--                        &lt;!&ndash;                      <converter>edu.utexas.tacc.tapis.systems.dao.TransferMethodArrayConverter</converter>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <userType>edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod[]</userType>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <includeExpression>systems\.transfer_methods</includeExpression>&ndash;&gt;-->
-<!--&lt;!&ndash;                      <includeTypes>.*</includeTypes>&ndash;&gt;-->
-<!--                    </forcedType>-->
                 </forcedTypes>
               </database>
             </generator>

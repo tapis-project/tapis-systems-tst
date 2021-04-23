@@ -923,7 +923,7 @@ public class SystemResource
 
     var tSystem = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
-                       req.transferMethods, req.port, req.useProxy, req.proxyHost, req.proxyPort,
+                       req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
                        jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
                        req.batchDefaultLogicalQueue, req.tags, notes, null, false, null, null);
@@ -948,7 +948,7 @@ public class SystemResource
     Object notes = extractNotes(rawJson);
 
     PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
-                           req.defaultAuthnMethod, req.transferMethods, req.port, req.useProxy,
+                           req.defaultAuthnMethod, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
                            req.jobRuntimes, req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
                            req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,

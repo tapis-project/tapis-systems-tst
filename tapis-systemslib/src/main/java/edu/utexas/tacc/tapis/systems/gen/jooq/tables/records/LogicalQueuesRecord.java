@@ -19,7 +19,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord> implements Record10<Integer, Integer, String, String, Integer, Integer, Integer, Integer, Integer, Integer> {
 
-    private static final long serialVersionUID = 1217893000;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>tapis_sys.logical_queues.seq_id</code>. Logical queue sequence id
@@ -426,15 +426,15 @@ public class LogicalQueuesRecord extends UpdatableRecordImpl<LogicalQueuesRecord
     public LogicalQueuesRecord(Integer seqId, Integer systemSeqId, String name, String hpcQueueName, Integer maxJobs, Integer maxJobsPerUser, Integer maxNodeCount, Integer maxCoresPerNode, Integer maxMemoryMb, Integer maxMinutes) {
         super(LogicalQueues.LOGICAL_QUEUES);
 
-        set(0, seqId);
-        set(1, systemSeqId);
-        set(2, name);
-        set(3, hpcQueueName);
-        set(4, maxJobs);
-        set(5, maxJobsPerUser);
-        set(6, maxNodeCount);
-        set(7, maxCoresPerNode);
-        set(8, maxMemoryMb);
-        set(9, maxMinutes);
+        setSeqId(seqId);
+        setSystemSeqId(systemSeqId);
+        setName(name);
+        setHpcQueueName(hpcQueueName);
+        setMaxJobs(maxJobs);
+        setMaxJobsPerUser(maxJobsPerUser);
+        setMaxNodeCount(maxNodeCount);
+        setMaxCoresPerNode(maxCoresPerNode);
+        setMaxMemoryMb(maxMemoryMb);
+        setMaxMinutes(maxMinutes);
     }
 }

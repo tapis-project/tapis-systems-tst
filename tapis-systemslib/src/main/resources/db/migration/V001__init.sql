@@ -54,7 +54,6 @@ CREATE TABLE systems
   default_authn_method  TEXT NOT NULL,
   bucket_name    TEXT,
   root_dir       TEXT,
-  transfer_methods TEXT[],
   port       INTEGER NOT NULL DEFAULT -1,
   use_proxy  BOOLEAN NOT NULL DEFAULT false,
   proxy_host TEXT NOT NULL DEFAULT '',
@@ -96,7 +95,6 @@ COMMENT ON COLUMN systems.effective_user_id IS 'User name to use when accessing 
 COMMENT ON COLUMN systems.default_authn_method IS 'Enum for how authorization is handled by default';
 COMMENT ON COLUMN systems.bucket_name IS 'Name of the bucket for an S3 system';
 COMMENT ON COLUMN systems.root_dir IS 'Effective root directory path for a Unix system';
-COMMENT ON COLUMN systems.transfer_methods IS 'List of supported transfer methods';
 COMMENT ON COLUMN systems.port IS 'Port number used to access a system';
 COMMENT ON COLUMN systems.use_proxy IS 'Indicates if system should accessed through a proxy';
 COMMENT ON COLUMN systems.proxy_host IS 'Proxy host name or ip address';

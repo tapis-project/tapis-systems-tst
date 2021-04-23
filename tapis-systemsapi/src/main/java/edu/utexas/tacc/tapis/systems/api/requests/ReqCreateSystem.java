@@ -8,7 +8,6 @@ import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.util.List;
@@ -23,7 +22,6 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_OWNER;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PORT;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PROXYHOST;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_PROXYPORT;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_TRANSFER_METHODS;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_USEPROXY;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.EMPTY_STR_ARRAY;
 
@@ -43,7 +41,6 @@ public final class ReqCreateSystem
   public Credential authnCredential; // Credential to be stored in or retrieved from the Security Kernel
   public String bucketName; // Name of bucket for system of type OBJECT_STORE
   public String rootDir;    // Effective root directory for system of type LINUX, can also be used for system of type OBJECT_STORE
-  public List<TransferMethod> transferMethods = DEFAULT_TRANSFER_METHODS; // Supported transfer methods, allowed values determined by system type
   public int port = DEFAULT_PORT;          // Port number used to access the system
   public boolean useProxy = DEFAULT_USEPROXY;  // Indicates if a system should be accessed through a proxy
   public String proxyHost = DEFAULT_PROXYHOST;  // Name or IP address of proxy host

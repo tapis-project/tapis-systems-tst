@@ -374,8 +374,8 @@ public class PermsResource
 
   /**
    * Check json payload and extract permissions list.
-   * @param systemName - name of the system, for constructing response msg
-   * @param userName - name of user associated with the perms request, for constructing response msg
+   * @param systemName - name of the system, for constructing response msg in case of err
+   * @param userName - name of user associated with the perms request, for constructing response msg in case of err
    * @param json - Request json extracted from payloadStream
    * @param permsList - List for resulting permissions extracted from payload
    * @return - null if all checks OK else Response containing info

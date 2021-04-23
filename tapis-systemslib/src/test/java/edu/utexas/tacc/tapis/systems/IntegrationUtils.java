@@ -11,7 +11,6 @@ import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.time.Instant;
@@ -36,7 +35,7 @@ public final class IntegrationUtils
   public static final String tenantName = "dev";
   public static final String svcName = "systems";
   public static final String filesSvcName = "files";
-  public static final String adminUser = "testuser9";
+  public static final String adminUser = "testadmin";
 
   // NOTE: Continue to use the fake users owner1, owner2 since some operations involve modifying credentials
   //       Although it should not be a problem because credentials are stored for each system it is best to be safe.
@@ -56,9 +55,6 @@ public final class IntegrationUtils
   public static final String effectiveUserId1 = "effUsr1";
   public static final String effectiveUserId2 = "effUsr2";
   public static final String effectiveUserIdNull = null;
-  public static final List<TransferMethod> txfrMethodsList = new ArrayList<>(List.of(TransferMethod.SFTP, TransferMethod.S3));
-  public static final List<TransferMethod> txfrMethodsEmpty = new ArrayList<>();
-  public static final List<TransferMethod> txfrMethodsNull = null;
   public static final Integer portNull = null;
   public static final Boolean userProxyNull = null;
   public static final String proxyHostNull = null;
@@ -119,8 +115,8 @@ public final class IntegrationUtils
   public static final JsonObject notesObj1 = (JsonObject) notes1;
   public static final Object notesNull = null;
 
-  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, txfrMethodsList, 22, false, "", 0);
-  public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, txfrMethodsList, 0, true, "localhost",2222);
+  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, 22, false, "", 0);
+  public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, 0, true, "localhost",2222);
   public static final String scrubbedJson = "{}";
 
   // Job Runtimes
@@ -217,15 +213,15 @@ public final class IntegrationUtils
   {
     TSystem[] systems = new TSystem[n];
     // Create DTN systems for other systems to reference. Otherwise some system definitions are not valid.
-    dtnSystem1 = new TSystem(-1, tenantName, dtnSystemId1, "DTN System1 for tests", TSystem.SystemType.LINUX, owner1,
+    dtnSystem1 = new TSystem(-1, tenantName, sysNamePrefix+key+dtnSystemId1, "DTN System1 for tests", TSystem.SystemType.LINUX, owner1,
             dtnSystemValidHostname, isEnabledTrue,"effUserDtn1", prot1.getAuthnMethod(), "bucketDtn1", "/root/dtn1",
-            prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
+            prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
             batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull , isDeletedFalse, createdNull, updatedNull);
-    dtnSystem2 = new TSystem(-1, tenantName, dtnSystemId2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
+    dtnSystem2 = new TSystem(-1, tenantName, sysNamePrefix+key+dtnSystemId2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
             dtnSystemValidHostname, isEnabledTrue,"effUserDtn2", prot2.getAuthnMethod(), "bucketDtn2", "/root/dtn2",
-            prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchFalse,
             batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull , isDeletedFalse, createdNull, updatedNull);
@@ -239,8 +235,8 @@ public final class IntegrationUtils
       // Constructor initializes all attributes except for JobCapabilities and Credential
       systems[i] = new TSystem(-1, tenantName, name, description1+suffix, TSystem.SystemType.LINUX, owner1,
               hostName, isEnabledTrue,effectiveUserId1+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
-              prot1.getTransferMethods(), prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
-              dtnSystemId1, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse,
+              prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
+              sysNamePrefix+key+dtnSystemId1, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse,
               canExecTrue, "jobWorkDir"+suffix, jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue,
               batchScheduler1, queueA1.getName(), tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
       systems[i].setJobRuntimes(runtimeList1);
@@ -260,22 +256,22 @@ public final class IntegrationUtils
   {
     return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
               hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir1,
-              null, prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(),
-              null, null, null, isDtnFalse,
+              prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(), null, null, null, isDtnFalse,
               canExecFalse, null, null, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
               null, null, null, null, uuidNull, isDeletedFalse, null, null);
   }
 
-  /**
+  /**  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, 22, false, "", 0);
+  public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, 0, true, "localhost",2222);
+
    * Create a PatchSystem in memory for use in testing.
    * All attributes are to be updated.
    */
-  public static PatchSystem makePatchSystemFull()
+  public static PatchSystem makePatchSystemFull(String key)
   {
     return new PatchSystem(description2, hostname2, effectiveUserId2,
-            prot2.getAuthnMethod(), prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
-            dtnSystemId2, dtnMountPoint2, dtnMountSourcePath2, runtimeList2, jobWorkingDir2, jobEnvVariables2,
+            prot2.getAuthnMethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            sysNamePrefix+key+dtnSystemId2, dtnMountPoint2, dtnMountSourcePath2, runtimeList2, jobWorkingDir2, jobEnvVariables2,
             jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchTrue, batchScheduler2, logicalQueueList2, batchDefaultLogicalQueue2,
             capList2, tags2, notes2);
   }
@@ -284,10 +280,10 @@ public final class IntegrationUtils
    * Create a PatchSystem in memory for use in testing.
    * Some attributes are to be updated: description, authnMethod, dtnMountPoint, runtimeList, jobMaxJobsPerUser
    */
-  public static PatchSystem makePatchSystemPartial()
+  public static PatchSystem makePatchSystemPartial(String key)
   {
     return new PatchSystem(description2, hostnameNull, effectiveUserIdNull,
-            prot2.getAuthnMethod(), txfrMethodsNull, portNull, userProxyNull, proxyHostNull, proxyPortNull,
+            prot2.getAuthnMethod(), portNull, userProxyNull, proxyHostNull, proxyPortNull,
             dtnSystemIdNull, dtnMountPoint2, dtnMountSourcePathNull, runtimeList2, jobWorkingDirNull, jobEnvVariablesNull,
             jobMaxJobsNull, jobMaxJobsPerUser2, jobIsBatchNull, batchSchedulerNull, logicalQueueListNull, batchDefaultLogicalQueueNull,
             capListNull, tagsNull, notesNull);

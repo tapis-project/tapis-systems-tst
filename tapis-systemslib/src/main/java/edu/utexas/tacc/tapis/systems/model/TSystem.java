@@ -61,7 +61,6 @@ public final class TSystem
   public static final String AUTHN_CREDENTIAL_FIELD = "authnCredential";
   public static final String BUCKET_NAME_FIELD = "bucketName";
   public static final String ROOT_DIR_FIELD = "rootDir";
-  public static final String TRANSFER_METHODS_FIELD = "transferMethods";
   public static final String PORT_FIELD = "port";
   public static final String USE_PROXY_FIELD = "useProxy";
   public static final String PROXY_HOST_FIELD = "proxyHost";
@@ -92,8 +91,6 @@ public final class TSystem
   public static final String DEFAULT_EFFECTIVEUSERID = APIUSERID_VAR;
   public static final String[] DEFAULT_JOBENV_VARIABLES = EMPTY_STR_ARRAY;
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
-  public static final List<TransferMethod> DEFAULT_TRANSFER_METHODS = Collections.emptyList();
-  public static final String EMPTY_TRANSFER_METHODS_STR = "{}";
   public static final int DEFAULT_PORT = -1;
   public static final boolean DEFAULT_USEPROXY = false;
   public static final String DEFAULT_PROXYHOST = "";
@@ -130,7 +127,6 @@ public final class TSystem
                                getPerms, grantPerms, revokePerms, setCred, removeCred, getCred}
   public enum Permission {READ, MODIFY, EXECUTE}
   public enum AuthnMethod {PASSWORD, PKI_KEYS, ACCESS_KEY, CERT}
-  public enum TransferMethod {SFTP, S3, FTP, IRODS}
   public enum SchedulerType {SLURM, CONDOR, PBS, SGE, UGE, TORQUE}
 
   // ************************************************************************
@@ -151,7 +147,6 @@ public final class TSystem
   private Credential authnCredential; // Credential to be stored in or retrieved from the Security Kernel
   private String bucketName; // Name of bucket for system of type OBJECT_STORE
   private String rootDir;    // Effective root directory for system of type LINUX, can also be used for system of type OBJECT_STORE
-  private List<TransferMethod> transferMethods; // Supported transfer methods, allowed values determined by system type
   private int port;          // Port number used to access the system
   private boolean useProxy;  // Indicates if a system should be accessed through a proxy
   private String proxyHost;  // Name or IP address of proxy host
@@ -204,7 +199,7 @@ public final class TSystem
   public TSystem(int seqId1, String tenant1, String id1, String description1, SystemType systemType1,
                  String owner1, String host1, boolean enabled1, String effectiveUserId1, AuthnMethod defaultAuthnMethod1,
                  String bucketName1, String rootDir1,
-                 List<TransferMethod> transferMethods1, int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
+                 int port1, boolean useProxy1, String proxyHost1, int proxyPort1,
                  String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1, boolean isDtn1,
                  boolean canExec1, String jobWorkingDir1, String[] jobEnvVariables1, int jobMaxJobs1,
                  int jobMaxJobsPerUser1, boolean jobIsBatch1, SchedulerType batchScheduler1, String batchDefaultLogicalQueue1,
@@ -223,25 +218,6 @@ public final class TSystem
     defaultAuthnMethod = defaultAuthnMethod1;
     bucketName = bucketName1;
     rootDir = rootDir1;
-    // When jOOQ does a conversion transferMethods come in as String objects.
-    // A custom converter should handle it but it is not clear how to implement the converter/binding.
-    // So far all attempts have failed.
-//    transferMethods = (transferMethods1 == null) ? null : new ArrayList<>(transferMethods1);
-    transferMethods = new ArrayList<>();
-    if (transferMethods1 != null && !transferMethods1.isEmpty())
-    {
-      if ((Object) transferMethods1.get(0) instanceof String)
-      {
-        for (Object o : transferMethods1)
-        {
-          transferMethods.add(TransferMethod.valueOf(o.toString()));
-        }
-      }
-      else
-      {
-        transferMethods = new ArrayList<>(transferMethods1);
-      }
-    }
     port = port1;
     useProxy = useProxy1;
     proxyHost = proxyHost1;
@@ -288,7 +264,6 @@ public final class TSystem
     authnCredential = t.getAuthnCredential();
     bucketName = t.getBucketName();
     rootDir = t.getRootDir();
-    transferMethods =  t.getTransferMethods();
     port = t.getPort();
     useProxy = t.isUseProxy();
     proxyHost = t.getProxyHost();
@@ -330,7 +305,6 @@ public final class TSystem
     if (StringUtils.isBlank(system.getEffectiveUserId())) system.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
     if (system.getTags() == null) system.setTags(EMPTY_STR_ARRAY);
     if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
-    if (system.getTransferMethods() == null) system.setTransferMethods(DEFAULT_TRANSFER_METHODS);
     // If jobIsBatch and qlist has one value then set default q to that value
     if (system.getJobIsBatch() &&
         system.getBatchLogicalQueues() != null && system.getBatchLogicalQueues().size() == 1)
@@ -562,7 +536,6 @@ public final class TSystem
    * Check misc attribute restrictions
    *  If systemType is LINUX then rootDir is required.
    *  effectiveUserId is restricted.
-   *  If transfer mechanism S3 is supported then bucketName must be set.
    *  If effectiveUserId is dynamic then providing credentials is disallowed
    *  If credential is provided and contains ssh keys then validate them
    */
@@ -582,13 +555,6 @@ public final class TSystem
             !effectiveUserId.equals(owner))
     {
       errMessages.add(LibUtils.getMsg("SYSLIB_INVALID_EFFECTIVEUSERID_INPUT"));
-    }
-
-    // For S3 support bucketName must be set
-    if (transferMethods != null && transferMethods.contains(TransferMethod.S3) &&
-            StringUtils.isBlank(bucketName))
-    {
-      errMessages.add(LibUtils.getMsg("SYSLIB_S3_NOBUCKET_INPUT"));
     }
 
     // If effectiveUserId is dynamic then providing credentials is disallowed
@@ -669,14 +635,6 @@ public final class TSystem
 
   public String getRootDir() { return rootDir; }
   public TSystem setRootDir(String s) { rootDir = s; return this; }
-
-  public List<TransferMethod> getTransferMethods() {
-    return (transferMethods == null) ? null : new ArrayList<>(transferMethods);
-  }
-  public TSystem setTransferMethods(List<TransferMethod> t) {
-    transferMethods = (t == null) ? DEFAULT_TRANSFER_METHODS : new ArrayList<>(t);
-    return this;
-  }
 
   public int getPort() { return port; }
   public TSystem setPort(int i) { port = i; return this; }

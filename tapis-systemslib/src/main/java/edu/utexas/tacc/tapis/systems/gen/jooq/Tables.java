@@ -13,7 +13,7 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.tables.Systems;
 
 
 /**
- * Convenience access to all tables in tapis_sys
+ * Convenience access to all tables in tapis_sys.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {

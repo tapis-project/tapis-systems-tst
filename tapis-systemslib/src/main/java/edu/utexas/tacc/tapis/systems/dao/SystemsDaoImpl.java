@@ -86,9 +86,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (system.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
     if (system.getDefaultAuthnMethod() == null) LibUtils.logAndThrowNullParmException(opName, "defaultAuthnMethod");
 
-    // Convert transferMethods into array of strings
-    String[] transferMethodsStrArray = LibUtils.getTransferMethodsAsStringArray(system.getTransferMethods());
-
     // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
     String proxyHost = TSystem.DEFAULT_PROXYHOST;
     if (system.getProxyHost() != null) proxyHost = system.getProxyHost();
@@ -127,7 +124,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.DEFAULT_AUTHN_METHOD, system.getDefaultAuthnMethod())
               .set(SYSTEMS.BUCKET_NAME, system.getBucketName())
               .set(SYSTEMS.ROOT_DIR, system.getRootDir())
-              .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
               .set(SYSTEMS.PORT, system.getPort())
               .set(SYSTEMS.USE_PROXY, system.isUseProxy())
               .set(SYSTEMS.PROXY_HOST, proxyHost)
@@ -186,7 +182,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Update an existing system.
    * Following columns will be updated:
-   *   description, host, effectiveUserId, defaultAuthnMethod, transferMethods,
+   *   description, host, effectiveUserId, defaultAuthnMethod,
    *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
    *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
    *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
@@ -209,9 +205,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
     if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
     if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
-
-    // Convert transferMethods into array of strings
-    String[] transferMethodsStrArray = LibUtils.getTransferMethodsAsStringArray(patchedSystem.getTransferMethods());
 
     // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
     String proxyHost = TSystem.DEFAULT_PROXYHOST;
@@ -247,7 +240,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.HOST, patchedSystem.getHost())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
               .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
-              .set(SYSTEMS.TRANSFER_METHODS, transferMethodsStrArray)
               .set(SYSTEMS.PORT, patchedSystem.getPort())
               .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
               .set(SYSTEMS.PROXY_HOST, proxyHost)

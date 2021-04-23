@@ -20,7 +20,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JobRuntimesRecord extends UpdatableRecordImpl<JobRuntimesRecord> implements Record4<Integer, Integer, RuntimeType, String> {
 
-    private static final long serialVersionUID = 1178113708;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>tapis_sys.job_runtimes.seq_id</code>.
@@ -211,9 +211,9 @@ public class JobRuntimesRecord extends UpdatableRecordImpl<JobRuntimesRecord> im
     public JobRuntimesRecord(Integer seqId, Integer systemSeqId, RuntimeType runtimeType, String version) {
         super(JobRuntimes.JOB_RUNTIMES);
 
-        set(0, seqId);
-        set(1, systemSeqId);
-        set(2, runtimeType);
-        set(3, version);
+        setSeqId(seqId);
+        setSystemSeqId(systemSeqId);
+        setRuntimeType(runtimeType);
+        setVersion(version);
     }
 }

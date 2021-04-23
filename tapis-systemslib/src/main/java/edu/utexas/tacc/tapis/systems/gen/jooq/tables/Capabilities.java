@@ -25,6 +25,8 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.EnumConverter;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -34,7 +36,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
-    private static final long serialVersionUID = -1349106504;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>tapis_sys.capabilities</code>
@@ -52,43 +54,44 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     /**
      * The column <code>tapis_sys.capabilities.seq_id</code>. Capability sequence id
      */
-    public final TableField<CapabilitiesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('capabilities_seq_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "Capability sequence id");
+    public final TableField<CapabilitiesRecord, Integer> SEQ_ID = createField(DSL.name("seq_id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "Capability sequence id");
 
     /**
      * The column <code>tapis_sys.capabilities.system_seq_id</code>. Sequence id of system supporting the capability
      */
-    public final TableField<CapabilitiesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), org.jooq.impl.SQLDataType.INTEGER, this, "Sequence id of system supporting the capability");
+    public final TableField<CapabilitiesRecord, Integer> SYSTEM_SEQ_ID = createField(DSL.name("system_seq_id"), SQLDataType.INTEGER, this, "Sequence id of system supporting the capability");
 
     /**
      * The column <code>tapis_sys.capabilities.category</code>. Category for grouping of capabilities
      */
-    public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Category for grouping of capabilities", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.Capability.Category>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.Capability.Category.class));
+    public final TableField<CapabilitiesRecord, Category> CATEGORY = createField(DSL.name("category"), SQLDataType.CLOB.nullable(false), this, "Category for grouping of capabilities", new EnumConverter<String, Category>(String.class, Category.class));
 
     /**
      * The column <code>tapis_sys.capabilities.name</code>. Name of capability
      */
-    public final TableField<CapabilitiesRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Name of capability");
+    public final TableField<CapabilitiesRecord, String> NAME = createField(DSL.name("name"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Name of capability");
 
     /**
      * The column <code>tapis_sys.capabilities.datatype</code>. Datatype associated with the value
      */
-    public final TableField<CapabilitiesRecord, Datatype> DATATYPE = createField(DSL.name("datatype"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Datatype associated with the value", new org.jooq.impl.EnumConverter<java.lang.String, edu.utexas.tacc.tapis.systems.model.Capability.Datatype>(java.lang.String.class, edu.utexas.tacc.tapis.systems.model.Capability.Datatype.class));
+    public final TableField<CapabilitiesRecord, Datatype> DATATYPE = createField(DSL.name("datatype"), SQLDataType.CLOB.nullable(false), this, "Datatype associated with the value", new EnumConverter<String, Datatype>(String.class, Datatype.class));
 
     /**
      * The column <code>tapis_sys.capabilities.precedence</code>. Precedence where higher number has higher precedence
      */
-    public final TableField<CapabilitiesRecord, Integer> PRECEDENCE = createField(DSL.name("precedence"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("100", org.jooq.impl.SQLDataType.INTEGER)), this, "Precedence where higher number has higher precedence");
+    public final TableField<CapabilitiesRecord, Integer> PRECEDENCE = createField(DSL.name("precedence"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("100", SQLDataType.INTEGER)), this, "Precedence where higher number has higher precedence");
 
     /**
      * The column <code>tapis_sys.capabilities.value</code>. Value for the capability
      */
-    public final TableField<CapabilitiesRecord, String> VALUE = createField(DSL.name("value"), org.jooq.impl.SQLDataType.CLOB.nullable(false).defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "Value for the capability");
+    public final TableField<CapabilitiesRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Value for the capability");
 
-    /**
-     * Create a <code>tapis_sys.capabilities</code> table reference
-     */
-    public Capabilities() {
-        this(DSL.name("capabilities"), null);
+    private Capabilities(Name alias, Table<CapabilitiesRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private Capabilities(Name alias, Table<CapabilitiesRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -105,12 +108,11 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
         this(alias, CAPABILITIES);
     }
 
-    private Capabilities(Name alias, Table<CapabilitiesRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private Capabilities(Name alias, Table<CapabilitiesRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>tapis_sys.capabilities</code> table reference
+     */
+    public Capabilities() {
+        this(DSL.name("capabilities"), null);
     }
 
     public <O extends Record> Capabilities(Table<O> child, ForeignKey<O, CapabilitiesRecord> key) {
@@ -124,7 +126,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
 
     @Override
     public Identity<CapabilitiesRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_CAPABILITIES;
+        return (Identity<CapabilitiesRecord, Integer>) super.getIdentity();
     }
 
     @Override
@@ -142,8 +144,13 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
         return Arrays.<ForeignKey<CapabilitiesRecord, ?>>asList(Keys.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY);
     }
 
+    private transient Systems _systems;
+
     public Systems systems() {
-        return new Systems(this, Keys.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY);
+        if (_systems == null)
+            _systems = new Systems(this, Keys.CAPABILITIES__CAPABILITIES_SYSTEM_SEQ_ID_FKEY);
+
+        return _systems;
     }
 
     @Override

@@ -49,7 +49,6 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.ROOT_DIR_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.SYSTEM_TYPE_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.TAGS_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.TENANT_FIELD;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.TRANSFER_METHODS_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.USE_PROXY_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.UUID_FIELD;
 
@@ -72,7 +71,6 @@ public final class TapisSystemDTO
   public Credential authnCredential;
   public String bucketName;
   public String rootDir;
-  public List<TSystem.TransferMethod> transferMethods;
   public int port;
   public boolean useProxy;
   public String proxyHost;
@@ -116,7 +114,6 @@ public final class TapisSystemDTO
     authnCredential = s.getAuthnCredential();
     bucketName = s.getBucketName();
     rootDir = s.getRootDir();
-    transferMethods = s.getTransferMethods();
     port = s.getPort();
     useProxy = s.isUseProxy();
     proxyHost = s.getProxyHost();
@@ -229,7 +226,6 @@ public final class TapisSystemDTO
       }
       case BUCKET_NAME_FIELD -> jsonObject.addProperty(BUCKET_NAME_FIELD, bucketName);
       case ROOT_DIR_FIELD -> jsonObject.addProperty(ROOT_DIR_FIELD, rootDir);
-      case TRANSFER_METHODS_FIELD -> jsonObject.add(TRANSFER_METHODS_FIELD, gson.toJsonTree(transferMethods));
       case PORT_FIELD -> jsonObject.addProperty(PORT_FIELD, port);
       case USE_PROXY_FIELD -> jsonObject.addProperty(USE_PROXY_FIELD, Boolean.toString(useProxy));
       case PROXY_HOST_FIELD -> jsonObject.addProperty(PROXY_HOST_FIELD, proxyHost);

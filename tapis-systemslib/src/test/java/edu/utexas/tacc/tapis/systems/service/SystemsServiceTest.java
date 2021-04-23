@@ -27,7 +27,6 @@ import org.testng.annotations.Test;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 
 import javax.ws.rs.NotAuthorizedException;
@@ -60,7 +59,8 @@ public class SystemsServiceTest
 
   // Create test system definitions in memory
   int numSystems = 25;
-  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Svc");
+  String testKeyStr = "Svc";
+  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKeyStr);
 
   @BeforeSuite
   public void setUp() throws Exception
@@ -137,7 +137,7 @@ public class SystemsServiceTest
     try { svc.revokeUserPermissions(authenticatedOwner1, systems[14].getId(), testUser2, testPermsREADMODIFY, scrubbedJson); }
     catch (Exception e) { }
 
-    //Remove all objects created by tests
+    // Remove all objects created by tests
     for (int i = 0; i < numSystems; i++)
     {
       svcImpl.hardDeleteSystem(authenticatedAdminUser, systems[i].getId());
@@ -229,7 +229,7 @@ public class SystemsServiceTest
 
     // Create patchSystem where all updatable attributes are changed
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
-    PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull();
+    PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull(testKeyStr);
     patchSystemFull.setTenant(tenantName);
     patchSystemFull.setId(systemId);
 
@@ -249,12 +249,11 @@ public class SystemsServiceTest
     sys0.setHost(hostname2);
     sys0.setEffectiveUserId(effectiveUserId2);
     sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
-    sys0.setTransferMethods(prot2.getTransferMethods());
     sys0.setPort(prot2.getPort());
     sys0.setUseProxy(prot2.isUseProxy());
     sys0.setProxyHost(prot2.getProxyHost());
     sys0.setProxyPort(prot2.getProxyPort());
-    sys0.setDtnSystemId(dtnSystemId2);
+    sys0.setDtnSystemId(sysNamePrefix+testKeyStr+dtnSystemId2);
     sys0.setDtnMountPoint(dtnMountPoint2);
     sys0.setDtnMountSourcePath(dtnMountSourcePath2);
     sys0.setJobWorkingDir(jobWorkingDir2);
@@ -282,7 +281,7 @@ public class SystemsServiceTest
     // Create patchSystem where some attributes are changed
     //   * Some attributes are to be updated: description, authnMethod, dtnMountPoint, runtimeList, jobMaxJobsPerUser
     String patch2Text = "{\"testUpdate\": \"1-patch2\"}";
-    PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial();
+    PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial(testKeyStr);
     patchSystemPartial.setTenant(tenantName);
     patchSystemPartial.setId(systemId);
 
@@ -380,13 +379,6 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
     Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
     Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
-    List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
-    Assert.assertNotNull(tMethodsList);
-    Assert.assertNotNull(sys0.getTransferMethods());
-    for (TransferMethod txfrMethod : sys0.getTransferMethods())
-    {
-      Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
-    }
   }
 
   @Test
@@ -567,7 +559,6 @@ public class SystemsServiceTest
   // - If type is OBJECT_STORE then bucketName must be set, isExec and isDtn must be false.
   // - If systemType is LINUX then rootDir is required.
   // - effectiveUserId is restricted.
-  // - If transfer mechanism S3 is supported then bucketName must be set.
   // - If effectiveUserId is dynamic then providing credentials is disallowed
   // - If credential is provided and contains ssh keys then validate them
   @Test
@@ -621,19 +612,6 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     sys0.setRootDir(rootDir1);
-
-    // If transfer mechanism S3 is supported then bucketName must be set.
-    pass = false;
-    String tmpBucketName = sys0.getBucketName();
-    sys0.setBucketName(null);
-    try { svc.createSystem(authenticatedOwner1, sys0, scrubbedJson); }
-    catch (Exception e)
-    {
-      Assert.assertTrue(e.getMessage().contains("SYSLIB_S3_NOBUCKET_INPUT"));
-      pass = true;
-    }
-    Assert.assertTrue(pass);
-    sys0.setBucketName(tmpBucketName);
   }
 
   // Test creating, reading and deleting user permissions for a system
@@ -823,8 +801,7 @@ public class SystemsServiceTest
     // NOTE: By default seed data has owner as owner1 == "owner1"
     TSystem sys0 = systems[12];
     PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
-            prot2.getAuthnMethod(), prot2.getTransferMethods(),
-            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            prot2.getAuthnMethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, runtimeList1, jobWorkingDir1, jobEnvVariables1, jobMaxJobs1,
             jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, logicalQueueList1, batchDefaultLogicalQueue1,
             capList2, tags2, notes2);
@@ -1127,15 +1104,6 @@ public class SystemsServiceTest
     Assert.assertEquals(tmpSys.getDefaultAuthnMethod().name(), sys0.getDefaultAuthnMethod().name());
     Assert.assertEquals(tmpSys.getBucketName(), sys0.getBucketName());
     Assert.assertEquals(tmpSys.getRootDir(), sys0.getRootDir());
-
-    // Verify transfer methods
-    List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
-    Assert.assertNotNull(tMethodsList);
-    Assert.assertNotNull(sys0.getTransferMethods(), "Orig TxfrMethods should not be null");
-    for (TransferMethod txfrMethod : sys0.getTransferMethods())
-    {
-      Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
-    }
 
     Assert.assertEquals(tmpSys.getPort(), sys0.getPort());
     Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());

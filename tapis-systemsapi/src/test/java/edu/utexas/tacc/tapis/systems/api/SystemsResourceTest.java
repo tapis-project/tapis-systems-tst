@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
-import edu.utexas.tacc.tapis.systems.model.TSystem.TransferMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 
 import javax.ws.rs.NotAuthorizedException;
@@ -77,8 +76,7 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //  // Test data
 //  private static final String svcName = "systems";
 //  private static final String siteId = "tacc";
-//  // TODO: Currently admin user for a tenant is hard coded to be 'testuser9'
-//  private static final String adminUser = "testuser9";
+//  private static final String adminUser = "testadmin";
 //  private static final String adminTenantName = "admin";
 //  private static final String filesSvcName = "files";
 //  private static final String testUser0 = "testuser0";
@@ -240,7 +238,7 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    String createText = "{\"testUpdate\": \"0-create\"}";
 //    String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
 //    PatchSystem patchSystem = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
-//            prot2.getAuthnmethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
+//            prot2.getAuthnmethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
 //            prot2.getProxyPort(), cap2List, tags2, notes2);
 //    patchSystem.setName(sys0.getName());
 //    patchSystem.setTenant(tenantName);
@@ -250,12 +248,12 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    svc.updateSystem(authenticatedOwnerUsr, patchSystem, patch1Text);
 //    TSystem tmpSys = svc.getSystem(authenticatedOwnerUsr, sys0.getName(), false, null, false);
 ////  TSystem sysE = new TSystem(-1, tenantName, "SsysE", "description E", SystemType.LINUX, ownerUser, "hostE", true,
-////          "effUserE", prot1.getAuthnmethod(), "bucketE", "/rootE", prot1.getTransferMethods(),
+////          "effUserE", prot1.getAuthnmethod(), "bucketE", "/rootE",
 ////          prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),false,
 ////          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 ////          tags1, notes1, false, null, null);
 ////  TSystem sysE2 = new TSystem(-1, tenantName, "SsysE", "description PATCHED", SystemType.LINUX, ownerUser, "hostPATCHED", false,
-////          "effUserPATCHED", prot2.getAuthnmethod(), "bucketE", "/rootE", prot2.getTransferMethods(),
+////          "effUserPATCHED", prot2.getAuthnmethod(), "bucketE", "/rootE",
 ////          prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),false,
 ////          "jobWorkDirE", "jobLocalArchDirE", "jobRemoteArchSystemE","jobRemoteArchDirE",
 ////          tags2, notes2, false, null, null);
@@ -266,7 +264,6 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    sys0.setEnabled(false);
 //    sys0.setEffectiveUserId("effUserPATCHED");
 //    sys0.setDefaultAuthnmethod(prot2.getAuthnmethod());
-//    sys0.setTransferMethods(prot2.getTransferMethods());
 //    sys0.setPort(prot2.getPort());
 //    sys0.setUseProxy(prot2.isUseProxy());
 //    sys0.setProxyHost(prot2.getProxyHost());
@@ -336,7 +333,7 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    System.out.println("Found item: " + sys0.getName());
 //
 //// sys8 = {tenantName, "Ssys8", "description 8", SystemType.LINUX.name(), "${apiUserId}", "host8",
-////         "${owner}", prot1AccessMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}", prot1TxfrMethods,
+////         "${owner}", prot1AccessMethName, "fakePassword8", "bucket8-${tenant}-${apiUserId}", "/root8/${tenant}",
 ////         "jobWorkDir8/${owner}/${tenant}/${apiUserId}", "jobLocalArchDir8/${apiUserId}", "jobRemoteArchSystem8",
 ////         "jobRemoteArchDir8${owner}${tenant}${apiUserId}", tags, notes, "{}"};
 //    String effectiveUserId = ownerUser;
@@ -358,13 +355,6 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
 //    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
 //    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
-//    List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
-//    Assert.assertNotNull(tMethodsList);
-//    Assert.assertNotNull(sys0.getTransferMethods());
-//    for (TransferMethod txfrMethod : sys0.getTransferMethods())
-//    {
-//      Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
-//    }
 //  }
 //
 //  @Test
@@ -627,7 +617,7 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //  {
 //    TSystem sys0 = systems[12];//17
 //    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", false, "effUserPATCHED",
-//            prot2.getAuthnmethod(), prot2.getTransferMethods(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
+//            prot2.getAuthnmethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(),
 //            prot2.getProxyPort(), cap2List, tags2, notes2);
 //    patchSys.setName(sys0.getName());
 //    patchSys.setTenant(tenantName);
@@ -912,14 +902,6 @@ public class SystemsResourceTest extends JerseyTestNg.ContainerPerClassTest
 //    Assert.assertEquals(tmpSys.isUseProxy(), sys0.isUseProxy());
 //    Assert.assertEquals(tmpSys.getProxyHost(), sys0.getProxyHost());
 //    Assert.assertEquals(tmpSys.getProxyPort(), sys0.getProxyPort());
-//    // Verify transfer methods
-//    List<TransferMethod> tMethodsList = tmpSys.getTransferMethods();
-//    Assert.assertNotNull(tMethodsList);
-//    Assert.assertNotNull(sys0.getTransferMethods(), "Orig TxfrMethods should not be null");
-//    for (TransferMethod txfrMethod : sys0.getTransferMethods())
-//    {
-//      Assert.assertTrue(tMethodsList.contains(txfrMethod), "List of transfer methods did not contain: " + txfrMethod.name());
-//    }
 //    // Verify tags
 //    String[] origTags = sys0.getTags();
 //    String[] tmpTags = tmpSys.getTags();
