@@ -202,7 +202,44 @@ public final class IntegrationUtils
   public static final String startAferEmpty = "";
 
   /**
+   * Create first DTN System
+   * Have a separate method for each because each test suite needs one with a unique name to avoid
+   *   concurrency issues when tests are run in parallel through maven.
+   */
+  public static TSystem makeDtnSystem1(String key)
+  {
+    String dtnSystemName1 = sysNamePrefix+key+dtnSystemId1;
+
+    // Create DTN systems for other systems to reference. Otherwise some system definitions are not valid.
+    return new TSystem(-1, tenantName, dtnSystemName1 , "DTN System1 for tests", TSystem.SystemType.LINUX, owner1,
+            dtnSystemValidHostname, isEnabledTrue,"effUserDtn1", prot1.getAuthnMethod(), "bucketDtn1", "/root/dtn1",
+            prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
+            dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
+            canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
+            batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull , isDeletedFalse, createdNull, updatedNull);
+  }
+
+  /**
+   * Create second DTN System
+   * Have a separate method for each because each test suite needs one with a unique name to avoid
+   *   concurrency issues when tests are run in parallel through maven.
+   */
+  public static TSystem makeDtnSystem2(String key)
+  {
+    String dtnSystemName2 = sysNamePrefix+key+dtnSystemId2;
+
+    // Create DTN systems for other systems to reference. Otherwise some system definitions are not valid.
+    return new TSystem(-1, tenantName, dtnSystemName2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
+            dtnSystemValidHostname, isEnabledTrue,"effUserDtn2", prot2.getAuthnMethod(), "bucketDtn2", "/root/dtn2",
+            prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+            dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
+            canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchFalse,
+            batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull , isDeletedFalse, createdNull, updatedNull);
+  }
+
+  /**
    * Create an array of TSystem objects in memory
+   * NOTE: DTN systems must be created first.
    * Names will be of format TestSys_K_NNN where K is the key and NNN runs from 000 to 999
    * We need a key because maven runs the tests in parallel so each set of systems created by an integration
    *   test will need its own namespace.
@@ -212,14 +249,17 @@ public final class IntegrationUtils
   public static TSystem[] makeSystems(int n, String key)
   {
     TSystem[] systems = new TSystem[n];
+    String dtnSystemName1 = sysNamePrefix+key+dtnSystemId1;
+    String dtnSystemName2 = sysNamePrefix+key+dtnSystemId2;
+
     // Create DTN systems for other systems to reference. Otherwise some system definitions are not valid.
-    dtnSystem1 = new TSystem(-1, tenantName, sysNamePrefix+key+dtnSystemId1, "DTN System1 for tests", TSystem.SystemType.LINUX, owner1,
+    dtnSystem1 = new TSystem(-1, tenantName, dtnSystemName1 , "DTN System1 for tests", TSystem.SystemType.LINUX, owner1,
             dtnSystemValidHostname, isEnabledTrue,"effUserDtn1", prot1.getAuthnMethod(), "bucketDtn1", "/root/dtn1",
             prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
             batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull , isDeletedFalse, createdNull, updatedNull);
-    dtnSystem2 = new TSystem(-1, tenantName, sysNamePrefix+key+dtnSystemId2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
+    dtnSystem2 = new TSystem(-1, tenantName, dtnSystemName2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
             dtnSystemValidHostname, isEnabledTrue,"effUserDtn2", prot2.getAuthnMethod(), "bucketDtn2", "/root/dtn2",
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
@@ -236,7 +276,7 @@ public final class IntegrationUtils
       systems[i] = new TSystem(-1, tenantName, name, description1+suffix, TSystem.SystemType.LINUX, owner1,
               hostName, isEnabledTrue,effectiveUserId1+suffix, prot1.getAuthnMethod(), "bucket"+suffix, "/root"+suffix,
               prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
-              sysNamePrefix+key+dtnSystemId1, dtnMountPoint1, dtnMountSourcePath1, isDtnFalse,
+              dtnSystem1.getId(), dtnMountPoint1, dtnMountSourcePath1, isDtnFalse,
               canExecTrue, "jobWorkDir"+suffix, jobEnvVariables1, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue,
               batchScheduler1, queueA1.getName(), tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
       systems[i].setJobRuntimes(runtimeList1);

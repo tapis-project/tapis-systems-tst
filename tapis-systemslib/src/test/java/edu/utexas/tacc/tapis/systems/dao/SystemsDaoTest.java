@@ -35,7 +35,10 @@ public class SystemsDaoTest
 
   // Create test system definitions in memory
   int numSystems = 12;
-  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, "Dao");
+  String testKey = "Dao";
+  TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
+  TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
+  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey);
 
   @BeforeSuite
   public void setup() throws Exception

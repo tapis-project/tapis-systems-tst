@@ -72,7 +72,11 @@ public class SearchDaoTest
   private static final String hostName1 = "host" + testKey + "001.test.org";
   private static final String hostName7 = "host" + testKey + "007.test.org";
 
+  // Number of systems not including DTN systems
   int numSystems = 20;
+
+  TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
+  TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey);
 
   private LocalDateTime createBegin;

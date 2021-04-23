@@ -67,6 +67,8 @@ public class SearchASTDaoTest
   private static final String farFuture15 = "2200";
 
   int numSystems = 20;
+  TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
+  TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey);
 
   LocalDateTime createBegin;

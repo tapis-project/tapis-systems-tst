@@ -59,8 +59,10 @@ public class SystemsServiceTest
 
   // Create test system definitions in memory
   int numSystems = 25;
-  String testKeyStr = "Svc";
-  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKeyStr);
+  String testKey = "Svc";
+  TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
+  TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
+  TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey);
 
   @BeforeSuite
   public void setUp() throws Exception
@@ -229,7 +231,7 @@ public class SystemsServiceTest
 
     // Create patchSystem where all updatable attributes are changed
     String patch1Text = "{\"testUpdate\": \"1-patch1\"}";
-    PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull(testKeyStr);
+    PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull(testKey);
     patchSystemFull.setTenant(tenantName);
     patchSystemFull.setId(systemId);
 
@@ -253,7 +255,7 @@ public class SystemsServiceTest
     sys0.setUseProxy(prot2.isUseProxy());
     sys0.setProxyHost(prot2.getProxyHost());
     sys0.setProxyPort(prot2.getProxyPort());
-    sys0.setDtnSystemId(sysNamePrefix+testKeyStr+dtnSystemId2);
+    sys0.setDtnSystemId(sysNamePrefix+ testKey +dtnSystemId2);
     sys0.setDtnMountPoint(dtnMountPoint2);
     sys0.setDtnMountSourcePath(dtnMountSourcePath2);
     sys0.setJobWorkingDir(jobWorkingDir2);
@@ -281,7 +283,7 @@ public class SystemsServiceTest
     // Create patchSystem where some attributes are changed
     //   * Some attributes are to be updated: description, authnMethod, dtnMountPoint, runtimeList, jobMaxJobsPerUser
     String patch2Text = "{\"testUpdate\": \"1-patch2\"}";
-    PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial(testKeyStr);
+    PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial(testKey);
     patchSystemPartial.setTenant(tenantName);
     patchSystemPartial.setId(systemId);
 

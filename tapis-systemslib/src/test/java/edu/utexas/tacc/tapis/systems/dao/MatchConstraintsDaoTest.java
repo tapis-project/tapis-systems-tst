@@ -59,6 +59,8 @@ public class MatchConstraintsDaoTest
 //  private static final String hostName7 = "host" + testKey + "_007";
 
   int numSystems = 4; // Total number of systems to create for testing
+  TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
+  TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
   TSystem[] systems = IntegrationUtils.makeSystems(numSystems, testKey); // System definitions to use for testing.
   Set<String> allowedIDs = new HashSet<>(); // List of IDs for all systems created for testing.
 
