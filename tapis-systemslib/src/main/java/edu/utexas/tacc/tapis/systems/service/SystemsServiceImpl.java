@@ -1878,30 +1878,28 @@ public class SystemsServiceImpl implements SystemsService
     var sMetaParms = new SKSecretMetaParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
     sMetaParms.setTenant(systemTenantName).setSysId(systemId).setSysUser(userName).setUser(apiUserId);
     SkSecretVersionMetadata skMetaSecret;
-    try
-    {
-      skMetaSecret = skClient.readSecretMeta(sMetaParms);
-    }
-    catch (Exception e)
-    {
-      _log.warn(e.getMessage());
-      skMetaSecret = null;
-    }
+    try { skMetaSecret = skClient.readSecretMeta(sMetaParms); }
+    catch (Exception e) { _log.trace(e.getMessage()); skMetaSecret = null; }
     if (skMetaSecret == null) return changeCount;
 
-    // Construct basic SK secret parameters
+    // Construct basic SK secret parameters and attempt to destroy each type of secret.
+    // If destroy attempt throws an exception then log a message and continue.
     var sParms = new SKSecretDeleteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
     sParms.setTenant(systemTenantName).setSysId(systemId).setSysUser(userName);
     sParms.setUser(apiUserId).setVersions(Collections.emptyList());
     sParms.setKeyType(KeyType.password);
-    List<Integer> intList = skClient.destroySecret(tenantName, apiUserId, sParms);
+    List<Integer> intList = null;
+    try { intList = skClient.destroySecret(tenantName, apiUserId, sParms); }
+    catch (Exception e) { _log.trace(e.getMessage()); }
     // Return value is a list of destroyed versions. If any destroyed increment changeCount by 1
     if (intList != null && !intList.isEmpty()) changeCount++;
     sParms.setKeyType(KeyType.sshkey);
-    intList = skClient.destroySecret(tenantName, apiUserId, sParms);
+    try { intList = skClient.destroySecret(tenantName, apiUserId, sParms); }
+    catch (Exception e) { _log.trace(e.getMessage()); }
     if (intList != null && !intList.isEmpty()) changeCount++;
     sParms.setKeyType(KeyType.accesskey);
-    intList = skClient.destroySecret(tenantName, apiUserId, sParms);
+    try { intList = skClient.destroySecret(tenantName, apiUserId, sParms); }
+    catch (Exception e) { _log.trace(e.getMessage()); }
     if (intList != null && !intList.isEmpty()) changeCount++;
     // If anything destroyed we consider it the removal of a single credential
     if (changeCount > 0) changeCount = 1;
