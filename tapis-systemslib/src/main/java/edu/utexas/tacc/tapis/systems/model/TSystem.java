@@ -122,7 +122,7 @@ public final class TSystem
   // ************************************************************************
   // *********************** Enums ******************************************
   // ************************************************************************
-  public enum SystemType {LINUX, OBJECT_STORE}
+  public enum SystemType {LINUX, S3}
   public enum SystemOperation {create, read, modify, execute, softDelete, hardDelete, changeOwner, enable, disable,
                                getPerms, grantPerms, revokePerms, setCred, removeCred, getCred}
   public enum Permission {READ, MODIFY, EXECUTE}
@@ -347,7 +347,7 @@ public final class TSystem
     if (canExec) checkAttrCanExec(errMessages);
     if (isDtn) checkAttrIsDtn(errMessages);
     if (jobIsBatch) checkAttrJobIsBatch(errMessages);
-    if (systemType == SystemType.OBJECT_STORE) checkAttrObjectStore(errMessages);
+    if (systemType == SystemType.S3) checkAttrObjectStore(errMessages);
     checkAttrMisc(errMessages);
     return errMessages;
   }
