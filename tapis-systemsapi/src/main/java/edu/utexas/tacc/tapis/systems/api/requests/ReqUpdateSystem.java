@@ -9,11 +9,10 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
 
 import java.util.List;
 
-import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_JOBMAXJOBS;
-import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_JOBMAXJOBSPERUSER;
-
 /*
- * Class representing all system attributes that can be set in an incoming patch request json body
+ * Class representing all system attributes that can be set in an incoming patch request json body.
+ * Use classes for attribute types instead of primitives so that null can be use to indicate
+ *   that the value has not been included in the update request.
  */
 public final class ReqUpdateSystem
 {
@@ -31,9 +30,9 @@ public final class ReqUpdateSystem
   public List<JobRuntime> jobRuntimes;
   public String jobWorkingDir;
   public List<KeyValuePair> jobEnvVariables;
-  public int jobMaxJobs = DEFAULT_JOBMAXJOBS;
-  public int jobMaxJobsPerUser = DEFAULT_JOBMAXJOBSPERUSER;
-  public boolean jobIsBatch;
+  public Integer jobMaxJobs;
+  public Integer jobMaxJobsPerUser;
+  public Boolean jobIsBatch;
   public SchedulerType batchScheduler;
   public List<LogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
