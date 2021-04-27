@@ -1024,7 +1024,7 @@ public class SystemResource
    */
   private static Object extractNotes(String rawJson)
   {
-    Object notes = TSystem.DEFAULT_NOTES;
+    Object notes = null;
     // Check inputs
     if (StringUtils.isBlank(rawJson)) return notes;
     // Turn the request string into a json object and extract the notes object

@@ -188,7 +188,6 @@ public final class TSystem
     host = host1;
     defaultAuthnMethod = defaultAuthnMethod1;
     canExec = canExec1;
-    uuid = UUID.randomUUID();
   }
 
   /**
@@ -236,7 +235,7 @@ public final class TSystem
     batchDefaultLogicalQueue = batchDefaultLogicalQueue1;
     tags = (tags1 == null) ? EMPTY_STR_ARRAY : tags1.clone();
     notes = notes1;
-    uuid = (uuid == null) ? UUID.randomUUID() : uuid1;
+    uuid = uuid1;
     deleted = deleted1;
     created = created1;
     updated = updated1;

@@ -112,6 +112,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       boolean doesExist = checkForSystem(db, system.getTenant(), system.getId(), true);
       if (doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", authenticatedUser, system.getId()));
 
+      // Generate uuid for the new resource
+      system.setUuid(UUID.randomUUID());
+
       Record record = db.insertInto(SYSTEMS)
               .set(SYSTEMS.TENANT, system.getTenant())
               .set(SYSTEMS.ID, system.getId())
