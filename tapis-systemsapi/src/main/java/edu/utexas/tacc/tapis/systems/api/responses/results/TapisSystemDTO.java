@@ -51,6 +51,8 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.TAGS_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.TENANT_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.USE_PROXY_FIELD;
 import static edu.utexas.tacc.tapis.systems.model.TSystem.UUID_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.CREATED_FIELD;
+import static edu.utexas.tacc.tapis.systems.model.TSystem.UPDATED_FIELD;
 
 /*
     Class representing a TSystem result to be returned
@@ -254,6 +256,8 @@ public final class TapisSystemDTO
         jsonStr = gson.toJson(uuid);
         jsonObject.add(UUID_FIELD, gson.fromJson(jsonStr, JsonObject.class));
       }
+      case CREATED_FIELD -> jsonObject.addProperty(CREATED_FIELD, created.toString());
+      case UPDATED_FIELD -> jsonObject.addProperty(UPDATED_FIELD, updated.toString());
     }
   }
 }

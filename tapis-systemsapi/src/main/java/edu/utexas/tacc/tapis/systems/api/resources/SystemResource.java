@@ -492,7 +492,6 @@ public class SystemResource
     }
 
     List<String> selectList = threadContext.getSearchParameters().getSelectList();
-    if (selectList != null && !selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
 
     TSystem tSystem;
     try
@@ -522,7 +521,7 @@ public class SystemResource
   /**
    * getSystems
    * Retrieve all systems accessible by requester and matching any search conditions provided.
-   * NOTE: The query parameters pretty, search, limit, orderBy, skip, startAfter are all handled in the filter
+   * NOTE: The query parameters search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
    * @return - list of systems accessible by requester and matching search conditions.
@@ -603,10 +602,9 @@ public class SystemResource
       return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First value = " + searchList.get(0));
-
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
+    srchParms.setSearchList(searchList);
 
     // ------------------------- Retrieve records -----------------------------
     Response successResponse;
@@ -688,7 +686,6 @@ public class SystemResource
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
-    _log.debug(String.format("Using search string: %s", sqlSearchStr));
 
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
@@ -773,7 +770,6 @@ public class SystemResource
 //      _log.error(msg, e);
 //      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
 //    }
-//    _log.debug(String.format("Using match string: %s", matchStr));
 //
 //    // ------------------------- Retrieve records -----------------------------
 //    List<TSystem> systems;
@@ -1103,9 +1099,6 @@ public class SystemResource
     List<String> searchList = srchParms.getSearchList();
     List<String> selectList = srchParms.getSelectList();
     if (selectList == null || selectList.isEmpty()) selectList = SUMMARY_ATTRS;
-
-    if (searchList != null && !searchList.isEmpty()) _log.debug("Using searchList. First condition in list = " + searchList.get(0));
-    if (!selectList.isEmpty()) _log.debug("Using selectList. First item in list = " + selectList.get(0));
 
     // If limit was not specified then use the default
     int limit = (srchParms.getLimit() == null) ? SearchParameters.DEFAULT_LIMIT : srchParms.getLimit();

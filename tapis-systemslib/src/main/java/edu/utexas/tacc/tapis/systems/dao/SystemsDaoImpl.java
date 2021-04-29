@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -60,6 +61,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
   private static final String EMPTY_JSON = "{}";
   private static final int INVALID_SEQ_ID = -1;
+
+  // Create a static Set of column names for table SYSTEMS
+  private static final Set<String> SYSTEMS_FIELDS = new HashSet<>();
+  static
+  {
+    for (Field<?> field : SYSTEMS.fields()) { SYSTEMS_FIELDS.add(field.getName()); }
+  }
 
 
   /* ********************************************************************** */
@@ -660,6 +668,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       majorSortDirection = orderByList.get(0).getOrderByDir().name();
     }
 
+    // Convert orderBy column to snake case for checking against column names
+    String majorOrderBySC = SearchUtils.camelCaseToSnakeCase(majorOrderBy);
+
     // NOTE: Sort matters for the count even though we will not actually need to sort.
     boolean sortAsc = true;
     if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
@@ -677,6 +688,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Determine and check orderBy column
     Field<?> colOrderBy = SYSTEMS.field(DSL.name(SearchUtils.camelCaseToSnakeCase(majorOrderBy)));
     if (!StringUtils.isBlank(majorOrderBy) && colOrderBy == null)
+    {
+      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
+      throw new TapisException(msg);
+    }
+    // If orderBy column not found then it is an error
+    if (!StringUtils.isBlank(majorOrderBy) && !SYSTEMS_FIELDS.contains(majorOrderBySC))
     {
       String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
@@ -785,9 +802,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       throw new TapisException(msg);
     }
 
-    // If no IDs in list then we are done.
-    if (setOfIDs != null && setOfIDs.isEmpty()) return retList;
-
 // DEBUG Iterate over all columns and show the type
 //      Field<?>[] cols = SYSTEMS.fields();
 //      for (Field<?> col : cols) {
@@ -805,6 +819,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN_SORT", SYSTEMS.getName(), DSL.name(majorOrderBy));
       throw new TapisException(msg);
     }
+
+    // If no IDs in list then we are done.
+    if (setOfIDs != null && setOfIDs.isEmpty()) return retList;
 
     // Begin where condition for the query
     Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));

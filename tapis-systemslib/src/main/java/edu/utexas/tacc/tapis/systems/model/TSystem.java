@@ -83,6 +83,8 @@ public final class TSystem
   public static final String TAGS_FIELD = "tags";
   public static final String NOTES_FIELD = "notes";
   public static final String UUID_FIELD = "uuid";
+  public static final String CREATED_FIELD = "created";
+  public static final String UPDATED_FIELD = "updated";
 
   // Default values
   public static final String[] EMPTY_STR_ARRAY = new String[0];

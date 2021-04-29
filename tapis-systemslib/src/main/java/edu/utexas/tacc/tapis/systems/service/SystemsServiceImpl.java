@@ -686,8 +686,7 @@ public class SystemsServiceImpl implements SystemsService
     if (allowedSysIDs != null && allowedSysIDs.isEmpty()) return 0;
 
     // Count all allowed systems matching the search conditions
-    return dao.getSystemsCount(authenticatedUser.getTenantId(), verifiedSearchList, null, allowedSysIDs,
-                                orderByList, startAfter);
+    return dao.getSystemsCount(systemTenantName, verifiedSearchList, null, allowedSysIDs, orderByList, startAfter);
   }
 
   /**
@@ -768,8 +767,7 @@ public class SystemsServiceImpl implements SystemsService
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip,
-                                                             startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip, startAfter);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -802,7 +800,7 @@ public class SystemsServiceImpl implements SystemsService
     Set<String> allowedSysIDs = getAllowedSysIDs(authenticatedUser, systemTenantName);
 
     // Get all allowed systems matching the search conditions
-    List<TSystem> systems = dao.getSystems(authenticatedUser.getTenantId(), null, searchAST, allowedSysIDs,
+    List<TSystem> systems = dao.getSystems(systemTenantName, null, searchAST, allowedSysIDs,
                                                           limit, orderByList, skip, startAfter);
 
     for (TSystem system : systems)
@@ -847,8 +845,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Get all allowed systems matching the constraint conditions
-    List<TSystem> systems = dao.getSystemsSatisfyingConstraints(authenticatedUser.getTenantId(), matchAST,
-                                                                 allowedSysIDs);
+    List<TSystem> systems = dao.getSystemsSatisfyingConstraints(systemTenantName, matchAST, allowedSysIDs);
 
     for (TSystem system : systems)
     {
@@ -884,7 +881,7 @@ public class SystemsServiceImpl implements SystemsService
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
-    return dao.getSystemOwner(authenticatedUser.getTenantId(), systemId);
+    return dao.getSystemOwner(systemTenantName, systemId);
   }
 
   // -----------------------------------------------------------------------
@@ -1726,9 +1723,11 @@ public class SystemsServiceImpl implements SystemsService
     {
       if (StringUtils.isBlank(userPerm)) continue;
       // Split based on :, permSpec has the format system:<tenant>:<perms>:<system_name>
+      // NOTE: This assumes value in last field is always an id and never a wildcard.
+      // TODO compile the regex
       String[] permFields = userPerm.split(":");
       if (permFields.length < 4) continue;
-      if (permFields[0].equalsIgnoreCase(PERM_SPEC_PREFIX) &&
+      if (permFields[0].equals(PERM_SPEC_PREFIX) &&
            (permFields[2].contains(Permission.READ.name()) ||
             permFields[2].contains(Permission.MODIFY.name()) ||
             permFields[2].contains(TSystem.PERMISSION_WILDCARD)))
