@@ -8,12 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
-import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
-import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -22,13 +20,20 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.utexas.tacc.tapis.search.parser.ASTBinaryExpression;
 import edu.utexas.tacc.tapis.search.parser.ASTLeaf;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.search.parser.ASTUnaryExpression;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
-import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
+import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
+import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
+import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy.OrderByDir;
+
+import static edu.utexas.tacc.tapis.shared.threadlocal.OrderBy.DEFAULT_ORDERBY_DIRECTION;
 
 import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
 import static edu.utexas.tacc.tapis.systems.gen.jooq.Tables.*;
@@ -43,10 +48,9 @@ import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
+import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
+import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.utils.LibUtils;
-import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * Class to handle persistence and queries for Tapis System objects.
@@ -69,6 +73,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     for (Field<?> field : SYSTEMS.fields()) { SYSTEMS_FIELDS.add(field.getName()); }
   }
 
+  // Compiled regexes for splitting around "\." and "\$"
+  private static final Pattern DOT_SPLIT = Pattern.compile("\\.");
+  private static final Pattern DOLLAR_SPLIT = Pattern.compile("\\$");
 
   /* ********************************************************************** */
   /*                             Public Methods                             */
@@ -661,11 +668,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
     String majorOrderBy = null;
-    String majorSortDirection = "ASC";
+    OrderByDir majorSortDirection = DEFAULT_ORDERBY_DIRECTION;
     if (orderByList != null && !orderByList.isEmpty())
     {
       majorOrderBy = orderByList.get(0).getOrderByAttr();
-      majorSortDirection = orderByList.get(0).getOrderByDir().name();
+      majorSortDirection = orderByList.get(0).getOrderByDir();
     }
 
     // Convert orderBy column to snake case for checking against column names
@@ -673,7 +680,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     // NOTE: Sort matters for the count even though we will not actually need to sort.
     boolean sortAsc = true;
-    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
+    if (majorSortDirection == OrderBy.OrderByDir.DESC) sortAsc = false;
 
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
@@ -779,11 +786,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
     String majorOrderBy = null;
-    String majorSortDirection = "ASC";
+    OrderByDir majorSortDirection = DEFAULT_ORDERBY_DIRECTION;
     if (orderByList != null && !orderByList.isEmpty())
     {
       majorOrderBy = orderByList.get(0).getOrderByAttr();
-      majorSortDirection = orderByList.get(0).getOrderByDir().name();
+      majorSortDirection = orderByList.get(0).getOrderByDir();
     }
 
     // The result list should always be non-null.
@@ -793,7 +800,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (skip < 0) skip = 0;
 
     boolean sortAsc = true;
-    if (OrderBy.OrderByDir.DESC.name().equalsIgnoreCase(majorSortDirection)) sortAsc = false;
+    if (majorSortDirection == OrderBy.OrderByDir.DESC) sortAsc = false;
 
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
@@ -1425,7 +1432,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
         throw new TapisException(msg);
       }
       // Build the string for the search condition, left.op.right
-      String condStr = lValue + "." + binaryNode.getOp() + "." + rValue;
+      String condStr = String.format("%s.%s.%s", lValue, binaryNode.getOp(), rValue);
       // Validate and create a condition from the string
       return addSearchCondStrToWhere(null, condStr, null);
     }
@@ -1454,7 +1461,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     // Parse search value into column name, operator and value
     // Format must be column_name.op.value
-    String[] parsedStrArray = searchStr.split("\\.", 3);
+    String[] parsedStrArray = DOT_SPLIT.split(searchStr, 3);
     // Validate column name
     String column = parsedStrArray[0];
     Field<?> col = SYSTEMS.field(DSL.name(column));
@@ -1694,7 +1701,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Validate and extract components from lValue
     // Parse lValue into category, and name
     // Format must be column_name.op.value
-    String[] parsedStrArray = lValue.split("\\$", 2);
+    String[] parsedStrArray = DOLLAR_SPLIT.split(lValue, 2);
     // Must have at least two items
     if (parsedStrArray.length < 2)
     {

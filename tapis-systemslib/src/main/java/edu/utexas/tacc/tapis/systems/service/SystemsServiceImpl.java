@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
@@ -93,6 +94,9 @@ public class SystemsServiceImpl implements SystemsService
 
   // NotAuthorizedException requires a Challenge, although it serves no purpose here.
   private static final String NO_CHALLENGE = "NoChallenge";
+
+  // Compiled regex for splitting around ":"
+  private static final Pattern COLON_SPLIT = Pattern.compile(":");
 
   // ************************************************************************
   // *********************** Enums ******************************************
@@ -1724,8 +1728,7 @@ public class SystemsServiceImpl implements SystemsService
       if (StringUtils.isBlank(userPerm)) continue;
       // Split based on :, permSpec has the format system:<tenant>:<perms>:<system_name>
       // NOTE: This assumes value in last field is always an id and never a wildcard.
-      // TODO compile the regex
-      String[] permFields = userPerm.split(":");
+      String[] permFields = COLON_SPLIT.split(userPerm);
       if (permFields.length < 4) continue;
       if (permFields[0].equals(PERM_SPEC_PREFIX) &&
            (permFields[2].contains(Permission.READ.name()) ||
