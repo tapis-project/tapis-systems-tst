@@ -1042,46 +1042,12 @@ public class SystemsServiceTest
     svc.grantUserPermissions(authenticatedOwner1, sys0.getId(), testUser2, testPermsMODIFY, scrubbedJson);
 
     // READ - allow owner, service, with READ only, with MODIFY only
-    boolean pass = true;
-    try
-    {
-      svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
-      svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, true);
-    }
-    catch (NotAuthorizedException e)
-    {
-      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
-      pass = false;
-    }
-    Assert.assertTrue(pass);
-    pass = true;
-    try { svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), false, null, false); }
-    catch (NotAuthorizedException e)
-    {
-      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
-      pass = false;
-    }
-    Assert.assertTrue(pass);
-    pass = true;
-    try
-    {
-      svc.getSystem(authenticatedTestUser3, sys0.getId(), false, null, false);
-      svc.getSystem(authenticatedTestUser3, sys0.getId(), false, null, true);
-    }
-    catch (NotAuthorizedException e)
-    {
-      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
-      pass = false;
-    }
-    Assert.assertTrue(pass);
-    pass = true;
-    try { svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false); }
-    catch (NotAuthorizedException e)
-    {
-      Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
-      pass = false;
-    }
-    Assert.assertTrue(pass);
+    svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, true);
+    svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), false, null, false);
+    svc.getSystem(authenticatedTestUser3, sys0.getId(), false, null, false);
+    svc.getSystem(authenticatedTestUser3, sys0.getId(), false, null, true);
+    svc.getSystem(authenticatedTestUser2, sys0.getId(), false, null, false);
   }
 
   // ************************************************************************
