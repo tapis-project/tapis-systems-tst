@@ -35,13 +35,19 @@ public interface SystemsService
   int disableSystem(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
 
+  int deleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
+
+  int undeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
+
   int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemId, String newOwnerName)
           throws TapisException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException, TapisClientException;
 
-  int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
-  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId)
+  boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId, boolean includeDeleted)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
   TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds, AuthnMethod authnMethod,

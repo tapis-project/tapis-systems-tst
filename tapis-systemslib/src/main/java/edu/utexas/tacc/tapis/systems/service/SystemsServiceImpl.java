@@ -306,11 +306,9 @@ public class SystemsServiceImpl implements SystemsService
       throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
     }
 
-    // System must already exist and not be soft deleted
+    // System must already exist and not be deleted
     if (!dao.checkForSystem(systemTenantName, systemId, false))
-    {
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
-    }
 
     // Retrieve the system being patched and create fully populated TSystem with changes merged in
     TSystem origTSystem = dao.getSystem(systemTenantName, systemId);
@@ -339,10 +337,10 @@ public class SystemsServiceImpl implements SystemsService
    * @return Number of items updated
    *
    * @throws TapisException - for Tapis related exceptions
-   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in
    * @throws NotAuthorizedException - unauthorized
-   * @throws NotFoundException - App not found
+   * @throws NotFoundException - Resource not found
    */
   @Override
   public int enableSystem(AuthenticatedUser authenticatedUser, String systemId)
@@ -358,16 +356,54 @@ public class SystemsServiceImpl implements SystemsService
    * @return Number of items updated
    *
    * @throws TapisException - for Tapis related exceptions
-   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in
    * @throws NotAuthorizedException - unauthorized
-   * @throws NotFoundException - App not found
+   * @throws NotFoundException - resource not found
    */
   @Override
   public int disableSystem(AuthenticatedUser authenticatedUser, String systemId)
           throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
   {
     return updateEnabled(authenticatedUser, systemId, SystemOperation.disable);
+  }
+
+  /**
+   * Update deleted to true for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - resource not found
+   */
+  @Override
+  public int deleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    return updateDeleted(authenticatedUser, systemId, SystemOperation.delete);
+  }
+
+  /**
+   * Update deleted to false for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - resource not found
+   */
+  @Override
+  public int undeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    return updateDeleted(authenticatedUser, systemId, SystemOperation.undelete);
   }
 
   /**
@@ -402,7 +438,7 @@ public class SystemsServiceImpl implements SystemsService
     if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId))
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
 
-    // System must already exist and not be soft deleted
+    // System must already exist and not be deleted
     if (!dao.checkForSystem(systemTenantName, systemId, false))
          throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
@@ -451,40 +487,6 @@ public class SystemsServiceImpl implements SystemsService
       throw e0;
     }
     return 1;
-  }
-
-  /**
-   * Soft delete a system record given the system name.
-   * Also remove artifacts from the Security Kernel
-   *
-   * @param authenticatedUser - principal user containing tenant and user info
-   * @param systemId - name of system
-   * @return Number of items deleted
-   * @throws TapisException - for Tapis related exceptions
-   * @throws NotAuthorizedException - unauthorized
-   */
-  @Override
-  public int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId)
-          throws TapisException, NotAuthorizedException, TapisClientException
-  {
-    SystemOperation op = SystemOperation.softDelete;
-    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
-    if (StringUtils.isBlank(systemId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
-    // For service request use oboTenant for tenant associated with the system
-    String systemTenantName = authenticatedUser.getTenantId();
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
-
-    // If system does not exist or has already been soft deleted then 0 changes
-    if (!dao.checkForSystem(systemTenantName, systemId, false)) return 0;
-
-    // ------------------------- Check service level authorization -------------------------
-    checkAuth(authenticatedUser, op, systemId, null, null, null);
-
-    // Remove SK artifacts
-    removeSKArtifacts(authenticatedUser, systemId, op);
-
-    // Delete the system
-    return dao.softDeleteSystem(authenticatedUser, systemId);
   }
 
   /**
@@ -551,12 +553,27 @@ public class SystemsServiceImpl implements SystemsService
    * checkForSystem
    * @param authenticatedUser - principal user containing tenant and user info
    * @param systemId - Name of the system
-   * @return true if system exists and has not been soft deleted, false otherwise
+   * @return true if system exists and has not been deleted, false otherwise
    * @throws TapisException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
    */
   @Override
   public boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId) throws TapisException, NotAuthorizedException, TapisClientException
+  {
+    return checkForSystem(authenticatedUser, systemId, false);
+  }
+
+  /**
+   * checkForSystem
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - Name of the system
+   * @return true if system exists and has not been deleted, false otherwise
+   * @throws TapisException - for Tapis related exceptions
+   * @throws NotAuthorizedException - unauthorized
+   */
+  @Override
+  public boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId, boolean includeDeleted)
+          throws TapisException, NotAuthorizedException, TapisClientException
   {
     SystemOperation op = SystemOperation.read;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -566,7 +583,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // We need owner to check auth and if system not there cannot find owner, so cannot do auth check if no system
-    if (dao.checkForSystem(systemTenantName, systemId, false)) {
+    if (dao.checkForSystem(systemTenantName, systemId, includeDeleted)) {
       // ------------------------- Check service level authorization -------------------------
       checkAuth(authenticatedUser, op, systemId, null, null, null);
       return true;
@@ -920,9 +937,9 @@ public class SystemsServiceImpl implements SystemsService
       systemTenantName = authenticatedUser.getOboTenantId();
     }
 
-    // If system does not exist or has been soft deleted then throw an exception
+    // If system does not exist or has been deleted then throw an exception
     if (!dao.checkForSystem(systemTenantName, systemId, false))
-      throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // Check to see if owner is trying to update permissions for themselves.
     // If so throw an exception because this would be confusing since owner always has full permissions.
@@ -1008,7 +1025,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     // We need owner to check auth and if system not there cannot find owner, so
-    // if system does not exist or has been soft deleted then return 0 changes
+    // if system does not exist or has been deleted then return 0 changes
     if (!dao.checkForSystem(systemTenantName, systemId, false)) return 0;
 
     // Check to see if owner is trying to update permissions for themselves.
@@ -1090,7 +1107,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType()))
          systemTenantName = authenticatedUser.getOboTenantId();
 
-    // If system does not exist or has been soft deleted then return null
+    // If system does not exist or has been deleted then return null
     if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
@@ -1128,9 +1145,9 @@ public class SystemsServiceImpl implements SystemsService
     // For service request use oboTenant for tenant associated with the system
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
-    // If system does not exist or has been soft deleted then throw an exception
+    // If system does not exist or has been deleted then throw an exception
     if (!dao.checkForSystem(systemTenantName, systemId, false))
-      throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
     checkAuth(authenticatedUser, op, systemId, null, userName, null);
@@ -1198,7 +1215,7 @@ public class SystemsServiceImpl implements SystemsService
     if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) systemTenantName = authenticatedUser.getOboTenantId();
 
     int changeCount = 0;
-    // If system does not exist or has been soft deleted then return 0 changes
+    // If system does not exist or has been deleted then return 0 changes
     if (!dao.checkForSystem(systemTenantName, systemId, false)) return changeCount;
 
     // ------------------------- Check service level authorization -------------------------
@@ -1263,7 +1280,7 @@ public class SystemsServiceImpl implements SystemsService
       systemUserName = authenticatedUser.getOboUser();
     }
 
-    // If system does not exist or has been soft deleted then return null
+    // If system does not exist or has been deleted then return null
     if (!dao.checkForSystem(systemTenantName, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
@@ -1273,7 +1290,7 @@ public class SystemsServiceImpl implements SystemsService
     if (authnMethod == null)
     {
       AuthnMethod defaultAuthnMethod= dao.getSystemDefaultAuthnMethod(systemTenantName, systemId);
-      if (defaultAuthnMethod == null)  throw new TapisException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+      if (defaultAuthnMethod == null)  throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
       authnMethod = defaultAuthnMethod;
     }
 
@@ -1326,10 +1343,10 @@ public class SystemsServiceImpl implements SystemsService
    * @return Number of items updated
    *
    * @throws TapisException - for Tapis related exceptions
-   * @throws IllegalStateException - Resulting App would be in an invalid state
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in
    * @throws NotAuthorizedException - unauthorized
-   * @throws NotFoundException - App not found
+   * @throws NotFoundException - resource not found
    */
   private int updateEnabled(AuthenticatedUser authenticatedUser, String systemId, SystemOperation sysOp)
           throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
@@ -1340,16 +1357,16 @@ public class SystemsServiceImpl implements SystemsService
     // Extract various names for convenience
     String tenantName = authenticatedUser.getTenantId();
     String apiUserId = authenticatedUser.getName();
-    String appTenantName = tenantName;
-    // For service request use oboTenant for tenant associated with the app
-    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) appTenantName = authenticatedUser.getOboTenantId();
+    String sysTenantName = tenantName;
+    // For service request use oboTenant for tenant associated with the resource
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) sysTenantName = authenticatedUser.getOboTenantId();
 
     // ---------------------------- Check inputs ------------------------------------
     if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId))
-      throw new IllegalArgumentException(LibUtils.getMsgAuth("APPLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
+      throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
 
-    // App must already exist and not be soft deleted
-    if (!dao.checkForSystem(appTenantName, systemId, false))
+    // resource must already exist and not be deleted
+    if (!dao.checkForSystem(sysTenantName, systemId, false))
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
@@ -1360,6 +1377,51 @@ public class SystemsServiceImpl implements SystemsService
       dao.updateEnabled(authenticatedUser, systemId, true);
     else
       dao.updateEnabled(authenticatedUser, systemId, false);
+    return 1;
+  }
+
+  /**
+   * Update deleted attribute for a system
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param systemId - name of system
+   * @param sysOp - operation, enable or disable
+   * @return Number of items updated
+   *
+   * @throws TapisException - for Tapis related exceptions
+   * @throws IllegalStateException - Resulting resource would be in an invalid state
+   * @throws IllegalArgumentException - invalid parameter passed in
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - resource not found
+   */
+  private int updateDeleted(AuthenticatedUser authenticatedUser, String systemId, SystemOperation sysOp)
+          throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
+  {
+    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
+    if (StringUtils.isBlank(systemId))
+      throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
+    // Extract various names for convenience
+    String tenantName = authenticatedUser.getTenantId();
+    String apiUserId = authenticatedUser.getName();
+    String sysTenantName = tenantName;
+    // For service request use oboTenant for tenant associated with the resource
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) sysTenantName = authenticatedUser.getOboTenantId();
+
+    // ---------------------------- Check inputs ------------------------------------
+    if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(apiUserId))
+      throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_CREATE_ERROR_ARG", authenticatedUser, systemId));
+
+    // System must exist
+    if (!dao.checkForSystem(sysTenantName, systemId, true))
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId));
+
+    // ------------------------- Check service level authorization -------------------------
+    checkAuth(authenticatedUser, sysOp, systemId, null, null, null);
+
+    // ----------------- Make update --------------------
+    if (sysOp == SystemOperation.delete)
+      dao.updateDeleted(authenticatedUser, systemId, true);
+    else
+      dao.updateDeleted(authenticatedUser, systemId, false);
     return 1;
   }
 
@@ -1668,7 +1730,8 @@ public class SystemsServiceImpl implements SystemsService
       case create:
       case enable:
       case disable:
-      case softDelete:
+      case delete:
+      case undelete:
       case changeOwner:
       case grantPerms:
         if (owner.equals(userName) || hasAdminRole(authenticatedUser, tenantName, userName))

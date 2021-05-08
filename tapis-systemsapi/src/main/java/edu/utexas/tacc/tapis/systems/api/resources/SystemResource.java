@@ -122,6 +122,7 @@ public class SystemResource
   private static final String OP_DISABLE = "disableSystem";
   private static final String OP_CHANGEOWNER = "changeSystemOwner";
   private static final String OP_DELETE = "deleteSystem";
+  private static final String OP_UNDELETE = "undeleteSystem";
 
   // Always return a nicely formatted response
   private static final boolean PRETTY = true;
@@ -410,10 +411,10 @@ public class SystemResource
   @Path("{systemId}/enable")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response enableApp(@PathParam("systemId") String systemId,
-                            @Context SecurityContext securityContext)
+  public Response enableSystem(@PathParam("systemId") String systemId,
+                               @Context SecurityContext securityContext)
   {
-    return postSystemSingleUpdate(OP_ENABLE, systemId, null, false, securityContext);
+    return postSystemSingleUpdate(OP_ENABLE, systemId, null, securityContext);
   }
 
   /**
@@ -426,10 +427,42 @@ public class SystemResource
   @Path("{systemId}/disable")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response disableApp(@PathParam("systemId") String systemId,
-                             @Context SecurityContext securityContext)
+  public Response disableSystem(@PathParam("systemId") String systemId,
+                                @Context SecurityContext securityContext)
   {
-    return postSystemSingleUpdate(OP_DISABLE, systemId, null, false, securityContext);
+    return postSystemSingleUpdate(OP_DISABLE, systemId, null, securityContext);
+  }
+
+  /**
+   * Delete a system
+   * @param systemId - name of system
+   * @param securityContext - user identity
+   * @return - response with change count as the result
+   */
+  @POST
+  @Path("{systemId}/delete")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response deleteSystem(@PathParam("systemId") String systemId,
+                               @Context SecurityContext securityContext)
+  {
+    return postSystemSingleUpdate(OP_DELETE, systemId, null, securityContext);
+  }
+
+  /**
+   * Undelete a system
+   * @param systemId - name of the system
+   * @param securityContext - user identity
+   * @return - response with change count as the result
+   */
+  @POST
+  @Path("{systemId}/undelete")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response undeleteSystem(@PathParam("systemId") String systemId,
+                                 @Context SecurityContext securityContext)
+  {
+    return postSystemSingleUpdate(OP_UNDELETE, systemId, null, securityContext);
   }
 
   /**
@@ -447,7 +480,7 @@ public class SystemResource
                                     @PathParam("userName") String userName,
                                     @Context SecurityContext securityContext)
   {
-    return postSystemSingleUpdate(OP_CHANGEOWNER, systemId, userName, false, securityContext);
+    return postSystemSingleUpdate(OP_CHANGEOWNER, systemId, userName, securityContext);
   }
 
   /**
@@ -791,40 +824,21 @@ public class SystemResource
 //    return createSuccessResponse(Status.OK, MsgUtils.getMsg(TAPIS_FOUND, SYSTEMS_SVC, itemCountStr), resp1);
 //  }
 
-  /**
-   * deleteSystem
-   * @param systemId - name of the system to delete
-   * @param confirmDelete - confirm the action
-   * @param securityContext - user identity
-   * @return - response with change count as the result
-   */
-  @DELETE
-  @Path("{systemId}")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response deleteSystem(@PathParam("systemId") String systemId,
-                               @QueryParam("confirm") @DefaultValue("false") boolean confirmDelete,
-                               @Context SecurityContext securityContext)
-  {
-    return postSystemSingleUpdate(OP_DELETE, systemId, null, confirmDelete, securityContext);
-  }
-
   /* **************************************************************************** */
   /*                                Private Methods                               */
   /* **************************************************************************** */
 
   /**
-   * changeOwner, enable, disable and delete follow same pattern
-   * Note that userName only used for changeOwner and confirmDelete only used for delete
+   * changeOwner, enable, disable, delete and undelete follow same pattern
+   * Note that userName only used for changeOwner
    * @param opName Name of operation.
-   * @param systemId Id of app to update
+   * @param systemId Id of system to update
    * @param userName new owner name for op changeOwner
-   * @param confirmDelete confirmation flag for op delete
    * @param securityContext Security context from client call
    * @return Response to be returned to the client.
    */
-  private Response postSystemSingleUpdate(String opName, String systemId, String userName, boolean confirmDelete,
-                                       SecurityContext securityContext)
+  private Response postSystemSingleUpdate(String opName, String systemId, String userName,
+                                          SecurityContext securityContext)
   {
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
@@ -839,15 +853,7 @@ public class SystemResource
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
 
-    // If operation is delete and confirmDelete is false then return error response
-    if (OP_DELETE.equals(opName) && !confirmDelete)
-    {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_DELETE_NOCONFIRM", authenticatedUser, systemId);
-      _log.warn(msg);
-      return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
-    }
-
-    // ---------------------------- Make service call to update the app -------------------------------
+    // ---------------------------- Make service call to update the system -------------------------------
     int changeCount;
     String msg;
     try
@@ -857,7 +863,9 @@ public class SystemResource
       else if (OP_DISABLE.equals(opName))
         changeCount = systemsService.disableSystem(authenticatedUser, systemId);
       else if (OP_DELETE.equals(opName))
-        changeCount = systemsService.softDeleteSystem(authenticatedUser, systemId);
+        changeCount = systemsService.deleteSystem(authenticatedUser, systemId);
+      else if (OP_UNDELETE.equals(opName))
+        changeCount = systemsService.undeleteSystem(authenticatedUser, systemId);
       else
         changeCount = systemsService.changeSystemOwner(authenticatedUser, systemId, userName);
     }
@@ -878,7 +886,7 @@ public class SystemResource
       }
       else
       {
-        // IllegalStateException indicates an Invalid PatchApp was passed in
+        // IllegalStateException indicates an Invalid PatchSystem was passed in
         msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();

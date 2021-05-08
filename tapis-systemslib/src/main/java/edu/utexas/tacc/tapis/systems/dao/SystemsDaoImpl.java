@@ -123,7 +123,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Check to see if system exists or has been soft deleted. If yes then throw IllegalStateException
+      // Check to see if system exists (even if deleted). If yes then throw IllegalStateException
       boolean doesExist = checkForSystem(db, system.getTenant(), system.getId(), true);
       if (doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", authenticatedUser, system.getId()));
 
@@ -248,7 +248,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
 
-      // Make sure system exists and has not been soft deleted.
+      // Make sure system exists and has not been deleted.
       boolean doesExist = checkForSystem(db, tenant, systemId, false);
       if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
 
@@ -328,7 +328,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     String tenant = authenticatedUser.getOboTenantId();
 
-    // AppOperation needed for recording the update
+    // SystemOperation needed for recording the update
     SystemOperation systemOp = enabled ? SystemOperation.enable : SystemOperation.disable;
 
     // ------------------------- Call SQL ----------------------------
@@ -352,7 +352,52 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     catch (Exception e)
     {
       // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "apps", id);
+      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "systems", id);
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+  }
+
+  /**
+   * Update attribute deleted for a system given system Id and value
+   */
+  @Override
+  public void updateDeleted(AuthenticatedUser authenticatedUser, String id, boolean deleted) throws TapisException
+  {
+    String opName = "updateDeleted";
+    // ------------------------- Check Input -------------------------
+    if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
+
+    String tenant = authenticatedUser.getOboTenantId();
+
+    // Operation needed for recording the update
+    SystemOperation systemOp = deleted ? SystemOperation.delete : SystemOperation.undelete;
+
+    // ------------------------- Call SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+      db.update(SYSTEMS)
+              .set(SYSTEMS.DELETED, deleted)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      // Persist update record
+      String updateJsonStr = "{\"deleted\":" +  deleted + "}";
+      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+              getUUIDUsingDb(db, tenant, id));
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "sytems", id);
     }
     finally
     {
@@ -403,57 +448,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Always return the connection back to the connection pool.
       LibUtils.finalCloseDB(conn);
     }
-  }
-
-  /**
-   * Soft delete a system record given the system id.
-   *
-   */
-  @Override
-  public int softDeleteSystem(AuthenticatedUser authenticatedUser, String id) throws TapisException
-  {
-    String opName = "softDeleteSystem";
-    int rows = -1;
-    // ------------------------- Check Input -------------------------
-    if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
-
-    String tenant = authenticatedUser.getOboTenantId();
-
-    // ------------------------- Call SQL ----------------------------
-    Connection conn = null;
-    try
-    {
-      // Get a database connection.
-      conn = getConnection();
-      DSLContext db = DSL.using(conn);
-      // If system does not exist or has been soft deleted return 0
-      if (!db.fetchExists(SYSTEMS,SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false)))
-      {
-        return 0;
-      }
-      rows = db.update(SYSTEMS)
-              .set(SYSTEMS.DELETED, true)
-              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
-
-      // Persist update record
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.softDelete, EMPTY_JSON, null,
-                getUUIDUsingDb(db, tenant, id));
-
-      // Close out and commit
-      LibUtils.closeAndCommitDB(conn, null, null);
-    }
-    catch (Exception e)
-    {
-      // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_UPDATE_FAILURE", "systems", id);
-    }
-    finally
-    {
-      // Always return the connection back to the connection pool.
-      LibUtils.finalCloseDB(conn);
-    }
-    return rows;
   }
 
   /**
@@ -1179,11 +1173,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * Given an sql connection check to see if specified system exists and has/has not been soft deleted
+   * Given an sql connection check to see if specified system exists and has/has not been deleted
    * @param db - jooq context
    * @param tenant - name of tenant
    * @param id - name of system
-   * @param includeDeleted -if soft deleted systems should be included
+   * @param includeDeleted -if deleted systems should be included
    * @return - true if system exists, else false
    */
   private static boolean checkForSystem(DSLContext db, String tenant, String id, boolean includeDeleted)

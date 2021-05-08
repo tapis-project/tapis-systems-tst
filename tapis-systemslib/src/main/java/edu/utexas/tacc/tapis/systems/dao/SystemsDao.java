@@ -25,7 +25,7 @@ public interface SystemsDao
 
   void updateEnabled(AuthenticatedUser authenticatedUser, String id, boolean enabled) throws TapisException;
 
-  int softDeleteSystem(AuthenticatedUser authenticatedUser, String systemId) throws TapisException;
+  void updateDeleted(AuthenticatedUser authenticatedUser, String id, boolean deleted) throws TapisException;
 
   void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenant, String id, SystemOperation op,
                        String upd_json, String upd_text) throws TapisException;

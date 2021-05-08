@@ -30,6 +30,7 @@ import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.Permission;
 
 import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -330,7 +331,7 @@ public class SystemsServiceTest
     Assert.assertTrue(userPerms.isEmpty());
     // Original owner should not be able to modify system
     try {
-      svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
+      svc.deleteSystem(authenticatedOwner1, sys0.getId());
       Assert.fail("Original owner should not have permission to update system after change of ownership. System name: " + sys0.getId() +
               " Old owner: " + authenticatedOwner1.getName() + " New Owner: " + newOwnerName);
     } catch (Exception e) {
@@ -433,13 +434,13 @@ public class SystemsServiceTest
   }
 
   @Test
-  public void testEnableDisable() throws Exception
+  public void testEnableDisableDeleteUndelete() throws Exception
   {
-    // Create the app
+    // Create the resource
     TSystem sys0 = systems[21];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Enabled should start off true, then become false and finally true again.
-    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(),false, null, false);
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertTrue(tmpSys.isEnabled());
     int changeCount = svc.disableSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
@@ -449,6 +450,18 @@ public class SystemsServiceTest
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
     tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertTrue(tmpSys.isEnabled());
+
+    // Deleted should start off false, then become true and finally false again.
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertFalse(tmpSys.isDeleted());
+    changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertNull(tmpSys);
+    changeCount = svc.undeleteSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
+    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    Assert.assertFalse(tmpSys.isDeleted());
   }
 
   @Test
@@ -458,7 +471,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[5];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Soft delete the system
-    int changeCount = svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
+    int changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertNull(tmpSys, "System without credentials not deleted. System name: " + sys0.getId());
@@ -470,7 +483,7 @@ public class SystemsServiceTest
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
 
     // Soft delete the system
-    changeCount = svc.softDeleteSystem(authenticatedOwner1, sys0.getId());
+    changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
     tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
     Assert.assertNull(tmpSys, "System with credentials not deleted. System name: " + sys0.getId());
@@ -739,16 +752,23 @@ public class SystemsServiceTest
   {
     String fakeSystemName = "AMissingSystemName";
     String fakeUserName = "AMissingUserName";
+    int changeCount;
+    boolean pass;
     // Make sure system does not exist
-    Assert.assertFalse(svc.checkForSystem(authenticatedOwner1, fakeSystemName));
+    Assert.assertFalse(svc.checkForSystem(authenticatedOwner1, fakeSystemName, true));
 
     // Get TSystem with no system should return null
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, fakeSystemName, false, null, false);
     Assert.assertNull(tmpSys, "TSystem not null for non-existent system");
 
-    // Delete system with no system should return 0 changes
-    int changeCount = svc.softDeleteSystem(authenticatedOwner1, fakeSystemName);
-    Assert.assertEquals(changeCount, 0, "Change count incorrect when deleting non-existent system.");
+    // Delete system with no system should throw a NotFound exception
+    pass = false;
+    try { svc.deleteSystem(authenticatedOwner1, fakeSystemName); }
+    catch (NotFoundException nfe)
+    {
+      pass = true;
+    }
+    Assert.assertTrue(pass);
 
     // Get owner with no system should return null
     String owner = svc.getSystemOwner(authenticatedOwner1, fakeSystemName);
@@ -763,11 +783,10 @@ public class SystemsServiceTest
     Assert.assertEquals(changeCount, 0, "Change count incorrect when revoking perms for non-existent system.");
 
     // Grant perm with no system should throw an exception
-    boolean pass = false;
+    pass = false;
     try { svc.grantUserPermissions(authenticatedOwner1, fakeSystemName, fakeUserName, testPermsREADMODIFY, scrubbedJson); }
-    catch (TapisException tce)
+    catch (NotFoundException nfe)
     {
-      Assert.assertTrue(tce.getMessage().startsWith("SYSLIB_NOT_FOUND"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -780,9 +799,8 @@ public class SystemsServiceTest
     pass = false;
     cred = new Credential(null, null, null, null,"fakeAccessKey2", "fakeAccessSecret2");
     try { svc.createUserCredential(authenticatedOwner1, fakeSystemName, fakeUserName, cred, scrubbedJson); }
-    catch (TapisException te)
+    catch (NotFoundException nfe)
     {
-      Assert.assertTrue(te.getMessage().startsWith("SYSLIB_NOT_FOUND"));
       pass = true;
     }
     Assert.assertTrue(pass);
@@ -884,7 +902,7 @@ public class SystemsServiceTest
 
     // DELETE - deny user not owner/admin, deny service
     pass = false;
-    try { svc.softDeleteSystem(authenticatedTestUser3, sys0.getId()); }
+    try { svc.deleteSystem(authenticatedTestUser3, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
@@ -892,7 +910,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.softDeleteSystem(authenticatedFilesSvcOwner1, sys0.getId()); }
+    try { svc.deleteSystem(authenticatedFilesSvcOwner1, sys0.getId()); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
