@@ -42,16 +42,21 @@ public final class LogicalQueue
   private final String hpcQueueName;   // Name for the associated HPC queue
   private final int maxJobs;
   private final int maxJobsPerUser;
+  private final int minNodeCount;
   private final int maxNodeCount;
+  private final int minCoresPerNode;
   private final int maxCoresPerNode;
+  private final int minMemoryMB;
   private final int maxMemoryMB;
+  private final int minMinutes;
   private final int maxMinutes;
 
   /* ********************************************************************** */
   /*                           Constructors                                 */
   /* ********************************************************************** */
-  public LogicalQueue(int id1, int systemid1, String name1, String hpcQueueName1, int maxJobs1, int maxJobsPerUser1, int maxNodeCount1,
-                      int maxCoresPerNode1, int maxMemoryMB1, int maxMinutes1)
+  public LogicalQueue(int id1, int systemid1, String name1, String hpcQueueName1, int maxJobs1, int maxJobsPerUser1,
+                      int minNodeCount1, int maxNodeCount1, int minCoresPerNode1, int maxCoresPerNode1,
+                      int minMemoryMB1, int maxMemoryMB1, int minMinutes1, int maxMinutes1)
   {
     seqId = id1;
     systemSeqId = systemid1;
@@ -59,14 +64,19 @@ public final class LogicalQueue
     hpcQueueName = hpcQueueName1;
     maxJobs = maxJobs1;
     maxJobsPerUser = maxJobsPerUser1;
+    minNodeCount = minNodeCount1;
     maxNodeCount = maxNodeCount1;
+    minCoresPerNode = minCoresPerNode1;
     maxCoresPerNode = maxCoresPerNode1;
+    minMemoryMB = minMemoryMB1;
     maxMemoryMB = maxMemoryMB1;
+    minMinutes = minMinutes1;
     maxMinutes = maxMinutes1;
   }
 
-  public LogicalQueue(String name1, String hpcQueueName1, int maxJobs1, int maxJobsPerUser1, int maxNodeCount1, int maxCoresPerNode1,
-                      int maxMemoryMB1, int maxMinutes1)
+  public LogicalQueue(String name1, String hpcQueueName1, int maxJobs1, int maxJobsPerUser1,
+                      int minNodeCount1, int maxNodeCount1, int minCoresPerNode1, int maxCoresPerNode1,
+                      int minMemoryMB1, int maxMemoryMB1, int minMinutes1, int maxMinutes1)
   {
     seqId = -1;
     systemSeqId = -1;
@@ -74,9 +84,13 @@ public final class LogicalQueue
     hpcQueueName = hpcQueueName1;
     maxJobs = maxJobs1;
     maxJobsPerUser = maxJobsPerUser1;
+    minNodeCount = minNodeCount1;
     maxNodeCount = maxNodeCount1;
+    minCoresPerNode = minCoresPerNode1;
     maxCoresPerNode = maxCoresPerNode1;
+    minMemoryMB = minMemoryMB1;
     maxMemoryMB = maxMemoryMB1;
+    minMinutes = minMinutes1;
     maxMinutes = maxMinutes1;
   }
 
@@ -89,9 +103,13 @@ public final class LogicalQueue
   public String getHpcQueueName() { return hpcQueueName; }
   public int getMaxJobs() { return maxJobs; }
   public int getMaxJobsPerUser() { return maxJobsPerUser; }
+  public int getMinNodeCount() { return minNodeCount; }
   public int getMaxNodeCount() { return maxNodeCount; }
+  public int getMinCoresPerNode() { return minCoresPerNode; }
   public int getMaxCoresPerNode() { return maxCoresPerNode; }
+  public int getMinMemoryMB() { return minMemoryMB; }
   public int getMaxMemoryMB() { return maxMemoryMB; }
+  public int getMinMinutes() { return minMinutes; }
   public int getMaxMinutes() { return maxMinutes; }
 
   @Override

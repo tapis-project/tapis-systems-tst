@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row10;
+import org.jooq.Row14;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -79,9 +79,19 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     public final TableField<LogicalQueuesRecord, Integer> MAX_JOBS_PER_USER = createField(DSL.name("max_jobs_per_user"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.");
 
     /**
+     * The column <code>tapis_sys.logical_queues.min_node_count</code>. Minimum number of nodes that can be requested when submitting a job to the queue.
+     */
+    public final TableField<LogicalQueuesRecord, Integer> MIN_NODE_COUNT = createField(DSL.name("min_node_count"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("0", SQLDataType.INTEGER)), this, "Minimum number of nodes that can be requested when submitting a job to the queue.");
+
+    /**
      * The column <code>tapis_sys.logical_queues.max_node_count</code>. Maximum number of nodes that can be requested when submitting a job to the queue.
      */
     public final TableField<LogicalQueuesRecord, Integer> MAX_NODE_COUNT = createField(DSL.name("max_node_count"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of nodes that can be requested when submitting a job to the queue.");
+
+    /**
+     * The column <code>tapis_sys.logical_queues.min_cores_per_node</code>. Minimum number of cores per node that can be requested when submitting a job to the queue.
+     */
+    public final TableField<LogicalQueuesRecord, Integer> MIN_CORES_PER_NODE = createField(DSL.name("min_cores_per_node"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("0", SQLDataType.INTEGER)), this, "Minimum number of cores per node that can be requested when submitting a job to the queue.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_cores_per_node</code>. Maximum number of cores per node that can be requested when submitting a job to the queue.
@@ -89,9 +99,19 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     public final TableField<LogicalQueuesRecord, Integer> MAX_CORES_PER_NODE = createField(DSL.name("max_cores_per_node"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum number of cores per node that can be requested when submitting a job to the queue.");
 
     /**
+     * The column <code>tapis_sys.logical_queues.min_memory_mb</code>. Minimum memory in megabytes that can be requested when submitting a job to the queue.
+     */
+    public final TableField<LogicalQueuesRecord, Integer> MIN_MEMORY_MB = createField(DSL.name("min_memory_mb"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("0", SQLDataType.INTEGER)), this, "Minimum memory in megabytes that can be requested when submitting a job to the queue.");
+
+    /**
      * The column <code>tapis_sys.logical_queues.max_memory_mb</code>. Maximum memory in megabytes that can be requested when submitting a job to the queue.
      */
     public final TableField<LogicalQueuesRecord, Integer> MAX_MEMORY_MB = createField(DSL.name("max_memory_mb"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "Maximum memory in megabytes that can be requested when submitting a job to the queue.");
+
+    /**
+     * The column <code>tapis_sys.logical_queues.min_minutes</code>. Minimum run time in minutes that can be requested when submitting a job to the queue.
+     */
+    public final TableField<LogicalQueuesRecord, Integer> MIN_MINUTES = createField(DSL.name("min_minutes"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("0", SQLDataType.INTEGER)), this, "Minimum run time in minutes that can be requested when submitting a job to the queue.");
 
     /**
      * The column <code>tapis_sys.logical_queues.max_minutes</code>. Maximum run time in minutes that can be requested when submitting a job to the queue.
@@ -192,11 +212,11 @@ public class LogicalQueues extends TableImpl<LogicalQueuesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row14 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<Integer, Integer, String, String, Integer, Integer, Integer, Integer, Integer, Integer> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row14<Integer, Integer, String, String, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> fieldsRow() {
+        return (Row14) super.fieldsRow();
     }
 }

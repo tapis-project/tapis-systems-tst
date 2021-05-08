@@ -157,9 +157,13 @@ CREATE TABLE logical_queues
     hpc_queue_name TEXT NOT NULL DEFAULT '',
     max_jobs INTEGER NOT NULL DEFAULT -1,
     max_jobs_per_user INTEGER NOT NULL DEFAULT -1,
+    min_node_count INTEGER NOT NULL DEFAULT 0,
     max_node_count INTEGER NOT NULL DEFAULT -1,
+    min_cores_per_node INTEGER NOT NULL DEFAULT 0,
     max_cores_per_node INTEGER NOT NULL DEFAULT -1,
+    min_memory_mb INTEGER NOT NULL DEFAULT 0,
     max_memory_mb INTEGER NOT NULL DEFAULT -1,
+    min_minutes INTEGER NOT NULL DEFAULT 0,
     max_minutes INTEGER NOT NULL DEFAULT -1,
     UNIQUE (system_seq_id, name)
 );
@@ -170,9 +174,13 @@ COMMENT ON COLUMN logical_queues.name IS 'Name of logical queue';
 COMMENT ON COLUMN logical_queues.hpc_queue_name IS 'Name of the associated hpc queue';
 COMMENT ON COLUMN logical_queues.max_jobs IS 'Maximum total number of jobs that can be queued or running in this queue at a given time.';
 COMMENT ON COLUMN logical_queues.max_jobs_per_user IS 'Maximum number of jobs associated with a specific user that can be queued or running in this queue at a given time.';
+COMMENT ON COLUMN logical_queues.min_node_count IS 'Minimum number of nodes that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_node_count IS 'Maximum number of nodes that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.min_cores_per_node IS 'Minimum number of cores per node that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_cores_per_node IS 'Maximum number of cores per node that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.min_memory_mb IS 'Minimum memory in megabytes that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_memory_mb IS 'Maximum memory in megabytes that can be requested when submitting a job to the queue.';
+COMMENT ON COLUMN logical_queues.min_minutes IS 'Minimum run time in minutes that can be requested when submitting a job to the queue.';
 COMMENT ON COLUMN logical_queues.max_minutes IS 'Maximum run time in minutes that can be requested when submitting a job to the queue.';
 
 -- ----------------------------------------------------------------------------------------

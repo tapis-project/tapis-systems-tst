@@ -11,9 +11,13 @@ public final class ResultLogicalQueue
   public String hpcQueueName;
   public int maxJobs;
   public int maxJobsPerUser;
+  public int minNodeCount;
   public int maxNodeCount;
+  public int minCoresPerNode;
   public int maxCoresPerNode;
+  public int minMemoryMB;
   public int maxMemoryMB;
+  public int minMinutes;
   public int maxMinutes;
 
   public ResultLogicalQueue(LogicalQueue q)
@@ -22,9 +26,13 @@ public final class ResultLogicalQueue
     hpcQueueName = q.getHpcQueueName();
     maxJobs = q.getMaxJobs();
     maxJobsPerUser = q.getMaxJobsPerUser();
+    minNodeCount = q.getMinNodeCount();
     maxNodeCount = q.getMaxNodeCount();
+    minCoresPerNode = q.getMinCoresPerNode();
     maxCoresPerNode = q.getMaxCoresPerNode();
+    minMemoryMB = q.getMinMemoryMB();
     maxMemoryMB = q.getMaxMemoryMB();
+    minMinutes = q.getMinMinutes();
     maxMinutes = q.getMaxMinutes();
     // Check for -1 in max values and return Integer.MAX_VALUE instead.
     //   As requested by Jobs service.

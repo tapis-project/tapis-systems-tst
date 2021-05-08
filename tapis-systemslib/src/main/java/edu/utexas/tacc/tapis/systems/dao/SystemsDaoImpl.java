@@ -1205,9 +1205,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(LOGICAL_QUEUES.HPC_QUEUE_NAME, queue.getHpcQueueName())
               .set(LOGICAL_QUEUES.MAX_JOBS, queue.getMaxJobs())
               .set(LOGICAL_QUEUES.MAX_JOBS_PER_USER, queue.getMaxJobsPerUser())
+              .set(LOGICAL_QUEUES.MIN_NODE_COUNT, queue.getMinNodeCount())
               .set(LOGICAL_QUEUES.MAX_NODE_COUNT, queue.getMaxNodeCount())
+              .set(LOGICAL_QUEUES.MIN_CORES_PER_NODE, queue.getMinCoresPerNode())
               .set(LOGICAL_QUEUES.MAX_CORES_PER_NODE, queue.getMaxCoresPerNode())
+              .set(LOGICAL_QUEUES.MIN_MEMORY_MB, queue.getMinMemoryMB())
               .set(LOGICAL_QUEUES.MAX_MEMORY_MB, queue.getMaxMemoryMB())
+              .set(LOGICAL_QUEUES.MIN_MINUTES, queue.getMinMinutes())
               .set(LOGICAL_QUEUES.MAX_MINUTES, queue.getMaxMinutes())
               .execute();
     }
