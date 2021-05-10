@@ -244,21 +244,6 @@ public class SystemsDaoTest
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
 
-//  // Test soft deleting a single item
-//  @Test
-//  public void testSoftDelete() throws Exception {
-//    TSystem sys0 = systems[8];
-//    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
-//    System.out.println("Created item with systemId: " + sys0.getId());
-//    Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-//    int numDeleted = dao.updateDeleted(authenticatedUser, sys0.getId(), true);
-//    Assert.assertEquals(numDeleted, 1);
-//    numDeleted = dao.softDeleteSystem(authenticatedUser, sys0.getId());
-//    Assert.assertEquals(numDeleted, 0);
-//    Assert.assertFalse(dao.checkForSystem(sys0.getTenant(), sys0.getId(), false ),
-//            "System not deleted. System name: " + sys0.getId());
-//  }
-//
   // Test hard deleting a single item
   @Test
   public void testHardDelete() throws Exception {

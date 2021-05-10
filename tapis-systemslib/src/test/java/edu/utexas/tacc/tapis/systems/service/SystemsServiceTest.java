@@ -470,7 +470,7 @@ public class SystemsServiceTest
     // Create a system with no credentials
     TSystem sys0 = systems[5];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
-    // Soft delete the system
+    // Delete the system
     int changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
     TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
@@ -482,7 +482,7 @@ public class SystemsServiceTest
     sys0.setAuthnCredential(cred0);
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
 
-    // Soft delete the system
+    // Delete the system
     changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
     Assert.assertEquals(changeCount, 1, "Change count incorrect when deleting a system.");
     tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
