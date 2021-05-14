@@ -1,4 +1,4 @@
-package edu.utexas.tacc.tapis.systems.api.responses.results;
+package edu.utexas.tacc.tapis.systems.api.model;
 
 import edu.utexas.tacc.tapis.systems.model.LogicalQueue;
 

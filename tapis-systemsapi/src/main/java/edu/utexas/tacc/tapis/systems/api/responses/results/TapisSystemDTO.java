@@ -8,6 +8,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
+import edu.utexas.tacc.tapis.systems.api.model.ResultJobCapability;
+import edu.utexas.tacc.tapis.systems.api.model.ResultJobRuntime;
+import edu.utexas.tacc.tapis.systems.api.model.ResultLogicalQueue;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
 import edu.utexas.tacc.tapis.systems.api.utils.KeyValuePair;
 import edu.utexas.tacc.tapis.systems.model.Capability;
@@ -82,7 +85,7 @@ public final class TapisSystemDTO
   public String dtnMountSourcePath;
   public boolean isDtn;
   public boolean canExec;
-  public List<JobRuntime> jobRuntimes;
+  public List<ResultJobRuntime> jobRuntimes;
   public String jobWorkingDir;
   public List<KeyValuePair> jobEnvVariables;
   public int jobMaxJobs;
@@ -91,7 +94,7 @@ public final class TapisSystemDTO
   public TSystem.SchedulerType batchScheduler;
   public List<ResultLogicalQueue> batchLogicalQueues;
   public String batchDefaultLogicalQueue;
-  public List<Capability> jobCapabilities;
+  public List<ResultJobCapability> jobCapabilities;
   public String[] tags;
   public Object notes;
   public UUID uuid;
@@ -125,7 +128,12 @@ public final class TapisSystemDTO
     dtnMountSourcePath = s.getDtnMountSourcePath();
     isDtn = s.isDtn();
     canExec = s.getCanExec();
-    jobRuntimes = s.getJobRuntimes();
+    jobRuntimes = new ArrayList<>();
+    if (s.getJobRuntimes() != null)
+      for (JobRuntime rt : s.getJobRuntimes())
+      {
+        jobRuntimes.add(new ResultJobRuntime(rt));
+      }
     jobWorkingDir = s.getJobWorkingDir();
     jobMaxJobs = s.getJobMaxJobs();
     jobMaxJobsPerUser = s.getJobMaxJobsPerUser();
@@ -138,7 +146,12 @@ public final class TapisSystemDTO
         batchLogicalQueues.add(new ResultLogicalQueue(q));
       }
     batchDefaultLogicalQueue = s.getBatchDefaultLogicalQueue();
-    jobCapabilities = s.getJobCapabilities();
+    jobCapabilities = new ArrayList<>();
+    if (s.getJobCapabilities() != null)
+      for (Capability jc : s.getJobCapabilities())
+      {
+        jobCapabilities.add(new ResultJobCapability(jc));
+      }
     tags = s.getTags();
     notes = s.getNotes();
     uuid = s.getUuid();
