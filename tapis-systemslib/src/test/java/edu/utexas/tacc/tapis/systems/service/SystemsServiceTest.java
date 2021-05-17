@@ -433,35 +433,51 @@ public class SystemsServiceTest
     Assert.assertEquals(systems.size(), 2);
   }
 
+  // Check enable/disable/delete/undelete as well as isEnabled
+  // When resource deleted isEnabled should throw a NotFound exception
   @Test
   public void testEnableDisableDeleteUndelete() throws Exception
   {
     // Create the resource
     TSystem sys0 = systems[21];
+    String sysId = sys0.getId();
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // Enabled should start off true, then become false and finally true again.
-    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    TSystem tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertTrue(tmpSys.isEnabled());
-    int changeCount = svc.disableSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertTrue(svc.isEnabled(authenticatedOwner1, sysId));
+    int changeCount = svc.disableSystem(authenticatedOwner1, sysId);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
-    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertFalse(tmpSys.isEnabled());
-    changeCount = svc.enableSystem(authenticatedOwner1, sys0.getId());
+    Assert.assertFalse(svc.isEnabled(authenticatedOwner1, sysId));
+    changeCount = svc.enableSystem(authenticatedOwner1, sysId);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
-    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertTrue(tmpSys.isEnabled());
+    Assert.assertTrue(svc.isEnabled(authenticatedOwner1, sysId));
 
     // Deleted should start off false, then become true and finally false again.
-    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertFalse(tmpSys.isDeleted());
-    changeCount = svc.deleteSystem(authenticatedOwner1, sys0.getId());
+    changeCount = svc.deleteSystem(authenticatedOwner1, sysId);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
-    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertNull(tmpSys);
-    changeCount = svc.undeleteSystem(authenticatedOwner1, sys0.getId());
+    changeCount = svc.undeleteSystem(authenticatedOwner1, sysId);
     Assert.assertEquals(changeCount, 1, "Change count incorrect when updating the system.");
-    tmpSys = svc.getSystem(authenticatedOwner1, sys0.getId(), false, null, false);
+    tmpSys = svc.getSystem(authenticatedOwner1, sysId, false, null, false);
     Assert.assertFalse(tmpSys.isDeleted());
+
+    // When deleted isEnabled should throw NotFound exception
+    svc.deleteSystem(authenticatedOwner1, sysId);
+    boolean pass = false;
+    try { svc.isEnabled(authenticatedOwner1, sysId); }
+    catch (NotFoundException nfe)
+    {
+      pass = true;
+    }
+    Assert.assertTrue(pass);
   }
 
   @Test
@@ -740,6 +756,8 @@ public class SystemsServiceTest
   }
 
   // Test various cases when system is missing
+  //  - get system
+  //  - isEnabled
   //  - get owner with no system
   //  - get perm with no system
   //  - grant perm with no system
@@ -764,6 +782,15 @@ public class SystemsServiceTest
     // Delete system with no system should throw a NotFound exception
     pass = false;
     try { svc.deleteSystem(authenticatedOwner1, fakeSystemName); }
+    catch (NotFoundException nfe)
+    {
+      pass = true;
+    }
+    Assert.assertTrue(pass);
+
+    // isEnabled check with no resource should throw a NotFound exception
+    pass = false;
+    try { svc.isEnabled(authenticatedOwner1, fakeSystemName); }
     catch (NotFoundException nfe)
     {
       pass = true;

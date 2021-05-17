@@ -8,7 +8,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
@@ -36,6 +35,8 @@ import edu.utexas.tacc.tapis.shared.TapisConstants;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters;
+import edu.utexas.tacc.tapis.sharedapi.responses.RespBoolean;
+import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultBoolean;
 import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils;
 
 import edu.utexas.tacc.tapis.sharedapi.responses.RespAbstract;
@@ -533,7 +534,7 @@ public class SystemResource
     }
     catch (Exception e)
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_GET_NAME_ERROR", authenticatedUser, systemId, e.getMessage());
+      String msg = ApiUtils.getMsgAuth("SYSAPI_GET_SYS_ERROR", authenticatedUser, systemId, e.getMessage());
       _log.error(msg, e);
       return Response.status(TapisRestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
@@ -549,6 +550,58 @@ public class SystemResource
     // Success means we retrieved the system information.
     RespSystem resp1 = new RespSystem(tSystem, selectList);
     return createSuccessResponse(Status.OK, MsgUtils.getMsg(TAPIS_FOUND, "System", systemId), resp1);
+  }
+
+  /**
+   * isEnabled
+   * Check if resource is enabled.
+   * @param sysId - name of system
+   * @param securityContext - user identity
+   * @return Response with boolean result
+   */
+  @GET
+  @Path("{systemId}/isEnabled")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response isEnabled(@PathParam("systemId") String sysId,
+                            @Context SecurityContext securityContext)
+  {
+    String opName = "isEnabled";
+    if (_log.isTraceEnabled()) logRequest(opName);
+
+    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Utility method returns null if all OK and appropriate error response if there was a problem.
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
+    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
+    if (resp != null) return resp;
+
+    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
+    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+
+    boolean isEnabled;
+    try
+    {
+      isEnabled = systemsService.isEnabled(authenticatedUser, sysId);
+    }
+    catch (NotFoundException e)
+    {
+      String msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, sysId);
+      _log.warn(msg);
+      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    catch (Exception e)
+    {
+      String msg = ApiUtils.getMsgAuth("SYSAPI_GET_SYS_ERROR", authenticatedUser, sysId, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(TapisRestUtils.getStatus(e)).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
+    // ---------------------------- Success -------------------------------
+    // Success means we made the check
+    ResultBoolean respResult = new ResultBoolean();
+    respResult.aBool = isEnabled;
+    RespBoolean resp1 = new RespBoolean(respResult);
+    return createSuccessResponse(Status.OK, MsgUtils.getMsg("TAPIS_FOUND", "System", sysId), resp1);
   }
 
   /**

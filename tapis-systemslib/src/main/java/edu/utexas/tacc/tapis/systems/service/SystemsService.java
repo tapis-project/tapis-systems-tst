@@ -50,6 +50,9 @@ public interface SystemsService
   boolean checkForSystem(AuthenticatedUser authenticatedUser, String systemId, boolean includeDeleted)
           throws TapisException, NotAuthorizedException, TapisClientException;
 
+  boolean isEnabled(AuthenticatedUser authenticatedUser, String systemId)
+          throws TapisException, NotAuthorizedException, TapisClientException;
+
   TSystem getSystem(AuthenticatedUser authenticatedUser, String systemId, boolean getCreds, AuthnMethod authnMethod,
                     boolean requireExecPerm)
           throws TapisException, NotAuthorizedException, TapisClientException;

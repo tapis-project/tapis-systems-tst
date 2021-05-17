@@ -283,7 +283,7 @@ public class SystemsServiceImpl implements SystemsService
    * @throws IllegalStateException - Resulting TSystem would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in
    * @throws NotAuthorizedException - unauthorized
-   * @throws NotFoundException - System not found
+   * @throws NotFoundException - Resource not found
    */
   @Override
   public void updateSystem(AuthenticatedUser authenticatedUser, PatchSystem patchSystem, String scrubbedText)
@@ -417,7 +417,7 @@ public class SystemsServiceImpl implements SystemsService
    * @throws IllegalStateException - Resulting TSystem would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in
    * @throws NotAuthorizedException - unauthorized
-   * @throws NotFoundException - System not found
+   * @throws NotFoundException - Resource not found
    */
   @Override
   public int changeSystemOwner(AuthenticatedUser authenticatedUser, String systemId, String newOwnerName)
@@ -589,6 +589,35 @@ public class SystemsServiceImpl implements SystemsService
       return true;
     }
     return false;
+  }
+
+  /**
+   * isEnabled
+   * @param authenticatedUser - principal user containing tenant and user info
+   * @param sysId - Name of the system
+   * @return true if enabled, false otherwise
+   * @throws TapisException - for Tapis related exceptions
+   * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - Resource not found
+   */
+  @Override
+  public boolean isEnabled(AuthenticatedUser authenticatedUser, String sysId)
+          throws TapisException, NotFoundException, NotAuthorizedException, TapisClientException
+  {
+    SystemOperation op = SystemOperation.read;
+    if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
+    if (StringUtils.isBlank(sysId)) throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYS", authenticatedUser));
+    String sysTenantName = authenticatedUser.getTenantId();
+    // For service request use oboTenant for tenant associated with the app
+    if (TapisThreadContext.AccountType.service.name().equals(authenticatedUser.getAccountType())) sysTenantName = authenticatedUser.getOboTenantId();
+
+    // Resource must exist and not be deleted
+    if (!dao.checkForSystem(sysTenantName, sysId, false))
+      throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, authenticatedUser, sysId));
+
+    // ------------------------- Check service level authorization -------------------------
+    checkAuth(authenticatedUser, op, sysId, null, null, null);
+    return dao.isEnabled(sysTenantName, sysId);
   }
 
   /**
@@ -1131,11 +1160,12 @@ public class SystemsServiceImpl implements SystemsService
    * @param updateText - Client provided text used to create the credential - secrets should be scrubbed. Saved in update record.
    * @throws TapisException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - Resource not found
    */
   @Override
   public void createUserCredential(AuthenticatedUser authenticatedUser, String systemId, String userName,
                                    Credential credential, String updateText)
-          throws TapisException, NotAuthorizedException, IllegalStateException, TapisClientException
+          throws TapisException, NotFoundException, NotAuthorizedException, IllegalStateException, TapisClientException
   {
     SystemOperation op = SystemOperation.setCred;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -1262,10 +1292,11 @@ public class SystemsServiceImpl implements SystemsService
    * @return Credential - populated instance or null if not found.
    * @throws TapisException - for Tapis related exceptions
    * @throws NotAuthorizedException - unauthorized
+   * @throws NotFoundException - Resource not found
    */
   @Override
   public Credential getUserCredential(AuthenticatedUser authenticatedUser, String systemId, String userName, AuthnMethod authnMethod)
-          throws TapisException, TapisClientException, NotAuthorizedException
+          throws TapisException, TapisClientException, NotAuthorizedException, NotFoundException
   {
     SystemOperation op = SystemOperation.getCred;
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));

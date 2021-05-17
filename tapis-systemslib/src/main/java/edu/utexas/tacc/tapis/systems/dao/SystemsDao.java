@@ -38,6 +38,8 @@ public interface SystemsDao
 
   boolean checkForSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
+  boolean isEnabled(String tenant, String id) throws TapisException;
+
   TSystem getSystem(String tenant, String id) throws TapisException;
 
   TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException;

@@ -573,6 +573,44 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * isEnabled - check if resource with specified Id is enabled
+   * @param sysId - app name
+   * @return true if enabled else false
+   * @throws TapisException - on error
+   */
+  @Override
+  public boolean isEnabled(String tenant, String sysId) throws TapisException {
+    // Initialize result.
+    boolean result = false;
+    // ------------------------- Call SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+      // Run the sql
+      Boolean b = db.selectFrom(SYSTEMS)
+              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(sysId),SYSTEMS.DELETED.eq(false))
+              .fetchOne(SYSTEMS.ENABLED);
+      if (b != null) result = b;
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenant, sysId, e.getMessage());
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+    return result;
+  }
+
+  /**
    * getSystem
    * @param id - system name
    * @return System object if found, null if not found
