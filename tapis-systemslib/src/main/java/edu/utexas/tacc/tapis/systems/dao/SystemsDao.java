@@ -45,10 +45,10 @@ public interface SystemsDao
   TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
 
   int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                      List<OrderBy> orderByList, String startAfter) throws TapisException;
+                      List<OrderBy> orderByList, String startAfter, boolean showDeleted) throws TapisException;
 
   List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
-                           List<OrderBy> orderByList, int skip, String startAfter)
+                           List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException;
 
   List<TSystem> getSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;

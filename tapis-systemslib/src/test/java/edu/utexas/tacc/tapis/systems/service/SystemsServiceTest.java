@@ -390,7 +390,7 @@ public class SystemsServiceTest
     TSystem sys0 = systems[4];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     List<TSystem> systems = svc.getSystems(authenticatedOwner1, searchListNull, limitNone, orderByListNull, skipZero,
-                                           startAferEmpty);
+                                           startAferEmpty, showDeletedFalse);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -413,7 +413,8 @@ public class SystemsServiceTest
     sys0 = systems[18];
     svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
     // When retrieving systems as testUser4 only 2 should be returned
-    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
+    List<TSystem> systems = svc.getSystems(authenticatedTestUser4, searchListNull, limitNone, orderByListNull, skipZero,
+                                           startAferEmpty, showDeletedFalse);
     System.out.println("Total number of systems retrieved by testuser4: " + systems.size());
     for (TSystem system : systems)
     {
@@ -423,7 +424,8 @@ public class SystemsServiceTest
     Assert.assertEquals(systems.size(), 2);
 
     // When retrieving systems as a service with oboUser = testuser4 only 2 should be returned.
-    systems = svc.getSystems(authenticatedFilesSvcTestUser4, searchListNull, limitNone, orderByListNull, skipZero, startAferEmpty);
+    systems = svc.getSystems(authenticatedFilesSvcTestUser4, searchListNull, limitNone, orderByListNull, skipZero,
+                             startAferEmpty, showDeletedFalse);
     System.out.println("Total number of systems retrieved by Files svc calling with oboUser=testuser4: " + systems.size());
     for (TSystem system : systems)
     {

@@ -690,12 +690,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param startAfter - where to start when sorting, e.g. orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return - count of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                             List<OrderBy> orderByList, String startAfter)
+                             List<OrderBy> orderByList, String startAfter, boolean showDeleted)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -739,7 +740,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     }
 
     // Begin where condition for the query
-    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+    Condition whereCondition;
+    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenant);
+    else whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
 
     // Add searchList or searchAST to where condition
     if (searchList != null)
@@ -808,12 +811,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
   public List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
-                             int limit, List<OrderBy> orderByList, int skip, String startAfter)
+                             int limit, List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException
   {
     // TODO - for now just use the major (i.e. first in list) orderBy item.
@@ -863,7 +867,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (setOfIDs != null && setOfIDs.isEmpty()) return retList;
 
     // Begin where condition for the query
-    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+    Condition whereCondition;
+    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenant);
+    else whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
 
     // Add searchList or searchAST to where condition
     if (searchList != null)

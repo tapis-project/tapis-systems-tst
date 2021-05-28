@@ -692,12 +692,13 @@ public class SystemsServiceImpl implements SystemsService
    * @param searchList - optional list of conditions used for searching
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param startAfter - where to start when sorting, e.g. orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return Count of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public int getSystemsTotalCount(AuthenticatedUser authenticatedUser, List<String> searchList,
-                                  List<OrderBy> orderByList, String startAfter)
+                                  List<OrderBy> orderByList, String startAfter, boolean showDeleted)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -736,7 +737,8 @@ public class SystemsServiceImpl implements SystemsService
     if (allowedSysIDs != null && allowedSysIDs.isEmpty()) return 0;
 
     // Count all allowed systems matching the search conditions
-    return dao.getSystemsCount(systemTenantName, verifiedSearchList, null, allowedSysIDs, orderByList, startAfter);
+    return dao.getSystemsCount(systemTenantName, verifiedSearchList, null, allowedSysIDs, orderByList, startAfter,
+                               showDeleted);
   }
 
   /**
@@ -747,12 +749,13 @@ public class SystemsServiceImpl implements SystemsService
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public List<TSystem> getSystems(AuthenticatedUser authenticatedUser, List<String> searchList, int limit,
-                                  List<OrderBy> orderByList, int skip, String startAfter)
+                                  List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException, TapisClientException
   {
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
@@ -789,7 +792,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(systemTenantName, verifiedSearchList, null, allowedSysIDs,
-                                            limit, orderByList, skip, startAfter);
+                                            limit, orderByList, skip, startAfter, showDeleted);
 
     for (TSystem system : systems)
     {
@@ -808,16 +811,18 @@ public class SystemsServiceImpl implements SystemsService
    * @param orderByList - orderBy entries for sorting, e.g. orderBy=created(desc).
    * @param skip - number of results to skip (may not be used with startAfter)
    * @param startAfter - where to start when sorting, e.g. limit=10&orderBy=id(asc)&startAfter=101 (may not be used with skip)
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return List of TSystem objects
    * @throws TapisException - for Tapis related exceptions
    */
   @Override
   public List<TSystem> getSystemsUsingSqlSearchStr(AuthenticatedUser authenticatedUser, String sqlSearchStr, int limit,
-                                        List<OrderBy> orderByList, int skip, String startAfter)
+                                        List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException, TapisClientException
   {
     // If search string is empty delegate to getSystems()
-    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip, startAfter);
+    if (StringUtils.isBlank(sqlSearchStr)) return getSystems(authenticatedUser, null, limit, orderByList, skip,
+                                                             startAfter, showDeleted);
 
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     // Determine tenant scope for user
@@ -851,7 +856,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Get all allowed systems matching the search conditions
     List<TSystem> systems = dao.getSystems(systemTenantName, null, searchAST, allowedSysIDs,
-                                                          limit, orderByList, skip, startAfter);
+                                           limit, orderByList, skip, startAfter, showDeleted);
 
     for (TSystem system : systems)
     {

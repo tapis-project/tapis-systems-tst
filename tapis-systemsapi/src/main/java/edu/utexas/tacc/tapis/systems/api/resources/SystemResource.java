@@ -610,12 +610,14 @@ public class SystemResource
    * NOTE: The query parameters search, limit, orderBy, skip, startAfter are all handled in the filter
    *       QueryParametersRequestFilter. No need to use @QueryParam here.
    * @param securityContext - user identity
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getSystems(@Context SecurityContext securityContext)
+  public Response getSystems(@Context SecurityContext securityContext,
+                             @QueryParam("showDeleted") @DefaultValue("false") boolean showDeleted)
   {
     String opName = "getSystems";
     // Trace this request.
@@ -637,7 +639,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, null, srchParms);
+      successResponse = getSearchResponse(authenticatedUser, null, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -652,13 +654,15 @@ public class SystemResource
    * searchSystemsQueryParameters
    * Dedicated search endpoint for System resource. Search conditions provided as query parameters.
    * @param securityContext - user identity
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @GET
   @Path("search")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext)
+  public Response searchSystemsQueryParameters(@Context SecurityContext securityContext,
+                                               @QueryParam("showDeleted") @DefaultValue("false") boolean showDeleted)
   {
     String opName = "searchSystemsGet";
     // Trace this request.
@@ -696,7 +700,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, null, srchParms);
+      successResponse = getSearchResponse(authenticatedUser, null, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -715,6 +719,7 @@ public class SystemResource
    * Request body contains an array of strings that are concatenated to form the full SQL-like search string.
    * @param payloadStream - request body
    * @param securityContext - user identity
+   * @param showDeleted - whether or not to included resources that have been marked as deleted.
    * @return - list of systems accessible by requester and matching search conditions.
    */
   @POST
@@ -722,7 +727,8 @@ public class SystemResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response searchSystemsRequestBody(InputStream payloadStream,
-                                           @Context SecurityContext securityContext)
+                                           @Context SecurityContext securityContext,
+                                           @QueryParam("showDeleted") @DefaultValue("false") boolean showDeleted)
   {
     String opName = "searchSystemsPost";
     // Trace this request.
@@ -780,7 +786,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, sqlSearchStr, srchParms);
+      successResponse = getSearchResponse(authenticatedUser, sqlSearchStr, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -1149,7 +1155,8 @@ public class SystemResource
    *  srchParms must be non-null
    *  One of srchParms.searchList or sqlSearchStr must be non-null
    */
-  private Response getSearchResponse(AuthenticatedUser authenticatedUser, String sqlSearchStr, SearchParameters srchParms)
+  private Response getSearchResponse(AuthenticatedUser authenticatedUser, String sqlSearchStr,
+                                     SearchParameters srchParms, boolean showDeleted)
           throws Exception
   {
     RespAbstract resp1;
@@ -1171,10 +1178,11 @@ public class SystemResource
     List<OrderBy> orderByList = srchParms.getOrderByList();
 
     if (StringUtils.isBlank(sqlSearchStr))
-      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter);
+      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter,
+                                          showDeleted);
     else
       systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip,
-                                                           startAfter);
+                                                           startAfter, showDeleted);
     if (systems == null) systems = Collections.emptyList();
     itemCountStr = String.format(SYS_CNT_STR, systems.size());
     if (computeTotal && limit <= 0) totalCount = systems.size();
@@ -1182,7 +1190,8 @@ public class SystemResource
     // If we need the count and there was a limit then we need to make a call
     if (computeTotal && limit > 0)
     {
-      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, searchList, orderByList, startAfter);
+      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, searchList, orderByList, startAfter,
+                                                       showDeleted);
     }
 
     // ---------------------------- Success -------------------------------

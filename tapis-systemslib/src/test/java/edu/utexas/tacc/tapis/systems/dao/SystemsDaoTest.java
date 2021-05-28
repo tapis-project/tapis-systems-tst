@@ -175,7 +175,7 @@ public class SystemsDaoTest
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     List<TSystem> systems = dao.getSystems(tenantName, null, null, null, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull);
+                                            DEFAULT_SKIP, startAfterNull, showDeletedFalse);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
     }
@@ -196,7 +196,7 @@ public class SystemsDaoTest
     sysIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
     List<TSystem> systems = dao.getSystems(tenantName, null, null, sysIdList, DEFAULT_LIMIT, orderByListNull,
-                                            DEFAULT_SKIP, startAfterNull);
+                                            DEFAULT_SKIP, startAfterNull, showDeletedFalse);
     for (TSystem system : systems) {
       System.out.println("Found item with id: " + system.getId() + " and name: " + system.getId());
       Assert.assertTrue(sysIdList.contains(system.getId()));

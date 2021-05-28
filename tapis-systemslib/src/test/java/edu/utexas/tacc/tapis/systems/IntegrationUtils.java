@@ -2,6 +2,7 @@ package edu.utexas.tacc.tapis.systems;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
 import edu.utexas.tacc.tapis.shared.utils.TapisGsonUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
@@ -167,6 +168,8 @@ public final class IntegrationUtils
 
   public static final UUID uuidNull = null;
   public static final boolean isDeletedFalse = false;
+  public static final boolean showDeletedFalse = false;
+  public static final boolean showDeletedTrue = true;
   public static final Instant createdNull = null;
   public static final Instant updatedNull = null;
   public static final int qMaxJobs = -1;
@@ -195,6 +198,8 @@ public final class IntegrationUtils
 
   // Search and sort
   public static final List<String> searchListNull = null;
+  public static final ASTNode searchASTNull = null;
+  public static final Set<String> setOfIDsNull = null;
   public static final int limitNone = -1;
   public static final List<String> orderByAttrEmptyList = Arrays.asList("");
   public static final List<String> orderByDirEmptyList = Arrays.asList("");
@@ -216,7 +221,7 @@ public final class IntegrationUtils
             prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
-            batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull , isDeletedFalse, createdNull, updatedNull);
+            batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
   }
 
   /**
@@ -234,7 +239,7 @@ public final class IntegrationUtils
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchFalse,
-            batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull , isDeletedFalse, createdNull, updatedNull);
+            batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull, isDeletedFalse, createdNull, updatedNull);
   }
 
   /**
@@ -258,13 +263,13 @@ public final class IntegrationUtils
             prot1.getPort(), prot1.isUseProxy(), prot1.getProxyHost(), prot1.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
-            batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull , isDeletedFalse, createdNull, updatedNull);
+            batchSchedulerNull, queueNameNull, tags1, notes1, uuidNull, isDeletedFalse, createdNull, updatedNull);
     dtnSystem2 = new TSystem(-1, tenantName, dtnSystemName2, "DTN System2 for tests", TSystem.SystemType.LINUX, owner1,
             dtnSystemValidHostname, isEnabledTrue,"effUserDtn2", prot2.getAuthnMethod(), "bucketDtn2", "/root/dtn2",
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemIdNull, dtnMountPointNull, dtnMountSourcePathNull, isDtnTrue,
             canExecFalse, jobWorkingDirNull, jobEnvVariablesNull, jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchFalse,
-            batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull , isDeletedFalse, createdNull, updatedNull);
+            batchSchedulerNull, queueNameNull, tags2, notes2, uuidNull, isDeletedFalse, createdNull, updatedNull);
     for (int i = 0; i < n; i++)
     {
       // Suffix which should be unique for each system within each integration test
