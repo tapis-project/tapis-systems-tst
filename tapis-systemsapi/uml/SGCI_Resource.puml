@@ -5,7 +5,7 @@ note as N1
 StorageType
   POSIX
   S3
-  OBJECT_STORE
+  IRODS
 - - - - - - - - - - - - -
 SchedulerType
   FORK
@@ -24,6 +24,23 @@ class SGCIResource {
   description : string
   storageResources! : StorageResource[]
   computeResources : ComputeResource[]
+  resourceStatus : ResourceStatus
+  resourceOutages : ResourceOutage[]
+}
+
+class ResourceStatus {
+  status! : enum
+  startDate : string
+  endsDate : string
+}
+
+class ResourceOutage {
+  outageType : enum
+  name : string
+  description : string
+  url : string
+  startDatetime! : string
+  endsDatetime! : string
 }
 
 class StorageResource {
@@ -38,14 +55,14 @@ class ComputeResource {
   connections! : Connection[]
   batchSystem! : BatchSystem
   forkSystem! : ForkSystem
-  executionCommands! : ExecutionCommand[]
+  executionCommands : ExecutionCommand[]
 }
 
 class Connection {
   connectionProtocol! : Enum
   securityProtocol! : Enum
+  host : string
   port : integer
-  useProxy : boolean
   proxyHost : string
   proxyPort : integer
 }
@@ -61,12 +78,12 @@ class FileSystem {
 class ExecutionCommand {
   commandType! : string
   commandPrefix : string
-  homeDir : string
   moduleDependencies : string[]
 }
 
 class BatchSystem {
   jobManager! : Enum
+  host : string
   commandPaths : CommandPath[]
   partitions : Partition[]
 }
@@ -84,6 +101,7 @@ class CommandPath {
 
 class Partition {
   name! : string
+  submitArgs : string[]
   totalNodes : integer
   nodeHardware : NodeHardware
   computeQuotas : object
@@ -98,8 +116,27 @@ class NodeHardware {
   memorySize : string
 }
 
+class ComputeQuotas {
+  maxJobsTotal : integer
+  maxJobsPerUser : integer
+  minNodesPerJob : integer
+  maxNodesPerJob : integer
+  minTimePerJob : integer
+  maxTimePerJob : integer
+  minMemoryPerJob : string
+  maxMemoryPerJob : string
+  minCPUsPerJob : integer
+  maxCPUsPerJob : integer
+  minGPUsPerJob : integer
+  maxGPUsPerJob : integer
+  minCPUsPerNode : integer
+  maxCPUsPerNode : integer
+ }
+
 SGCIResource *-- "1..N" StorageResource
 SGCIResource *-- "0..N" ComputeResource
+SGCIResource *-- "1" ResourceStatus
+SGCIResource *-- "N" ResourceOutage
 StorageResource *-- "N" Connection
 StorageResource *-- "N" FileSystem
 ComputeResource *-- "0,1" BatchSystem : OneOf
@@ -109,6 +146,7 @@ ComputeResource *-- "N" ExecutionCommand
 BatchSystem *-- "N" CommandPath
 BatchSystem *-- "N" Partition
 Partition *-- "1" NodeHardware
+Partition *-- "1" ComputeQuotas
 ForkSystem *-- "1" NodeHardware
 
 @enduml

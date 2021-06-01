@@ -5,8 +5,17 @@ class SGCIResource {
   schemaVersion! : string
   host! : string
   name! : string
+  description : string
   storageResources! : StorageResource[]
   computeResources : ComputeResource[]
+  resourceStatus : ResourceStatus
+  resourceOutages : ResourceOutage[]
+}
+
+class ResourceStatus {
+}
+
+class ResourceOutage {
 }
 
 class StorageResource {
@@ -39,8 +48,13 @@ class Partition {
 class NodeHardware {
 }
 
+class ComputeQuotas {
+ }
+
 SGCIResource *-- "1..N" StorageResource
 SGCIResource *-- "0..N" ComputeResource
+SGCIResource *-- "1" ResourceStatus
+SGCIResource *-- "N" ResourceOutage
 StorageResource *-- "N" Connection
 StorageResource *-- "N" FileSystem
 ComputeResource *-- "0,1" BatchSystem : OneOf
@@ -50,6 +64,7 @@ ComputeResource *-- "N" ExecutionCommand
 BatchSystem *-- "N" CommandPath
 BatchSystem *-- "N" Partition
 Partition *-- "1" NodeHardware
+Partition *-- "1" ComputeQuotas
 ForkSystem *-- "1" NodeHardware
 
 @enduml
