@@ -41,10 +41,6 @@ public class ShowDeletedDaoTest
   private static final String testKey = "SrchDel";
   private static final String sysIdLikeAll = "id.like.*" + testKey + "*";
 
-  // Strings for char relational testings
-  private static final String hostName1 = "host" + testKey + "001.test.org";
-  private static final String hostName7 = "host" + testKey + "007.test.org";
-
   // Number of systems not including DTN systems
   int numSystems = 3;
 
@@ -94,31 +90,22 @@ public class ShowDeletedDaoTest
     TSystem sys0 = systems[0];
     String sys0Id = sys0.getId();
     var searchListAll= Collections.singletonList(SearchUtils.validateAndProcessSearchCondition(sysIdLikeAll));
-//      for (String cond : cd.searchList)
-//      {
-//        // Use SearchUtils to validate condition
-//        String verifiedCondStr = SearchUtils.validateAndProcessSearchCondition(cond);
-//        verifiedSearchList.add(verifiedCondStr);
-//      }
-
-
-    // TODO    String searchCondDeleted = sysIdLikeAll + "id.eq." + sys0Id;
 
     // None deleted yet so should have all systems
     // First check counts. showDeleted = true or false should have total number of systems.
     int count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,
                                     startAfterNull, showDeletedFalse);
-    assertEquals(count, numSystems, "Incorrect count for getSystemsCount before delete of system");
+    assertEquals(count, numSystems, "Incorrect count for getSystemsCount/showDel=false before delete of system");
     count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,
                                 startAfterNull, showDeletedTrue);
-    assertEquals(count, numSystems, "Incorrect count for getSystemsCount before delete of system");
+    assertEquals(count, numSystems, "Incorrect count for getSystemsCount/showDel=true before delete of system");
     // Check retrieving all systems
     List<TSystem> searchResults = dao.getSystems(tenantName, searchListAll, searchASTNull, setOfIDsNull, DEFAULT_LIMIT,
                                                  orderByListNull, DEFAULT_SKIP, startAfterNull, showDeletedFalse);
-    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems");
+    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems/showDel=false");
     searchResults = dao.getSystems(tenantName, searchListAll, searchASTNull, setOfIDsNull, DEFAULT_LIMIT,
                                    orderByListNull, DEFAULT_SKIP, startAfterNull, showDeletedTrue);
-    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems");
+    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems/showDel=true");
 
     // Now delete a system
     dao.updateDeleted(authenticatedUser, sys0Id, true);
@@ -126,48 +113,22 @@ public class ShowDeletedDaoTest
     // First check counts. showDeleted = false should return 1 less than total.
     count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,
                                 startAfterNull, showDeletedFalse);
-    assertEquals(count, numSystems-1, "Incorrect count for getSystemsCount after delete of system");
+    assertEquals(count, numSystems-1, "Incorrect count for getSystemsCount/showDel=false after delete of system");
     count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,
                                 startAfterNull, showDeletedTrue);
-    assertEquals(count, numSystems, "Incorrect count for getSystemsCount after delete of system");
+    assertEquals(count, numSystems, "Incorrect count for getSystemsCount/showDel=true after delete of system");
 
     // Check retrieving all systems
     searchResults = dao.getSystems(tenantName, searchListAll, searchASTNull, setOfIDsNull, DEFAULT_LIMIT,
                                    orderByListNull, DEFAULT_SKIP, startAfterNull, showDeletedFalse);
-    assertEquals(searchResults.size(), numSystems-1, "Incorrect result count for getSystems after delete of system");
+    assertEquals(searchResults.size(), numSystems-1, "Incorrect result count for getSystems/showDel=false after delete of system");
     searchResults = dao.getSystems(tenantName, searchListAll, searchASTNull, setOfIDsNull, DEFAULT_LIMIT,
                                    orderByListNull, DEFAULT_SKIP, startAfterNull, showDeletedTrue);
-    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems after delete of system");
+    assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems/showDel=true after delete of system");
   }
 
   /* ********************************************************************** */
   /*                             Private Methods                            */
   /* ********************************************************************** */
 
-  /**
-   * Check that results were sorted in correct order when sorting on system name
-   */
-  private void checkOrder(List<TSystem> searchResults, int start, int end)
-  {
-    int idx = 0; // Position in result
-    // Name should match for loop counter i
-    if (start < end)
-    {
-      for (int i = start; i <= end; i++)
-      {
-        String sysName = getSysName(testKey, i);
-        assertEquals(searchResults.get(idx).getId(), sysName, "Incorrect system name at position: " + (idx+1));
-        idx++;
-      }
-    }
-    else
-    {
-      for (int i = start; i >= end; i--)
-      {
-        String sysName = getSysName(testKey, i);
-        assertEquals(searchResults.get(idx).getId(), sysName, "Incorrect system name at position: " + (idx+1));
-        idx++;
-      }
-    }
-  }
 }
