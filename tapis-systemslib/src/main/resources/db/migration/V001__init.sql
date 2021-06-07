@@ -193,7 +193,7 @@ CREATE TABLE job_runtimes
     seq_id SERIAL PRIMARY KEY,
     system_seq_id INTEGER REFERENCES systems(seq_id) ON DELETE CASCADE,
     runtime_type TEXT NOT NULL,
-    version TEXT NOT NULL DEFAULT ''
+    version TEXT
 );
 ALTER TABLE job_runtimes OWNER TO tapis_sys;
 
@@ -211,7 +211,7 @@ CREATE TABLE capabilities
     name TEXT NOT NULL DEFAULT '',
     datatype TEXT NOT NULL,
     precedence INTEGER NOT NULL DEFAULT 100,
-    value  TEXT NOT NULL DEFAULT '',
+    value  TEXT,
     UNIQUE (system_seq_id, category, name)
 );
 ALTER TABLE capabilities OWNER TO tapis_sys;

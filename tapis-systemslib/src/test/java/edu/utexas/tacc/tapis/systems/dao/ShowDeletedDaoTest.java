@@ -16,7 +16,6 @@ import java.util.List;
 import static edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters.DEFAULT_LIMIT;
 import static edu.utexas.tacc.tapis.shared.threadlocal.SearchParameters.DEFAULT_SKIP;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
-import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.gson;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.orderByListNull;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.scrubbedJson;
