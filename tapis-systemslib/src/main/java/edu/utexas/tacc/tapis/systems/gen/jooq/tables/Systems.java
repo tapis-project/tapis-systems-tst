@@ -130,7 +130,7 @@ public class Systems extends TableImpl<SystemsRecord> {
     /**
      * The column <code>tapis_sys.systems.proxy_host</code>. Proxy host name or ip address
      */
-    public final TableField<SystemsRecord, String> PROXY_HOST = createField(DSL.name("proxy_host"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Proxy host name or ip address");
+    public final TableField<SystemsRecord, String> PROXY_HOST = createField(DSL.name("proxy_host"), SQLDataType.CLOB, this, "Proxy host name or ip address");
 
     /**
      * The column <code>tapis_sys.systems.proxy_port</code>. Proxy port number

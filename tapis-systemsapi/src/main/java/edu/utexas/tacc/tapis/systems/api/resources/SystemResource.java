@@ -59,8 +59,8 @@ import edu.utexas.tacc.tapis.sharedapi.responses.RespChangeCount;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespResourceUrl;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultChangeCount;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
-import edu.utexas.tacc.tapis.systems.api.requests.ReqCreateSystem;
-import edu.utexas.tacc.tapis.systems.api.requests.ReqUpdateSystem;
+import edu.utexas.tacc.tapis.systems.api.requests.ReqPostSystem;
+import edu.utexas.tacc.tapis.systems.api.requests.ReqPatchSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
@@ -98,8 +98,8 @@ public class SystemResource
   private static final String SYSTEMS_SVC = StringUtils.capitalize(TapisConstants.SERVICE_NAME_SYSTEMS);
 
   // Json schema resource files.
-  private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemCreateRequest.json";
-  private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemUpdateRequest.json";
+  private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemPostRequest.json";
+  private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemPatchRequest.json";
   private static final String FILE_SYSTEM_SEARCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemSearchRequest.json";
   private static final String FILE_SYSTEM_MATCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/MatchConstraintsRequest.json";
 
@@ -209,13 +209,20 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
-    ReqCreateSystem req;
+    ReqPostSystem req;
     // ------------------------- Create a TSystem from the json and validate constraints -------------------------
-    try { req = TapisGsonUtils.getGson().fromJson(rawJson, ReqCreateSystem.class); }
+    try { req = TapisGsonUtils.getGson().fromJson(rawJson, ReqPostSystem.class); }
     catch (JsonSyntaxException e)
     {
       msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    // If req is null that is an unrecoverable error
+    if (req == null)
+    {
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, "ReqPostSystem == null");
+      _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
@@ -337,9 +344,9 @@ public class SystemResource
     }
 
     // ------------------------- Create a PatchSystem from the json and validate constraints -------------------------
-    ReqUpdateSystem req;
+    ReqPatchSystem req;
     try {
-      req = TapisGsonUtils.getGson().fromJson(rawJson, ReqUpdateSystem.class);
+      req = TapisGsonUtils.getGson().fromJson(rawJson, ReqPatchSystem.class);
     }
     catch (JsonSyntaxException e)
     {
@@ -975,9 +982,9 @@ public class SystemResource
   }
 
   /**
-   * Create a TSystem from a ReqCreateSystem
+   * Create a TSystem from a ReqPostSystem
    */
-  private static TSystem createTSystemFromRequest(ReqCreateSystem req, String rawJson)
+  private static TSystem createTSystemFromRequest(ReqPostSystem req, String rawJson)
   {
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
@@ -998,10 +1005,10 @@ public class SystemResource
   }
 
   /**
-   * Create a PatchSystem from a ReqUpdateSystem
+   * Create a PatchSystem from a ReqPatchSystem
    * Note that tenant and id are for tracking and needed by the service call. They are not updated.
    */
-  private static PatchSystem createPatchSystemFromRequest(ReqUpdateSystem req, String tenantName, String systemId,
+  private static PatchSystem createPatchSystemFromRequest(ReqPatchSystem req, String tenantName, String systemId,
                                                           String rawJson)
   {
     // Convert jobEnvVariables to array of strings

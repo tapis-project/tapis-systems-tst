@@ -128,12 +128,12 @@ public final class TapisSystemDTO
     dtnMountSourcePath = s.getDtnMountSourcePath();
     isDtn = s.isDtn();
     canExec = s.getCanExec();
-    jobRuntimes = new ArrayList<>();
-    if (s.getJobRuntimes() != null)
-      for (JobRuntime rt : s.getJobRuntimes())
-      {
-        jobRuntimes.add(new ResultJobRuntime(rt));
-      }
+    jobRuntimes = null;
+    if (s.getJobRuntimes() != null && !s.getJobRuntimes().isEmpty())
+    {
+      jobRuntimes = new ArrayList<>();
+      for (JobRuntime rt : s.getJobRuntimes()) { jobRuntimes.add(new ResultJobRuntime(rt)); }
+    }
     jobWorkingDir = s.getJobWorkingDir();
     jobMaxJobs = s.getJobMaxJobs();
     jobMaxJobsPerUser = s.getJobMaxJobsPerUser();

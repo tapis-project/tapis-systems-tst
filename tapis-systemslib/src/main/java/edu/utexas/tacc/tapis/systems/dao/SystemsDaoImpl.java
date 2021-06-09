@@ -1326,6 +1326,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   private static List<JobRuntime> retrieveJobRuntimes(DSLContext db, int seqId)
   {
     List<JobRuntime> jobRuntimes = db.selectFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).fetchInto(JobRuntime.class);
+    if (jobRuntimes == null || jobRuntimes.isEmpty()) return null;
     return jobRuntimes;
   }
 

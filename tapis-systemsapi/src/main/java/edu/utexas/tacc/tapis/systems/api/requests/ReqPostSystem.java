@@ -28,7 +28,7 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.EMPTY_STR_ARRAY;
 /*
  * Class representing all system attributes that can be set in an incoming create request json body
  */
-public final class ReqCreateSystem
+public final class ReqPostSystem
 {
   public String id;       // Name of the system
   public String description; // Full description of the system

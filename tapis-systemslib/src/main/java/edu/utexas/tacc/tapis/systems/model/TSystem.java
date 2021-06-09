@@ -95,7 +95,7 @@ public final class TSystem
   public static final JsonObject DEFAULT_NOTES = TapisGsonUtils.getGson().fromJson("{}", JsonObject.class);
   public static final int DEFAULT_PORT = -1;
   public static final boolean DEFAULT_USEPROXY = false;
-  public static final String DEFAULT_PROXYHOST = "";
+  public static final String DEFAULT_PROXYHOST = null;
   public static final int DEFAULT_PROXYPORT = -1;
   public static final int DEFAULT_JOBMAXJOBS = -1;
   public static final int DEFAULT_JOBMAXJOBSPERUSER = -1;

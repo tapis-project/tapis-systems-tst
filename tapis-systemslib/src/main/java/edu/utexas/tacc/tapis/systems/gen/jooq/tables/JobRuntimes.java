@@ -68,7 +68,7 @@ public class JobRuntimes extends TableImpl<JobRuntimesRecord> {
     /**
      * The column <code>tapis_sys.job_runtimes.version</code>.
      */
-    public final TableField<JobRuntimesRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
+    public final TableField<JobRuntimesRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.CLOB, this, "");
 
     private JobRuntimes(Name alias, Table<JobRuntimesRecord> aliased) {
         this(alias, aliased, null);

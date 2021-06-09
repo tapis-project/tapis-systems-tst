@@ -84,7 +84,7 @@ public class Capabilities extends TableImpl<CapabilitiesRecord> {
     /**
      * The column <code>tapis_sys.capabilities.value</code>. Value for the capability
      */
-    public final TableField<CapabilitiesRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "Value for the capability");
+    public final TableField<CapabilitiesRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.CLOB, this, "Value for the capability");
 
     private Capabilities(Name alias, Table<CapabilitiesRecord> aliased) {
         this(alias, aliased, null);
