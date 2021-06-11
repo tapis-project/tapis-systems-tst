@@ -14,6 +14,7 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -59,8 +60,9 @@ import edu.utexas.tacc.tapis.sharedapi.responses.RespChangeCount;
 import edu.utexas.tacc.tapis.sharedapi.responses.RespResourceUrl;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultChangeCount;
 import edu.utexas.tacc.tapis.sharedapi.responses.results.ResultResourceUrl;
-import edu.utexas.tacc.tapis.systems.api.requests.ReqPostSystem;
 import edu.utexas.tacc.tapis.systems.api.requests.ReqPatchSystem;
+import edu.utexas.tacc.tapis.systems.api.requests.ReqPostSystem;
+import edu.utexas.tacc.tapis.systems.api.requests.ReqPutSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystem;
 import edu.utexas.tacc.tapis.systems.api.responses.RespSystems;
 import edu.utexas.tacc.tapis.systems.api.utils.ApiUtils;
@@ -187,6 +189,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
@@ -221,13 +224,13 @@ public class SystemResource
     // If req is null that is an unrecoverable error
     if (req == null)
     {
-      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, "ReqPostSystem == null");
+      msg = ApiUtils.getMsgAuth(CREATE_ERR, authenticatedUser, "N/A", "ReqPostSystem == null");
       _log.error(msg);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
 
     // Create a TSystem from the request
-    TSystem tSystem = createTSystemFromRequest(req, rawJson);
+    TSystem tSystem = createTSystemFromPostRequest(resourceTenantId, req, rawJson);
 
     // Mask any secret info that might be contained in rawJson
     String scrubbedJson = rawJson;
@@ -240,8 +243,7 @@ public class SystemResource
     if (resp != null) return resp;
 
     // ---------------------------- Make service call to create the system -------------------------------
-    // Update tenant name and pull out system name for convenience
-    tSystem.setTenant(authenticatedUser.getTenantId());
+    // Pull out system name for convenience
     String systemId = tSystem.getId();
     try
     {
@@ -294,7 +296,7 @@ public class SystemResource
   }
 
   /**
-   * Update a system
+   * Update selected attributes of a system
    * @param systemId - name of the system
    * @param payloadStream - request body
    * @param securityContext - user identity
@@ -321,6 +323,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
@@ -345,16 +348,23 @@ public class SystemResource
 
     // ------------------------- Create a PatchSystem from the json and validate constraints -------------------------
     ReqPatchSystem req;
-    try {
-      req = TapisGsonUtils.getGson().fromJson(rawJson, ReqPatchSystem.class);
-    }
+    try { req = TapisGsonUtils.getGson().fromJson(rawJson, ReqPatchSystem.class); }
     catch (JsonSyntaxException e)
     {
       msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
-    PatchSystem patchSystem = createPatchSystemFromRequest(req, authenticatedUser.getTenantId(), systemId, rawJson);
+    // If req is null that is an unrecoverable error
+    if (req == null)
+    {
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, opName, "ReqPatchSystem == null");
+      _log.error(msg);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
+    PatchSystem patchSystem = createPatchSystemFromRequest(req, resourceTenantId, systemId, rawJson);
+    if (_log.isTraceEnabled()) _log.trace(ApiUtils.getMsgAuth("SYSAPI_PATCH_TRACE", authenticatedUser, rawJson));
 
     // No attributes are required. Constraints validated and defaults filled in on server side.
     // No secrets in PatchSystem so no need to scrub
@@ -363,6 +373,140 @@ public class SystemResource
     try
     {
       systemsService.updateSystem(authenticatedUser, patchSystem, rawJson);
+    }
+    catch (NotFoundException e)
+    {
+      msg = ApiUtils.getMsgAuth(NOT_FOUND, authenticatedUser, systemId);
+      _log.warn(msg);
+      return Response.status(Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    catch (IllegalStateException e)
+    {
+      if (e.getMessage().contains(LIB_UNAUTH))
+      {
+        // IllegalStateException with msg containing SYS_UNAUTH indicates operation not authorized for apiUser - return 401
+        msg = ApiUtils.getMsgAuth(API_UNAUTH, authenticatedUser, systemId, opName);
+        _log.warn(msg);
+        return Response.status(Status.UNAUTHORIZED).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+      }
+      else
+      {
+        // IllegalStateException indicates an Invalid PatchSystem was passed in
+        msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
+        _log.error(msg);
+        return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+      }
+    }
+    catch (IllegalArgumentException e)
+    {
+      // IllegalArgumentException indicates somehow a bad argument made it this far
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
+      _log.error(msg);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    catch (Exception e)
+    {
+      msg = ApiUtils.getMsgAuth(UPDATE_ERR, authenticatedUser, systemId, opName, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
+    // ---------------------------- Success -------------------------------
+    // Success means updates were applied
+    ResultResourceUrl respUrl = new ResultResourceUrl();
+    respUrl.url = _request.getRequestURL().toString();
+    RespResourceUrl resp1 = new RespResourceUrl(respUrl);
+    return createSuccessResponse(Status.OK, ApiUtils.getMsgAuth(UPDATED, authenticatedUser, systemId, opName), resp1);
+  }
+
+  /**
+   * Update all attributes of a system
+   * @param systemId - name of the system
+   * @param payloadStream - request body
+   * @param securityContext - user identity
+   * @return response containing reference to updated object
+   */
+  @PUT
+  @Path("{systemId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response putSystem(@PathParam("systemId") String systemId,
+                            InputStream payloadStream,
+                            @Context SecurityContext securityContext)
+  {
+    String opName = "putSystem";
+    // Trace this request.
+    if (_log.isTraceEnabled()) logRequest(opName);
+
+    // ------------------------- Retrieve and validate thread context -------------------------
+    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
+    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Utility method returns null if all OK and appropriate error response if there was a problem.
+    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
+    if (resp != null) return resp;
+
+    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
+    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
+
+    // ------------------------- Extract and validate payload -------------------------
+    // Read the payload into a string.
+    String rawJson;
+    String msg;
+    try { rawJson = IOUtils.toString(payloadStream, StandardCharsets.UTF_8); }
+    catch (Exception e)
+    {
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName , e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    // Create validator specification and validate the json against the schema
+    // NOTE that CREATE and PUT use same request body.
+    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_CREATE_REQUEST);
+    try { JsonValidator.validate(spec); }
+    catch (TapisJSONException e)
+    {
+      msg = MsgUtils.getMsg(JSON_VALIDATION_ERR, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
+    // ------------------------- Create a System from the json and validate constraints -------------------------
+    ReqPutSystem req;
+    try { req = TapisGsonUtils.getGson().fromJson(rawJson, ReqPutSystem.class); }
+    catch (JsonSyntaxException e)
+    {
+      msg = MsgUtils.getMsg(INVALID_JSON_INPUT, opName, e.getMessage());
+      _log.error(msg, e);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+    // If req is null that is an unrecoverable error
+    if (req == null)
+    {
+      msg = ApiUtils.getMsgAuth("SYSAPI_UPDATE_ERROR", authenticatedUser, systemId, opName, "ReqPutSystem == null");
+      _log.error(msg);
+      return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
+    }
+
+    // Create a TSystem from the request
+    TSystem putSystem = createTSystemFromPutRequest(resourceTenantId, systemId, req, rawJson);
+
+    // Mask any secret info that might be contained in rawJson
+    String scrubbedJson = rawJson;
+    if (putSystem.getAuthnCredential() != null) scrubbedJson = maskCredSecrets(rawJson);
+    if (_log.isTraceEnabled()) _log.trace(ApiUtils.getMsgAuth("SYSAPI_PUT_TRACE", authenticatedUser, scrubbedJson));
+
+// TODO/TBD: this is a PUT that should replace all attributes so we do not set any defaults or validate
+    // Fill in defaults and check constraints on TSystem attributes
+//    putSystem = TSystem.setDefaults(putSystem);
+// TODO/TBD we do not have all the Tapis System attributes yet so we cannot validate it
+//    resp = validateTSystem(putSystem, authenticatedUser);
+//    if (resp != null) return resp;
+
+    // ---------------------------- Make service call to update the system -------------------------------
+    try
+    {
+      systemsService.putSystem(authenticatedUser, putSystem, scrubbedJson);
     }
     catch (NotFoundException e)
     {
@@ -521,6 +665,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // Check that authnMethodStr is valid if is passed in
     AuthnMethod authnMethod = null;
@@ -537,7 +682,7 @@ public class SystemResource
     TSystem tSystem;
     try
     {
-      tSystem = systemsService.getSystem(authenticatedUser, systemId, getCreds, authnMethod, requireExecPerm);
+      tSystem = systemsService.getSystem(authenticatedUser, resourceTenantId, systemId, getCreds, authnMethod, requireExecPerm);
     }
     catch (Exception e)
     {
@@ -584,11 +729,12 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     boolean isEnabled;
     try
     {
-      isEnabled = systemsService.isEnabled(authenticatedUser, sysId);
+      isEnabled = systemsService.isEnabled(authenticatedUser, resourceTenantId, sysId);
     }
     catch (NotFoundException e)
     {
@@ -638,6 +784,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ThreadContext designed to never return null for SearchParameters
     SearchParameters srchParms = threadContext.getSearchParameters();
@@ -646,7 +793,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, null, srchParms, showDeleted);
+      successResponse = getSearchResponse(authenticatedUser, resourceTenantId, null, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -683,6 +830,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // Create search list based on query parameters
     // Note that some validation is done for each condition but the back end will handle translating LIKE wildcard
@@ -707,7 +855,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, null, srchParms, showDeleted);
+      successResponse = getSearchResponse(authenticatedUser, resourceTenantId, null, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -749,6 +897,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Extract and validate payload -------------------------
     // Read the payload into a string.
@@ -793,7 +942,7 @@ public class SystemResource
     Response successResponse;
     try
     {
-      successResponse = getSearchResponse(authenticatedUser, sqlSearchStr, srchParms, showDeleted);
+      successResponse = getSearchResponse(authenticatedUser, resourceTenantId, sqlSearchStr, srchParms, showDeleted);
     }
     catch (Exception e)
     {
@@ -833,6 +982,7 @@ public class SystemResource
 //
 //    // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
 //    AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+//    String resourceTenantId = authenticatedUser.getOboTenantId();
 //
 //    // ------------------------- Extract and validate payload -------------------------
 //    // Read the payload into a string.
@@ -918,6 +1068,7 @@ public class SystemResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ---------------------------- Make service call to update the system -------------------------------
     int changeCount;
@@ -925,15 +1076,15 @@ public class SystemResource
     try
     {
       if (OP_ENABLE.equals(opName))
-        changeCount = systemsService.enableSystem(authenticatedUser, systemId);
+        changeCount = systemsService.enableSystem(authenticatedUser, resourceTenantId, systemId);
       else if (OP_DISABLE.equals(opName))
-        changeCount = systemsService.disableSystem(authenticatedUser, systemId);
+        changeCount = systemsService.disableSystem(authenticatedUser, resourceTenantId, systemId);
       else if (OP_DELETE.equals(opName))
-        changeCount = systemsService.deleteSystem(authenticatedUser, systemId);
+        changeCount = systemsService.deleteSystem(authenticatedUser, resourceTenantId, systemId);
       else if (OP_UNDELETE.equals(opName))
-        changeCount = systemsService.undeleteSystem(authenticatedUser, systemId);
+        changeCount = systemsService.undeleteSystem(authenticatedUser, resourceTenantId, systemId);
       else
-        changeCount = systemsService.changeSystemOwner(authenticatedUser, systemId, userName);
+        changeCount = systemsService.changeSystemOwner(authenticatedUser, resourceTenantId, systemId, userName);
     }
     catch (NotFoundException e)
     {
@@ -984,14 +1135,14 @@ public class SystemResource
   /**
    * Create a TSystem from a ReqPostSystem
    */
-  private static TSystem createTSystemFromRequest(ReqPostSystem req, String rawJson)
+  private static TSystem createTSystemFromPostRequest(String tenantId, ReqPostSystem req, String rawJson)
   {
     // Convert jobEnvVariables to array of strings
     String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
 
-    var tSystem = new TSystem(-1, null, req.id, req.description, req.systemType, req.owner, req.host,
+    var tSystem = new TSystem(-1, tenantId, req.id, req.description, req.systemType, req.owner, req.host,
                        req.enabled, req.effectiveUserId, req.defaultAuthnMethod, req.bucketName, req.rootDir,
                        req.port, req.useProxy, req.proxyHost, req.proxyPort,
                        req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, req.isDtn, req.canExec, req.jobWorkingDir,
@@ -1005,10 +1156,41 @@ public class SystemResource
   }
 
   /**
+   * Create a TSystem from a ReqPutSystem
+   */
+  private static TSystem createTSystemFromPutRequest(String tenantId, String systemId, ReqPutSystem req, String rawJson)
+  {
+    // Convert jobEnvVariables to array of strings
+    String[] jobEnvVariables = ApiUtils.getKeyValuesAsArray(req.jobEnvVariables);
+    // Extract Notes from the raw json.
+    Object notes = extractNotes(rawJson);
+
+    // TODO/TBD: Following values are not updatable and must be filled in on service side.
+    TSystem.SystemType systemType = null;
+    String owner = null;
+    boolean enabled = true;
+    String bucketName = null;
+    String rootDir = null;
+    boolean isDtn = false;
+    boolean canExec = true;
+    var tSystem = new TSystem(-1, tenantId, systemId, req.description, systemType, owner, req.host,
+            enabled, req.effectiveUserId, req.defaultAuthnMethod, bucketName, rootDir,
+            req.port, req.useProxy, req.proxyHost, req.proxyPort,
+            req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath, isDtn, canExec, req.jobWorkingDir,
+            jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser, req.jobIsBatch, req.batchScheduler,
+            req.batchDefaultLogicalQueue, req.tags, notes, null, false, null, null);
+    tSystem.setAuthnCredential(req.authnCredential);
+    tSystem.setBatchLogicalQueues(req.batchLogicalQueues);
+    tSystem.setJobRuntimes(req.jobRuntimes);
+    tSystem.setJobCapabilities(req.jobCapabilities);
+    return tSystem;
+  }
+
+  /**
    * Create a PatchSystem from a ReqPatchSystem
    * Note that tenant and id are for tracking and needed by the service call. They are not updated.
    */
-  private static PatchSystem createPatchSystemFromRequest(ReqPatchSystem req, String tenantName, String systemId,
+  private static PatchSystem createPatchSystemFromRequest(ReqPatchSystem req, String tenantId, String systemId,
                                                           String rawJson)
   {
     // Convert jobEnvVariables to array of strings
@@ -1017,16 +1199,12 @@ public class SystemResource
     // Extract Notes from the raw json.
     Object notes = extractNotes(rawJson);
 
-    PatchSystem patchSystem = new PatchSystem(req.description, req.host, req.effectiveUserId,
+    return new PatchSystem(tenantId, systemId, req.description, req.host, req.effectiveUserId,
                            req.defaultAuthnMethod, req.port, req.useProxy,
                            req.proxyHost, req.proxyPort, req.dtnSystemId, req.dtnMountPoint, req.dtnMountSourcePath,
                            req.jobRuntimes, req.jobWorkingDir, jobEnvVariables, req.jobMaxJobs, req.jobMaxJobsPerUser,
                            req.jobIsBatch, req.batchScheduler, req.batchLogicalQueues, req.batchDefaultLogicalQueue,
                            req.jobCapabilities, req.tags, notes);
-    // Update tenant name and system name
-    patchSystem.setTenant(tenantName);
-    patchSystem.setId(systemId);
-    return patchSystem;
   }
 
   /**
@@ -1053,7 +1231,8 @@ public class SystemResource
       TSystem dtnSystem = null;
       try
       {
-        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getDtnSystemId(), false, null, false);
+        dtnSystem = systemsService.getSystem(authenticatedUser, tSystem1.getTenant(), tSystem1.getDtnSystemId(), false,
+                                             null, false);
       }
       catch (NotAuthorizedException e)
       {
@@ -1162,7 +1341,7 @@ public class SystemResource
    *  srchParms must be non-null
    *  One of srchParms.searchList or sqlSearchStr must be non-null
    */
-  private Response getSearchResponse(AuthenticatedUser authenticatedUser, String sqlSearchStr,
+  private Response getSearchResponse(AuthenticatedUser authenticatedUser, String resourceTenantId, String sqlSearchStr,
                                      SearchParameters srchParms, boolean showDeleted)
           throws Exception
   {
@@ -1185,11 +1364,11 @@ public class SystemResource
     List<OrderBy> orderByList = srchParms.getOrderByList();
 
     if (StringUtils.isBlank(sqlSearchStr))
-      systems = systemsService.getSystems(authenticatedUser, searchList, limit, orderByList, skip, startAfter,
-                                          showDeleted);
+      systems = systemsService.getSystems(authenticatedUser, resourceTenantId, searchList, limit, orderByList, skip,
+                                          startAfter, showDeleted);
     else
-      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, sqlSearchStr, limit, orderByList, skip,
-                                                           startAfter, showDeleted);
+      systems = systemsService.getSystemsUsingSqlSearchStr(authenticatedUser, resourceTenantId, sqlSearchStr, limit,
+                                                           orderByList, skip, startAfter, showDeleted);
     if (systems == null) systems = Collections.emptyList();
     itemCountStr = String.format(SYS_CNT_STR, systems.size());
     if (computeTotal && limit <= 0) totalCount = systems.size();
@@ -1197,8 +1376,8 @@ public class SystemResource
     // If we need the count and there was a limit then we need to make a call
     if (computeTotal && limit > 0)
     {
-      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, searchList, orderByList, startAfter,
-                                                       showDeleted);
+      totalCount = systemsService.getSystemsTotalCount(authenticatedUser, resourceTenantId, searchList, orderByList,
+                                                       startAfter, showDeleted);
     }
 
     // ---------------------------- Success -------------------------------

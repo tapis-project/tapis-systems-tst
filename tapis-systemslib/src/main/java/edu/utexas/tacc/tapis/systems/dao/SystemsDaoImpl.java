@@ -198,7 +198,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
-   * Update an existing system.
+   * Update selected attributes of an existing system.
    * Following columns will be updated:
    *   description, host, effectiveUserId, defaultAuthnMethod,
    *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
@@ -317,16 +317,134 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * Update all updatable attributes of an existing system.
+   * Following columns will be updated:
+   *   description, host, effectiveUserId, defaultAuthnMethod,
+   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
+   * @throws TapisException - on error
+   * @throws IllegalStateException - if system already exists
+   */
+  @Override
+  public void putSystem(AuthenticatedUser authenticatedUser, TSystem putSystem, String updateJsonStr,
+                        String scrubbedText)
+          throws TapisException, IllegalStateException {
+    String opName = "putSystem";
+//    // ------------------------- Check Input -------------------------
+//    if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
+//    if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
+//    if (authenticatedUser == null) LibUtils.logAndThrowNullParmException(opName, "authenticatedUser");
+//    // Pull out some values for convenience
+//    String tenant = patchedSystem.getTenant();
+//    String systemId = patchedSystem.getId();
+//    if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
+//    if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
+//    if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
+//    if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
+//
+//    // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
+//    String proxyHost = TSystem.DEFAULT_PROXYHOST;
+//    if (patchedSystem.getProxyHost() != null) proxyHost = patchedSystem.getProxyHost();
+//
+//    // Make sure effectiveUserId, jobEnvVariables, notes and tags are all set
+//    String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
+//    if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
+//
+//    String[] jobEnvVariablesStrArray = TSystem.EMPTY_STR_ARRAY;
+//    if (patchedSystem.getJobEnvVariables() != null) jobEnvVariablesStrArray = patchedSystem.getJobEnvVariables();
+//
+//    String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
+//    if (patchedSystem.getTags() != null) tagsStrArray = patchedSystem.getTags();
+//    JsonObject notesObj =  TSystem.DEFAULT_NOTES;
+//    if (patchedSystem.getNotes() != null) notesObj = (JsonObject) patchedSystem.getNotes();
+//
+//    // ------------------------- Call SQL ----------------------------
+//    Connection conn = null;
+//    try
+//    {
+//      // Get a database connection.
+//      conn = getConnection();
+//      DSLContext db = DSL.using(conn);
+//
+//      // Make sure system exists and has not been deleted.
+//      boolean doesExist = checkForSystem(db, tenant, systemId, false);
+//      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+//
+//
+//      int seqId = db.update(SYSTEMS)
+//              .set(SYSTEMS.DESCRIPTION, patchedSystem.getDescription())
+//              .set(SYSTEMS.HOST, patchedSystem.getHost())
+//              .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
+//              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
+//              .set(SYSTEMS.PORT, patchedSystem.getPort())
+//              .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
+//              .set(SYSTEMS.PROXY_HOST, proxyHost)
+//              .set(SYSTEMS.PROXY_PORT, patchedSystem.getProxyPort())
+//              .set(SYSTEMS.DTN_SYSTEM_ID, patchedSystem.getDtnSystemId())
+//              .set(SYSTEMS.DTN_MOUNT_POINT, patchedSystem.getDtnMountPoint())
+//              .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, patchedSystem.getDtnMountSourcePath())
+//              .set(SYSTEMS.JOB_WORKING_DIR, patchedSystem.getJobWorkingDir())
+//              .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariablesStrArray)
+//              .set(SYSTEMS.JOB_MAX_JOBS, patchedSystem.getJobMaxJobs())
+//              .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, patchedSystem.getJobMaxJobsPerUser())
+//              .set(SYSTEMS.JOB_IS_BATCH, patchedSystem.getJobIsBatch())
+//              .set(SYSTEMS.BATCH_SCHEDULER, patchedSystem.getBatchScheduler())
+//              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
+//              .set(SYSTEMS.TAGS, tagsStrArray)
+//              .set(SYSTEMS.NOTES, notesObj)
+//              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+//              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
+//              .returningResult(SYSTEMS.SEQ_ID)
+//              .fetchOne().getValue(SYSTEMS.SEQ_ID);
+//
+//      // If jobRuntimes updated then replace them
+//      if (patchSystem.getJobRuntimes() != null) {
+//        db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistJobRuntimes(db, patchedSystem, seqId);
+//      }
+//
+//      // If batchLogicalQueues updated then replace them
+//      if (patchSystem.getBatchLogicalQueues() != null) {
+//        db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistLogicalQueues(db, patchedSystem, seqId);
+//      }
+//
+//      // If jobCapabilities updated then replace them
+//      if (patchSystem.getJobCapabilities() != null) {
+//        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+//        persistJobCapabilities(db, patchedSystem, seqId);
+//      }
+//
+//      // Persist update record
+//      addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
+//              patchedSystem.getUuid());
+//
+//      // Close out and commit
+//      LibUtils.closeAndCommitDB(conn, null, null);
+//    }
+//    catch (Exception e)
+//    {
+//      // Rollback transaction and throw an exception
+//      LibUtils.rollbackDB(conn, e,"DB_INSERT_FAILURE", "systems");
+//    }
+//    finally
+//    {
+//      // Always return the connection back to the connection pool.
+//      LibUtils.finalCloseDB(conn);
+//    }
+  }
+
+  /**
    * Update attribute enabled for a system given system Id and value
    */
   @Override
-  public void updateEnabled(AuthenticatedUser authenticatedUser, String id, boolean enabled) throws TapisException
+  public void updateEnabled(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean enabled)
+          throws TapisException
   {
     String opName = "updateEnabled";
     // ------------------------- Check Input -------------------------
     if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
-
-    String tenant = authenticatedUser.getOboTenantId();
 
     // SystemOperation needed for recording the update
     SystemOperation systemOp = enabled ? SystemOperation.enable : SystemOperation.disable;
@@ -341,11 +459,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       db.update(SYSTEMS)
               .set(SYSTEMS.ENABLED, enabled)
               .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+              .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = "{\"enabled\":" +  enabled + "}";
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
-                getUUIDUsingDb(db, tenant, id));
+      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+                getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
@@ -365,13 +483,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Update attribute deleted for a system given system Id and value
    */
   @Override
-  public void updateDeleted(AuthenticatedUser authenticatedUser, String id, boolean deleted) throws TapisException
+  public void updateDeleted(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean deleted)
+          throws TapisException
   {
     String opName = "updateDeleted";
     // ------------------------- Check Input -------------------------
     if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
-
-    String tenant = authenticatedUser.getOboTenantId();
 
     // Operation needed for recording the update
     SystemOperation systemOp = deleted ? SystemOperation.delete : SystemOperation.undelete;
@@ -386,11 +503,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       db.update(SYSTEMS)
               .set(SYSTEMS.DELETED, deleted)
               .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+              .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = "{\"deleted\":" +  deleted + "}";
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
-              getUUIDUsingDb(db, tenant, id));
+      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+              getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
@@ -411,14 +528,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *
    */
   @Override
-  public void updateSystemOwner(AuthenticatedUser authenticatedUser, String id, String newOwnerName) throws TapisException
+  public void updateSystemOwner(AuthenticatedUser authenticatedUser, String tenantId, String id, String newOwnerName)
+          throws TapisException
   {
     String opName = "changeOwner";
     // ------------------------- Check Input -------------------------
     if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "systemId");
     if (StringUtils.isBlank(newOwnerName)) LibUtils.logAndThrowNullParmException(opName, "newOwnerName");
-
-    String tenant = authenticatedUser.getOboTenantId();
 
     // ------------------------- Call SQL ----------------------------
     Connection conn = null;
@@ -430,11 +546,11 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       db.update(SYSTEMS)
               .set(SYSTEMS.OWNER, newOwnerName)
               .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+              .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = TapisGsonUtils.getGson().toJson(newOwnerName);
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
-                getUUIDUsingDb(db, tenant, id));
+      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
+                getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
@@ -454,12 +570,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Hard delete a system record given the system name.
    */
   @Override
-  public int hardDeleteSystem(String tenant, String id) throws TapisException
+  public int hardDeleteSystem(String tenantId, String id) throws TapisException
   {
     String opName = "hardDeleteSystem";
     int rows = -1;
     // ------------------------- Check Input -------------------------
-    if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
+    if (StringUtils.isBlank(tenantId)) LibUtils.logAndThrowNullParmException(opName, "tenant");
     if (StringUtils.isBlank(id)) LibUtils.logAndThrowNullParmException(opName, "name");
 
     // ------------------------- Call SQL ----------------------------
@@ -468,7 +584,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     {
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      db.deleteFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).execute();
+      db.deleteFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       LibUtils.closeAndCommitDB(conn, null, null);
     }
     catch (Exception e)
@@ -543,7 +659,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public boolean checkForSystem(String tenant, String id, boolean includeDeleted) throws TapisException {
+  public boolean checkForSystem(String tenantId, String id, boolean includeDeleted) throws TapisException {
     // Initialize result.
     boolean result = false;
 
@@ -555,14 +671,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       conn = getConnection();
       DSLContext db = DSL.using(conn);
       // Run the sql
-      result = checkForSystem(db, tenant, id, includeDeleted);
+      result = checkForSystem(db, tenantId, id, includeDeleted);
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
     }
     catch (Exception e)
     {
       // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenant, id, e.getMessage());
+      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenantId, id, e.getMessage());
     }
     finally
     {
@@ -579,7 +695,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public boolean isEnabled(String tenant, String sysId) throws TapisException {
+  public boolean isEnabled(String tenantId, String sysId) throws TapisException {
     // Initialize result.
     boolean result = false;
     // ------------------------- Call SQL ----------------------------
@@ -591,7 +707,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       DSLContext db = DSL.using(conn);
       // Run the sql
       Boolean b = db.selectFrom(SYSTEMS)
-              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(sysId),SYSTEMS.DELETED.eq(false))
+              .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(sysId),SYSTEMS.DELETED.eq(false))
               .fetchOne(SYSTEMS.ENABLED);
       if (b != null) result = b;
       // Close out and commit
@@ -600,7 +716,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     catch (Exception e)
     {
       // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenant, sysId, e.getMessage());
+      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenantId, sysId, e.getMessage());
     }
     finally
     {
@@ -617,9 +733,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id) throws TapisException
+  public TSystem getSystem(String tenantId, String id) throws TapisException
   {
-    return getSystem(tenant, id, false);
+    return getSystem(tenantId, id, false);
   }
 
   /**
@@ -629,7 +745,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public TSystem getSystem(String tenant, String id, boolean includeDeleted)
+  public TSystem getSystem(String tenantId, String id, boolean includeDeleted)
           throws TapisException {
     // Initialize result.
     TSystem result = null;
@@ -643,9 +759,9 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       DSLContext db = DSL.using(conn);
       SystemsRecord r;
       if (includeDeleted)
-        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne();
+        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne();
       else
-        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false)).fetchOne();
+        r = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false)).fetchOne();
       if (r == null) return null;
       else result = r.into(TSystem.class);
 
@@ -667,7 +783,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     catch (Exception e)
     {
       // Rollback transaction and throw an exception
-      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenant, id, e.getMessage());
+      LibUtils.rollbackDB(conn, e,"DB_SELECT_NAME_ERROR", "System", tenantId, id, e.getMessage());
     }
     finally
     {
@@ -684,7 +800,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
    * WARNING: If both searchList and searchAST provided only searchList is used.
-   * @param tenant - tenant name
+   * @param tenantId - tenant name
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
@@ -695,7 +811,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
+  public int getSystemsCount(String tenantId, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
                              List<OrderBy> orderByList, String startAfter, boolean showDeleted)
           throws TapisException
   {
@@ -741,8 +857,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     // Begin where condition for the query
     Condition whereCondition;
-    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenant);
-    else whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenantId);
+    else whereCondition = (SYSTEMS.TENANT.eq(tenantId)).and(SYSTEMS.DELETED.eq(false));
 
     // Add searchList or searchAST to where condition
     if (searchList != null)
@@ -803,7 +919,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Conditions in searchList must be processed by SearchUtils.validateAndExtractSearchCondition(cond)
    *   prior to this call for proper validation and treatment of special characters.
    * WARNING: If both searchList and searchAST provided only searchList is used.
-   * @param tenant - tenant name
+   * @param tenantId - tenant name
    * @param searchList - optional list of conditions used for searching
    * @param searchAST - AST containing search conditions
    * @param setOfIDs - list of system IDs to consider. null indicates no restriction.
@@ -816,7 +932,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
+  public List<TSystem> getSystems(String tenantId, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
                              int limit, List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException
   {
@@ -868,8 +984,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
     // Begin where condition for the query
     Condition whereCondition;
-    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenant);
-    else whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+    if (showDeleted) whereCondition = SYSTEMS.TENANT.eq(tenantId);
+    else whereCondition = (SYSTEMS.TENANT.eq(tenantId)).and(SYSTEMS.DELETED.eq(false));
 
     // Add searchList or searchAST to where condition
     if (searchList != null)
@@ -965,14 +1081,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * getSystemsSatisfyingConstraints
    * Retrieve all TSystems satisfying capability constraint criteria.
    *     Constraint criteria conditions provided as an abstract syntax tree (AST).
-   * @param tenant - tenant name
+   * @param tenantId - tenant name
    * @param matchAST - AST containing match conditions. If null then nothing matches.
    * @param setOfIDs - list of system IDs to consider. If null all allowed. If empty none allowed.
    * @return - list of TSystem objects
    * @throws TapisException - on error
    */
   @Override
-  public List<TSystem> getSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs)
+  public List<TSystem> getSystemsSatisfyingConstraints(String tenantId, ASTNode matchAST, Set<String> setOfIDs)
           throws TapisException
   {
     // TODO: might be possible to optimize this method with a join between systems and capabilities tables.
@@ -1005,7 +1121,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (setOfIDs == null) allowedIDs = null; //TODO getAllSystemSeqIdsInTenant(db, tenant); still needed?
 
       // Get all Systems that specify they support the desired Capabilities
-      systemsList = getSystemsHavingCapabilities(db, tenant, capabilitiesInAST, allowedIDs);
+      systemsList = getSystemsHavingCapabilities(db, tenantId, capabilitiesInAST, allowedIDs);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1035,13 +1151,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
   /**
    * getSystemOwner
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param id - name of system
    * @return Owner or null if no system found
    * @throws TapisException - on error
    */
   @Override
-  public String getSystemOwner(String tenant, String id) throws TapisException
+  public String getSystemOwner(String tenantId, String id) throws TapisException
   {
     String owner = null;
     // ------------------------- Call SQL ----------------------------
@@ -1051,7 +1167,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      owner = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.OWNER);
+      owner = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.OWNER);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1071,13 +1187,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
   /**
    * getSystemEffectiveUserId
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param id - name of system
    * @return EffectiveUserId or null if no system found
    * @throws TapisException - on error
    */
   @Override
-  public String getSystemEffectiveUserId(String tenant, String id) throws TapisException
+  public String getSystemEffectiveUserId(String tenantId, String id) throws TapisException
   {
     String effectiveUserId = null;
 
@@ -1088,7 +1204,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      effectiveUserId = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.EFFECTIVE_USER_ID);
+      effectiveUserId = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.EFFECTIVE_USER_ID);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1108,13 +1224,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
   /**
    * getSystemDefaultAuthnMethod
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param id - name of system
    * @return Default AuthnMethod or null if no system found
    * @throws TapisException - on error
    */
   @Override
-  public AuthnMethod getSystemDefaultAuthnMethod(String tenant, String id) throws TapisException
+  public AuthnMethod getSystemDefaultAuthnMethod(String tenantId, String id) throws TapisException
   {
     AuthnMethod authnMethod = null;
     // ------------------------- Call SQL ----------------------------
@@ -1124,7 +1240,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      authnMethod = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.DEFAULT_AUTHN_METHOD);
+      authnMethod = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.DEFAULT_AUTHN_METHOD);
 
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1187,25 +1303,25 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *
    * @param db - Database connection
    * @param authenticatedUser - User who requested the update
-   * @param tenant - Tenant of the system being updated
+   * @param tenantId - Tenant of the system being updated
    * @param id - Id of the system being updated
    * @param seqId - Sequence Id of system being updated
    * @param op - Operation, such as create, modify, etc.
    * @param upd_json - JSON representing the update - with secrets scrubbed
    * @param upd_text - Text data supplied by client - secrets should be scrubbed
    */
-  private void addUpdate(DSLContext db, AuthenticatedUser authenticatedUser, String tenant, String id, int seqId,
+  private void addUpdate(DSLContext db, AuthenticatedUser authenticatedUser, String tenantId, String id, int seqId,
                          SystemOperation op, String upd_json, String upd_text, UUID uuid)
   {
     String updJsonStr = (StringUtils.isBlank(upd_json)) ? EMPTY_JSON : upd_json;
     if (seqId < 1)
     {
-      seqId = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.SEQ_ID);
+      seqId = db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.SEQ_ID);
     }
     // Persist update record
     db.insertInto(SYSTEM_UPDATES)
             .set(SYSTEM_UPDATES.SYSTEM_SEQ_ID, seqId)
-            .set(SYSTEM_UPDATES.SYSTEM_TENANT, tenant)
+            .set(SYSTEM_UPDATES.SYSTEM_TENANT, tenantId)
             .set(SYSTEM_UPDATES.SYSTEM_ID, id)
             .set(SYSTEM_UPDATES.USER_TENANT, authenticatedUser.getOboTenantId())
             .set(SYSTEM_UPDATES.USER_NAME, authenticatedUser.getOboUser())
@@ -1219,15 +1335,15 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Given an sql connection check to see if specified system exists and has/has not been deleted
    * @param db - jooq context
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param id - name of system
    * @param includeDeleted -if deleted systems should be included
    * @return - true if system exists, else false
    */
-  private static boolean checkForSystem(DSLContext db, String tenant, String id, boolean includeDeleted)
+  private static boolean checkForSystem(DSLContext db, String tenantId, String id, boolean includeDeleted)
   {
-    if (includeDeleted) return db.fetchExists(SYSTEMS,SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id));
-    else return db.fetchExists(SYSTEMS,SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false));
+    if (includeDeleted) return db.fetchExists(SYSTEMS,SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id));
+    else return db.fetchExists(SYSTEMS,SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id),SYSTEMS.DELETED.eq(false));
   }
 
   /**
@@ -1333,14 +1449,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Get all system sequence IDs for specified tenant
    * @param db - DB connection
-   * @param tenant - tenant name
+   * @param tenantId - tenant name
    * @return list of sequence IDs
    */
-  private static List<Integer> getAllSystemSeqIdsInTenant(DSLContext db, String tenant)
+  private static List<Integer> getAllSystemSeqIdsInTenant(DSLContext db, String tenantId)
   {
     List<Integer> retList = new ArrayList<>();
-    if (db == null || StringUtils.isBlank(tenant)) return retList;
-    retList = db.select(SYSTEMS.SEQ_ID).from(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant)).fetchInto(Integer.class);
+    if (db == null || StringUtils.isBlank(tenantId)) return retList;
+    retList = db.select(SYSTEMS.SEQ_ID).from(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId)).fetchInto(Integer.class);
     return retList;
   }
 
@@ -1758,13 +1874,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   /**
    * Given an sql connection retrieve the system uuid.
    * @param db - jooq context
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param id - Id of system
    * @return - uuid
    */
-  private static UUID getUUIDUsingDb(DSLContext db, String tenant, String id)
+  private static UUID getUUIDUsingDb(DSLContext db, String tenantId, String id)
   {
-    return db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.UUID);
+    return db.selectFrom(SYSTEMS).where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).fetchOne(SYSTEMS.UUID);
   }
 
 
@@ -1772,19 +1888,19 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Given an sql connection, a tenant, a list of Category names and a list of system IDs to consider,
    *   fetch all systems that have a Capability matching a category, name.
    * @param db - jooq context
-   * @param tenant - name of tenant
+   * @param tenantId - name of tenant
    * @param capabilityList - list of Capabilities from AST (category, name)
    * @param allowedIDs - list of system IDs to consider.
    * @return - true if system exists, else false
    */
-  private static List<TSystem> getSystemsHavingCapabilities(DSLContext db, String tenant, List<Capability> capabilityList,
+  private static List<TSystem> getSystemsHavingCapabilities(DSLContext db, String tenantId, List<Capability> capabilityList,
                                                             Set<String> allowedIDs)
   {
     List<TSystem> retList = new ArrayList<>();
     if (allowedIDs == null || allowedIDs.isEmpty()) return retList;
 
     // Begin where condition for the query
-    Condition whereCondition = (SYSTEMS.TENANT.eq(tenant)).and(SYSTEMS.DELETED.eq(false));
+    Condition whereCondition = (SYSTEMS.TENANT.eq(tenantId)).and(SYSTEMS.DELETED.eq(false));
 
     Field catCol = CAPABILITIES.CATEGORY;
     Field nameCol = CAPABILITIES.NAME;

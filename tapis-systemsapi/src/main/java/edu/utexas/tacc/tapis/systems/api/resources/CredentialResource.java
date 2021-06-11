@@ -133,10 +133,11 @@ public class CredentialResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "createUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemName, PRETTY, "createUserCredential");
     if (resp != null) return resp;
 
     // ------------------------- Extract and validate payload -------------------------
@@ -187,7 +188,7 @@ public class CredentialResource
     // Make the service call to create or update the credential
     try
     {
-      systemsService.createUserCredential(authenticatedUser, systemName, userName, credential, updateJsonStr);
+      systemsService.createUserCredential(authenticatedUser, resourceTenantId, systemName, userName, credential, updateJsonStr);
     }
     catch (Exception e)
     {
@@ -236,10 +237,11 @@ public class CredentialResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "getUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemName, PRETTY, "getUserCredential");
     if (resp != null) return resp;
 
     // Check that authnMethodStr is valid if it is passed in
@@ -255,7 +257,7 @@ public class CredentialResource
     // ------------------------- Perform the operation -------------------------
     // Make the service call to get the credentials
     Credential credential;
-    try { credential = systemsService.getUserCredential(authenticatedUser, systemName, userName, authnMethod); }
+    try { credential = systemsService.getUserCredential(authenticatedUser, resourceTenantId, systemName, userName, authnMethod); }
     catch (Exception e)
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_CRED_ERROR", authenticatedUser, systemName, userName, e.getMessage());
@@ -308,17 +310,18 @@ public class CredentialResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemName, PRETTY, "removeUserCredential");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemName, PRETTY, "removeUserCredential");
     if (resp != null) return resp;
 
     // ------------------------- Perform the operation -------------------------
     // Make the service call to remove the credential
     try
     {
-      systemsService.deleteUserCredential(authenticatedUser, systemName, userName);
+      systemsService.deleteUserCredential(authenticatedUser, resourceTenantId, systemName, userName);
     }
     catch (Exception e)
     {

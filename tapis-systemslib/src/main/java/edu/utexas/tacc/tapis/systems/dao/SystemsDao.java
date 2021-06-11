@@ -17,45 +17,48 @@ public interface SystemsDao
   boolean createSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
+  void putSystem(AuthenticatedUser authenticatedUser, TSystem putSystem, String updateJsonStr, String scrubbedText)
+          throws TapisException, IllegalStateException;
+
   void updateSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
                     String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void updateSystemOwner(AuthenticatedUser authenticatedUser, String id, String newOwnerName) throws TapisException;
+  void updateSystemOwner(AuthenticatedUser authenticatedUser, String tenantId, String id, String newOwnerName) throws TapisException;
 
-  void updateEnabled(AuthenticatedUser authenticatedUser, String id, boolean enabled) throws TapisException;
+  void updateEnabled(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean enabled) throws TapisException;
 
-  void updateDeleted(AuthenticatedUser authenticatedUser, String id, boolean deleted) throws TapisException;
+  void updateDeleted(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean deleted) throws TapisException;
 
-  void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenant, String id, SystemOperation op,
+  void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenantId, String id, SystemOperation op,
                        String upd_json, String upd_text) throws TapisException;
 
-  int hardDeleteSystem(String tenant, String id) throws TapisException;
+  int hardDeleteSystem(String tenantId, String id) throws TapisException;
 
   Exception checkDB();
 
   void migrateDB() throws TapisException;
 
-  boolean checkForSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
+  boolean checkForSystem(String tenantId, String id, boolean includeDeleted) throws TapisException;
 
-  boolean isEnabled(String tenant, String id) throws TapisException;
+  boolean isEnabled(String tenantId, String id) throws TapisException;
 
-  TSystem getSystem(String tenant, String id) throws TapisException;
+  TSystem getSystem(String tenantId, String id) throws TapisException;
 
-  TSystem getSystem(String tenant, String id, boolean includeDeleted) throws TapisException;
+  TSystem getSystem(String tenantId, String id, boolean includeDeleted) throws TapisException;
 
-  int getSystemsCount(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
+  int getSystemsCount(String tenantId, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs,
                       List<OrderBy> orderByList, String startAfter, boolean showDeleted) throws TapisException;
 
-  List<TSystem> getSystems(String tenant, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
+  List<TSystem> getSystems(String tenantId, List<String> searchList, ASTNode searchAST, Set<String> setOfIDs, int limit,
                            List<OrderBy> orderByList, int skip, String startAfter, boolean showDeleted)
           throws TapisException;
 
-  List<TSystem> getSystemsSatisfyingConstraints(String tenant, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;
+  List<TSystem> getSystemsSatisfyingConstraints(String tenantId, ASTNode matchAST, Set<String> setOfIDs) throws TapisException;
 
-  String getSystemOwner(String tenant, String id) throws TapisException;
+  String getSystemOwner(String tenantId, String id) throws TapisException;
 
-  String getSystemEffectiveUserId(String tenant, String id) throws TapisException;
+  String getSystemEffectiveUserId(String tenantId, String id) throws TapisException;
 
-  AuthnMethod getSystemDefaultAuthnMethod(String tenant, String id) throws TapisException;
+  AuthnMethod getSystemDefaultAuthnMethod(String tenantId, String id) throws TapisException;
 }

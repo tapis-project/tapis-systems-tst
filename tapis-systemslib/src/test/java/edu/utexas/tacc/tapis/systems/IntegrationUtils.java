@@ -13,6 +13,7 @@ import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SchedulerType;
+import org.jooq.tools.StringUtils;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -295,15 +296,27 @@ public final class IntegrationUtils
    * Create a TSystem in memory with minimal attributes set based on TSystem given
    *   id, systemType, host, defaultAuthnMethod, canExec
    *   and since sytemType is LINUX must also set rootDir
+   * If id is passed in then use it instead of id from tSys
    * NOTE: many args to constructor are primitives so cannot be set to null.
    */
-  public static TSystem makeMinimalSystem(TSystem tSys)
+  public static TSystem makeMinimalSystem(TSystem tSys, String id)
   {
-    return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
+    if (!StringUtils.isBlank(id))
+    {
+      return new TSystem(-1, tenantName, id, null, tSys.getSystemType(), null,
               hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir1,
               prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(), null, null, null, isDtnFalse,
               canExecFalse, null, null, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
               null, null, null, null, uuidNull, isDeletedFalse, null, null);
+    }
+    else
+    {
+      return new TSystem(-1, tenantName, tSys.getId(), null, tSys.getSystemType(), null,
+              hostMinimalId, isEnabledTrue, null, tSys.getDefaultAuthnMethod(), null, rootDir1,
+              prot1.getPort(), prot1.isUseProxy(), null, prot1.getProxyPort(), null, null, null, isDtnFalse,
+              canExecFalse, null, null, jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchFalse,
+              null, null, null, null, uuidNull, isDeletedFalse, null, null);
+    }
   }
 
   /**  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, 22, false, "", 0);
@@ -312,9 +325,9 @@ public final class IntegrationUtils
    * Create a PatchSystem in memory for use in testing.
    * All attributes are to be updated.
    */
-  public static PatchSystem makePatchSystemFull(String key)
+  public static PatchSystem makePatchSystemFull(String key, String systemId)
   {
-    return new PatchSystem(description2, hostname2, effectiveUserId2,
+    return new PatchSystem(tenantName, systemId, description2, hostname2, effectiveUserId2,
             prot2.getAuthnMethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             sysNamePrefix+key+dtnSystemId2, dtnMountPoint2, dtnMountSourcePath2, runtimeList2, jobWorkingDir2, jobEnvVariables2,
             jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchTrue, batchScheduler2, logicalQueueList2, batchDefaultLogicalQueue2,
@@ -325,9 +338,9 @@ public final class IntegrationUtils
    * Create a PatchSystem in memory for use in testing.
    * Some attributes are to be updated: description, authnMethod, dtnMountPoint, runtimeList, jobMaxJobsPerUser
    */
-  public static PatchSystem makePatchSystemPartial(String key)
+  public static PatchSystem makePatchSystemPartial(String key, String systemId)
   {
-    return new PatchSystem(description2, hostnameNull, effectiveUserIdNull,
+    return new PatchSystem(tenantName, systemId, description2, hostnameNull, effectiveUserIdNull,
             prot2.getAuthnMethod(), portNull, userProxyNull, proxyHostNull, proxyPortNull,
             dtnSystemIdNull, dtnMountPoint2, dtnMountSourcePathNull, runtimeList2, jobWorkingDirNull, jobEnvVariablesNull,
             jobMaxJobsNull, jobMaxJobsPerUser2, jobIsBatchNull, batchSchedulerNull, logicalQueueListNull, batchDefaultLogicalQueueNull,

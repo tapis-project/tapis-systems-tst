@@ -214,20 +214,20 @@ public class SystemsDaoTest
     // Enabled should start off true, then become false and finally true again.
     TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
-    dao.updateEnabled(authenticatedUser, sys0.getId(), false);
+    dao.updateEnabled(authenticatedUser, tenantName, sys0.getId(), false);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isEnabled());
-    dao.updateEnabled(authenticatedUser, sys0.getId(), true);
+    dao.updateEnabled(authenticatedUser, tenantName, sys0.getId(), true);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
 
     // Deleted should start off false, then become true and finally false again.
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isDeleted());
-    dao.updateDeleted(authenticatedUser, sys0.getId(), true);
+    dao.updateDeleted(authenticatedUser, tenantName, sys0.getId(), true);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), true);
     Assert.assertTrue(tmpSys.isDeleted());
-    dao.updateDeleted(authenticatedUser, sys0.getId(), false);
+    dao.updateDeleted(authenticatedUser, tenantName, sys0.getId(), false);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isDeleted());
   }
@@ -239,7 +239,7 @@ public class SystemsDaoTest
     boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId());
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    dao.updateSystemOwner(authenticatedUser, sys0.getId(), "newOwner");
+    dao.updateSystemOwner(authenticatedUser, tenantName, sys0.getId(), "newOwner");
     TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
@@ -263,13 +263,11 @@ public class SystemsDaoTest
   @Test
   public void testMissingSystem() throws Exception {
     String fakeSystemName = "AMissingSystemName";
-    PatchSystem patchSys = new PatchSystem("description PATCHED", "hostPATCHED", "effUserPATCHED",
+    PatchSystem patchSys = new PatchSystem(tenantName, fakeSystemName, "description PATCHED", "hostPATCHED", "effUserPATCHED",
             prot2.getAuthnMethod(), prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
             dtnSystemFakeHostname, dtnMountPoint1, dtnMountSourcePath1, runtimeList1, jobWorkingDir1, jobEnvVariables1,
             jobMaxJobs1, jobMaxJobsPerUser1, jobIsBatchTrue, batchScheduler1, logicalQueueList1, batchDefaultLogicalQueue1,
             capList1, tags1, notes1);
-    patchSys.setTenant(tenantName);
-    patchSys.setId(fakeSystemName);
     TSystem patchedSystem = new TSystem(1, tenantName, fakeSystemName, "description", SystemType.LINUX, "owner", "host", isEnabledTrue,
             "effUser", prot2.getAuthnMethod(), "bucket", "/root",
             prot2.getPort(), prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),

@@ -49,7 +49,7 @@ public final class PatchSystem
   /**
    * Constructor setting all final attributes.
    */
-  public PatchSystem(String description1, String host1, String effectiveUserId1,
+  public PatchSystem(String tenant1, String id1, String description1, String host1, String effectiveUserId1,
                      AuthnMethod defaultAuthnMethod1,
                      Integer port1, Boolean useProxy1, String proxyHost1, Integer proxyPort1,
                      String dtnSystemId1, String dtnMountPoint1, String dtnMountSourcePath1,
@@ -58,6 +58,8 @@ public final class PatchSystem
                      SchedulerType batchScheduler1, List<LogicalQueue> batchLogicalQueues1, String batchDefaultLogicalQueue1,
                      List<Capability> jobCapabilities1, String[] tags1, Object notes1)
   {
+    tenant = tenant1;
+    id = id1;
     description = description1;
     host = host1;
     effectiveUserId = effectiveUserId1;
@@ -87,10 +89,8 @@ public final class PatchSystem
   // *********************** Accessors **************************************
   // ************************************************************************
   public String getTenant() { return tenant; }
-  public void setTenant(String s) { tenant = s; }
 
   public String getId() { return id; }
-  public void setId(String s) { id = s; }
 
   public String getDescription() { return description; }
 

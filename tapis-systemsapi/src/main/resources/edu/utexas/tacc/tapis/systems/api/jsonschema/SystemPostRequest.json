@@ -1,5 +1,5 @@
 {
-  "$id": "http://tapis.tacc.utexas.edu/SystemPostRequest",
+  "$id": "https://tapis.tacc.utexas.edu/SystemPostRequest",
   "$schema": "https://json-schema.org/draft-07/schema#",
   "description": "Schema for a request to create a system",
   "additionalProperties": false,

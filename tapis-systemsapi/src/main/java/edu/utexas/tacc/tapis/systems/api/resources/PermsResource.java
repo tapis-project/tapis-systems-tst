@@ -121,10 +121,11 @@ public class PermsResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemId, PRETTY, "grantUserPerms");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemId, PRETTY, "grantUserPerms");
     if (resp != null) return resp;
 
     // Read the payload into a string.
@@ -146,7 +147,7 @@ public class PermsResource
     // Make the service call to assign the permissions
     try
     {
-      systemsService.grantUserPermissions(authenticatedUser, systemId, userName, permsList, json);
+      systemsService.grantUserPermissions(authenticatedUser, resourceTenantId, systemId, userName, permsList, json);
     }
     catch (Exception e)
     {
@@ -195,16 +196,17 @@ public class PermsResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemId, PRETTY, "getUserPerms");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemId, PRETTY, "getUserPerms");
     if (resp != null) return resp;
 
     // ------------------------- Perform the operation -------------------------
     // Make the service call to get the permissions
     Set<Permission> perms;
-    try { perms = systemsService.getUserPermissions(authenticatedUser, systemId, userName); }
+    try { perms = systemsService.getUserPermissions(authenticatedUser, resourceTenantId, systemId, userName); }
     catch (NotFoundException e)
     {
       msg = ApiUtils.getMsgAuth("SYSAPI_NOT_FOUND", authenticatedUser, systemId);
@@ -260,10 +262,11 @@ public class PermsResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemId, PRETTY, "revokeUserPerm");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemId, PRETTY, "revokeUserPerm");
     if (resp != null) return resp;
 
     // ------------------------- Perform the operation -------------------------
@@ -273,7 +276,7 @@ public class PermsResource
     {
       Permission perm = Permission.valueOf(permissionStr);
       permsList.add(perm);
-      systemsService.revokeUserPermissions(authenticatedUser, systemId, userName, permsList, null);
+      systemsService.revokeUserPermissions(authenticatedUser, resourceTenantId, systemId, userName, permsList, null);
     }
     catch (IllegalArgumentException e)
     {
@@ -329,10 +332,11 @@ public class PermsResource
 
     // Get AuthenticatedUser which contains jwtTenant, jwtUser, oboTenant, oboUser, etc.
     AuthenticatedUser authenticatedUser = (AuthenticatedUser) securityContext.getUserPrincipal();
+    String resourceTenantId = authenticatedUser.getOboTenantId();
 
     // ------------------------- Check prerequisites -------------------------
     // Check that the system exists
-    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, systemId, PRETTY, "revokeUserPerms");
+    resp = ApiUtils.checkSystemExists(systemsService, authenticatedUser, resourceTenantId, systemId, PRETTY, "revokeUserPerms");
     if (resp != null) return resp;
 
     // Read the payload into a string.
@@ -354,7 +358,7 @@ public class PermsResource
     // Make the service call to revoke the permissions
     try
     {
-      systemsService.revokeUserPermissions(authenticatedUser, systemId, userName, permsList, json);
+      systemsService.revokeUserPermissions(authenticatedUser, resourceTenantId, systemId, userName, permsList, json);
     }
     catch (Exception e)
     {

@@ -143,26 +143,26 @@ public class ApiUtils
   /**
    * Check that system exists
    * @param authenticatedUser - principal user containing tenant and user info
-   * @param systemName - name of the system to check
+   * @param systemId - name of the system to check
    * @param prettyPrint - print flag used to construct response
    * @param opName - operation name, for constructing response msg
    * @return - null if all checks OK else Response containing info
    */
   public static Response checkSystemExists(SystemsService systemsService, AuthenticatedUser authenticatedUser,
-                                           String systemName, boolean prettyPrint, String opName)
+                                           String resourceTenantId, String systemId, boolean prettyPrint, String opName)
   {
     String msg;
     boolean systemExists;
-    try { systemExists = systemsService.checkForSystem(authenticatedUser, systemName); }
+    try { systemExists = systemsService.checkForSystem(authenticatedUser, resourceTenantId, systemId); }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CHECK_ERROR", authenticatedUser, systemName, opName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CHECK_ERROR", authenticatedUser, systemId, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     if (!systemExists)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOSYSTEM", authenticatedUser, systemName, opName);
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOSYSTEM", authenticatedUser, systemId, opName);
       _log.error(msg);
       return Response.status(Response.Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }

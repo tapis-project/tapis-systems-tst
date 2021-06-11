@@ -107,7 +107,7 @@ public class ShowDeletedDaoTest
     assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems/showDel=true");
 
     // Now delete a system
-    dao.updateDeleted(authenticatedUser, sys0Id, true);
+    dao.updateDeleted(authenticatedUser, tenantName, sys0Id, true);
 
     // First check counts. showDeleted = false should return 1 less than total.
     count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,

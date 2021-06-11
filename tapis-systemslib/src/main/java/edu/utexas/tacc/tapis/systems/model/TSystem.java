@@ -193,6 +193,55 @@ public final class TSystem
   }
 
   /**
+   * Constructor using non-updatable attributes.
+   * Rather than exposing otherwise unnecessary setters we use a special constructor.
+   */
+  public TSystem(TSystem t, String tenant1, String id1, SystemType systemType1, boolean isDtn1, boolean canExec1)
+  {
+    if (t==null || StringUtils.isBlank(tenant1) || StringUtils.isBlank(id1) || systemType1 == null )
+      throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
+    tenant = tenant1;
+    id = id1;
+    systemType = systemType1;
+    isDtn = isDtn1;
+    canExec = canExec1;
+
+    seqId = t.getSeqId();
+    created = t.getCreated();
+    updated = t.getUpdated();
+    description = t.getDescription();
+    owner = t.getOwner();
+    host = t.getHost();
+    enabled = t.isEnabled();
+    effectiveUserId = t.getEffectiveUserId();
+    defaultAuthnMethod = t.getDefaultAuthnMethod();
+    authnCredential = t.getAuthnCredential();
+    bucketName = t.getBucketName();
+    rootDir = t.getRootDir();
+    port = t.getPort();
+    useProxy = t.isUseProxy();
+    proxyHost = t.getProxyHost();
+    proxyPort = t.getProxyPort();
+    dtnSystemId = t.getDtnSystemId();
+    dtnMountPoint = t.getDtnMountPoint();
+    dtnMountSourcePath = t.dtnMountSourcePath;
+    jobRuntimes = t.getJobRuntimes();
+    jobWorkingDir = t.getJobWorkingDir();
+    jobEnvVariables = t.getJobEnvVariables();
+    jobMaxJobs = t.getJobMaxJobs();
+    jobMaxJobsPerUser = t.getJobMaxJobsPerUser();
+    jobIsBatch = t.getJobIsBatch();
+    batchScheduler = t.getBatchScheduler();
+    batchLogicalQueues = t.getBatchLogicalQueues();
+    batchDefaultLogicalQueue = t.getBatchDefaultLogicalQueue();
+    jobCapabilities = t.getJobCapabilities();
+    tags = (t.getTags() == null) ? EMPTY_STR_ARRAY : t.getTags().clone();
+    notes = t.getNotes();
+    uuid = t.getUuid();
+    deleted = t.isDeleted();
+  }
+
+  /**
    * Constructor for jOOQ with input parameter matching order of columns in DB
    * Also useful for testing
    * Note that jobRuntimes, batchLogicalQueues and jobCapabilities must be set separately.
@@ -253,6 +302,8 @@ public final class TSystem
     seqId = t.getSeqId();
     created = t.getCreated();
     updated = t.getUpdated();
+    uuid = t.getUuid();
+    deleted = t.isDeleted();
     tenant = t.getTenant();
     id = t.getId();
     description = t.getDescription();
@@ -286,8 +337,6 @@ public final class TSystem
     jobCapabilities = t.getJobCapabilities();
     tags = (t.getTags() == null) ? EMPTY_STR_ARRAY : t.getTags().clone();
     notes = t.getNotes();
-    uuid = t.getUuid();
-    deleted = t.isDeleted();
   }
 
   // ************************************************************************
@@ -603,10 +652,10 @@ public final class TSystem
   public Instant getUpdated() { return updated; }
 
   public String getTenant() { return tenant; }
-  public TSystem setTenant(String s) { tenant = s; return this; }
+//  public TSystem setTenant(String s) { tenant = s; return this; }
 
   public String getId() { return id; }
-  public TSystem setId(String s) { id = s; return this; }
+//  public TSystem setId(String s) { id = s; return this; }
 
   public String getDescription() { return description; }
   public TSystem setDescription(String d) { description = d; return this; }
