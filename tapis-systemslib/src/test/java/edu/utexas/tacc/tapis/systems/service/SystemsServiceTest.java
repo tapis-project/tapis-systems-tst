@@ -534,11 +534,12 @@ public class SystemsServiceTest
     TSystem sys0 = systems[20];
     for (String id : TSystem.RESERVED_ID_SET)
     {
-      IntegrationUtils.makeMinimalSystem(sys0, id);
       System.out.println("Testing create fail for reserved ID: " + id);
+      TSystem tmpSys = IntegrationUtils.makeMinimalSystem(sys0, id);
+      System.out.println("  - Created in-memory system object with ID: " + tmpSys.getId());
       try
       {
-        svc.createSystem(authenticatedOwner1, sys0, scrubbedJson);
+        svc.createSystem(authenticatedOwner1, tmpSys, scrubbedJson);
         Assert.fail("System create call should have thrown an exception when using a reserved ID. Id: " + id);
       } catch (IllegalStateException e)
       {

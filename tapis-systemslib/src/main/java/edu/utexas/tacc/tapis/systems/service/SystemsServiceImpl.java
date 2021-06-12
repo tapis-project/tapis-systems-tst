@@ -697,8 +697,6 @@ public class SystemsServiceImpl implements SystemsService
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (StringUtils.isBlank(resourceTenantId) || StringUtils.isBlank(systemId))
       throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
-    // Extract various names for convenience
-    String apiUserId = authenticatedUser.getName();
 
     // We need owner to check auth and if system not there cannot find owner, so return null if no system.
     if (!dao.checkForSystem(resourceTenantId, systemId, false)) return null;
@@ -723,7 +721,7 @@ public class SystemsServiceImpl implements SystemsService
     }
 
     // Resolve effectiveUserId
-    String resolvedEffectiveUserId = resolveEffectiveUserId(result.getEffectiveUserId(), result.getOwner(), apiUserId);
+    String resolvedEffectiveUserId = resolveEffectiveUserId(result.getEffectiveUserId(), result.getOwner(), authenticatedUser);
     result.setEffectiveUserId(resolvedEffectiveUserId);
     // If requested retrieve credentials from Security Kernel
     if (getCreds)
@@ -843,8 +841,7 @@ public class SystemsServiceImpl implements SystemsService
 
     for (TSystem system : systems)
     {
-      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(),
-                 authenticatedUser.getName()));
+      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(), authenticatedUser));
     }
     return systems;
   }
@@ -906,8 +903,7 @@ public class SystemsServiceImpl implements SystemsService
 
     for (TSystem system : systems)
     {
-      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(),
-              authenticatedUser.getName()));
+      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(), authenticatedUser));
     }
     return systems;
   }
@@ -949,8 +945,7 @@ public class SystemsServiceImpl implements SystemsService
 
     for (TSystem system : systems)
     {
-      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(),
-              authenticatedUser.getName()));
+      system.setEffectiveUserId(resolveEffectiveUserId(system.getEffectiveUserId(), system.getOwner(), authenticatedUser));
     }
     return systems;
   }
@@ -1591,11 +1586,14 @@ public class SystemsServiceImpl implements SystemsService
    * @param userId - effectiveUserId string, static or dynamic
    * @return Resolved value for effective user.
    */
-  private static String resolveEffectiveUserId(String userId, String owner, String apiUserId)
+  private static String resolveEffectiveUserId(String userId, String owner, AuthenticatedUser authenticatedUser)
   {
+    // NOTE: Use oboUser as the effective apiUserId because for a User request oboUser and apiUser are the same
+    //       and for a Service request it is the oboUser and not the service user who is effectively the user
+    //       making the request
     if (StringUtils.isBlank(userId)) return userId;
     else if (userId.equals(OWNER_VAR) && !StringUtils.isBlank(owner)) return owner;
-    else if (userId.equals(APIUSERID_VAR) && !StringUtils.isBlank(apiUserId)) return apiUserId;
+    else if (userId.equals(APIUSERID_VAR) && authenticatedUser != null) return authenticatedUser.getOboUser();
     else return userId;
   }
 
@@ -2080,7 +2078,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Resolve effectiveUserId if necessary
     String effectiveUserId = system.getEffectiveUserId();
-    effectiveUserId = resolveEffectiveUserId(effectiveUserId, system.getOwner(), apiUserId);
+    effectiveUserId = resolveEffectiveUserId(effectiveUserId, system.getOwner(), authenticatedUser);
 
     // Remove credentials associated with the system.
     // TODO: Have SK do this in one operation?
