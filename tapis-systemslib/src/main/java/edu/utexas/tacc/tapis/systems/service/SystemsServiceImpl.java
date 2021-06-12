@@ -598,7 +598,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(authenticatedUser, op, systemId, null, null, null);
 
     // Remove SK artifacts
-    removeSKArtifacts(authenticatedUser, resourceTenantId, systemId, op);
+    removeSKArtifacts(authenticatedUser, resourceTenantId, systemId);
 
     // Delete the system
     return dao.hardDeleteSystem(resourceTenantId, systemId);
@@ -1338,8 +1338,6 @@ public class SystemsServiceImpl implements SystemsService
     if (authenticatedUser == null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT_AUTHUSR"));
     if (StringUtils.isBlank(resourceTenantId) || StringUtils.isBlank(systemId) || StringUtils.isBlank(targetUserId))
          throw new IllegalArgumentException(LibUtils.getMsgAuth("SYSLIB_NULL_INPUT_SYSTEM", authenticatedUser));
-    String apiTenantId = authenticatedUser.getTenantId();
-    String apiUserId = authenticatedUser.getName();
     String oboUserId = authenticatedUser.getOboUser();
 
     // If system does not exist or has been deleted then return null
@@ -1837,8 +1835,7 @@ public class SystemsServiceImpl implements SystemsService
       case setCred:
       case removeCred:
         if (owner.equals(userName) || hasAdminRole(authenticatedUser, tenantName, userName) ||
-                (userName.equals(targetUser) &&
-                        allowUserCredOp(authenticatedUser, systemId, op)))
+                (userName.equals(targetUser) && allowUserCredOp(authenticatedUser, systemId, op)))
           return;
         break;
     }
@@ -1950,8 +1947,6 @@ public class SystemsServiceImpl implements SystemsService
   private boolean allowUserCredOp(AuthenticatedUser authenticatedUser, String systemId, SystemOperation op)
           throws TapisException, IllegalStateException
   {
-    // TODO/TBD: pass in resourceTenantId? But is it always oboTenantId
-    //           this check is only relevant for a user request?
     // Get the effectiveUserId. If not ${apiUserId} then considered an error since credential would never be used.
     String effectiveUserId = dao.getSystemEffectiveUserId(authenticatedUser.getOboTenantId(), systemId);
     if (StringUtils.isBlank(effectiveUserId) || !effectiveUserId.equals(APIUSERID_VAR))
@@ -2052,8 +2047,7 @@ public class SystemsServiceImpl implements SystemsService
    * Remove all SK artifacts associated with a System: user credentials, user permissions
    * No checks are done for incoming arguments and the system must exist
    */
-  private void removeSKArtifacts(AuthenticatedUser authenticatedUser, String resourceTenantId, String systemId,
-                                 SystemOperation op)
+  private void removeSKArtifacts(AuthenticatedUser authenticatedUser, String resourceTenantId, String systemId)
           throws TapisException, TapisClientException
   {
     // Extract various names for convenience
