@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
@@ -33,7 +34,7 @@ import static edu.utexas.tacc.tapis.systems.IntegrationUtils.*;
 public class SearchASTDaoTest
 {
   private SystemsDaoImpl dao;
-  private AuthenticatedUser authenticatedUser;
+  private ResourceRequestUser rUser;
 
   // Test data
   private static final String testKey = "SrchAST";
@@ -79,7 +80,8 @@ public class SearchASTDaoTest
     System.out.println("Executing BeforeSuite setup method: " + SearchASTDaoTest.class.getSimpleName());
     dao = new SystemsDaoImpl();
     // Initialize authenticated user
-    authenticatedUser = new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(), null, apiUser, tenantName, null, null, null);
+    rUser = new ResourceRequestUser(new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(),
+                                    null, apiUser, tenantName, null, null, null));
 
     // Cleanup anything leftover from previous failed run
     teardown();
@@ -101,7 +103,7 @@ public class SearchASTDaoTest
     Thread.sleep(500);
     for (TSystem sys : systems)
     {
-      boolean itemCreated = dao.createSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      boolean itemCreated = dao.createSystem(rUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
     }
     Thread.sleep(500);

@@ -366,16 +366,15 @@ public final class TSystem
   /**
    * Resolve variables for TSystem attributes
    */
-  public void resolveVariables(String oboUser)
+  public void resolveVariables(String apiUserId)
   {
-    // Resolve owner if necessary. If empty or "${apiUserId}" then fill in oboUser.
-    // Note that for a user request oboUser and apiUserId are the same and for a service request we want oboUser here.
-    if (StringUtils.isBlank(owner) || owner.equalsIgnoreCase(APIUSERID_VAR)) setOwner(oboUser);
+    // Resolve owner if necessary. If empty or "${apiUserId}" then fill in with apiUser.
+    if (StringUtils.isBlank(owner) || owner.equalsIgnoreCase(APIUSERID_VAR)) setOwner(apiUserId);
 
     // Perform variable substitutions that happen at create time: bucketName, rootDir, jobWorkingDir
     // NOTE: effectiveUserId is not processed. Var reference is retained and substitution done as needed when system is retrieved.
     //    ALL_VARS = {APIUSERID_VAR, OWNER_VAR, TENANT_VAR};
-    String[] allVarSubstitutions = {oboUser, owner, tenant};
+    String[] allVarSubstitutions = {apiUserId, owner, tenant};
     setBucketName(StringUtils.replaceEach(bucketName, ALL_VARS, allVarSubstitutions));
     setRootDir(StringUtils.replaceEach(rootDir, ALL_VARS, allVarSubstitutions));
     setJobWorkingDir(StringUtils.replaceEach(jobWorkingDir, ALL_VARS, allVarSubstitutions));

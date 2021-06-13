@@ -3,8 +3,8 @@ package edu.utexas.tacc.tapis.systems.api.utils;
 import com.google.gson.JsonElement;
 import edu.utexas.tacc.tapis.shared.i18n.MsgUtils;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
-import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.sharedapi.utils.TapisRestUtils;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.service.SystemsService;
 import org.apache.commons.lang3.StringUtils;
@@ -50,14 +50,14 @@ public class ApiUtils
    * @param parms - Parameters for template variables in message
    * @return Resulting message
    */
-  public static String getMsgAuth(String key, AuthenticatedUser authUser, Object... parms)
+  public static String getMsgAuth(String key, ResourceRequestUser rUser, Object... parms)
   {
     // Construct new array of parms. This appears to be most straightforward approach to modify and pass on varargs.
     var newParms = new Object[4 + parms.length];
-    newParms[0] = authUser.getTenantId();
-    newParms[1] = authUser.getName();
-    newParms[2] = authUser.getOboTenantId();
-    newParms[3] = authUser.getOboUser();
+    newParms[0] = rUser.getJwtTenantId();
+    newParms[1] = rUser.getJwtUserId();
+    newParms[2] = rUser.getOboTenantId();
+    newParms[3] = rUser.getOboUserId();
     System.arraycopy(parms, 0, newParms, 4, parms.length);
     return getMsg(key, newParms);
   }
@@ -142,27 +142,27 @@ public class ApiUtils
 
   /**
    * Check that system exists
-   * @param authenticatedUser - principal user containing tenant and user info
+   * @param rUser - principal user containing tenant and user info
    * @param systemId - name of the system to check
    * @param prettyPrint - print flag used to construct response
    * @param opName - operation name, for constructing response msg
    * @return - null if all checks OK else Response containing info
    */
-  public static Response checkSystemExists(SystemsService systemsService, AuthenticatedUser authenticatedUser,
-                                           String resourceTenantId, String systemId, boolean prettyPrint, String opName)
+  public static Response checkSystemExists(SystemsService systemsService, ResourceRequestUser rUser,
+                                           String systemId, boolean prettyPrint, String opName)
   {
     String msg;
     boolean systemExists;
-    try { systemExists = systemsService.checkForSystem(authenticatedUser, resourceTenantId, systemId); }
+    try { systemExists = systemsService.checkForSystem(rUser, systemId); }
     catch (Exception e)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_CHECK_ERROR", authenticatedUser, systemId, opName, e.getMessage());
+      msg = ApiUtils.getMsgAuth("SYSAPI_CHECK_ERROR", rUser, systemId, opName, e.getMessage());
       _log.error(msg, e);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     if (!systemExists)
     {
-      msg = ApiUtils.getMsgAuth("SYSAPI_NOSYSTEM", authenticatedUser, systemId, opName);
+      msg = ApiUtils.getMsgAuth("SYSAPI_NOSYSTEM", rUser, systemId, opName);
       _log.error(msg);
       return Response.status(Response.Status.NOT_FOUND).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
@@ -182,18 +182,18 @@ public class ApiUtils
    * @param secretVal2 - second secret
    * @return - null if all checks OK else Response containing info
    */
-  public static Response checkSecrets(AuthenticatedUser authenticatedUser, String systemName, String userName, boolean prettyPrint,
+  public static Response checkSecrets(ResourceRequestUser rUser, String systemName, String userName, boolean prettyPrint,
                                       String secretType, String secretName1, String secretName2, String secretVal1, String secretVal2)
   {
     if ((!StringUtils.isBlank(secretVal1) && StringUtils.isBlank(secretVal2)))
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_CRED_SECRET_MISSING", authenticatedUser, systemName, secretType, secretName2, userName);
+      String msg = ApiUtils.getMsgAuth("SYSAPI_CRED_SECRET_MISSING", rUser, systemName, secretType, secretName2, userName);
       _log.error(msg);
       return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }
     if ((StringUtils.isBlank(secretVal1) && !StringUtils.isBlank(secretVal2)))
     {
-      String msg = ApiUtils.getMsgAuth("SYSAPI_CRED_SECRET_MISSING", authenticatedUser, systemName, secretType, secretName1, userName);
+      String msg = ApiUtils.getMsgAuth("SYSAPI_CRED_SECRET_MISSING", rUser, systemName, secretType, secretName1, userName);
       _log.error(msg);
       return Response.status(Response.Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, prettyPrint)).build();
     }

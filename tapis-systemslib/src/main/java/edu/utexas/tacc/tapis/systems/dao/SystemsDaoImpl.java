@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import org.flywaydb.core.Flyway;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -39,7 +40,6 @@ import edu.utexas.tacc.tapis.systems.gen.jooq.tables.records.SystemsRecord;
 import static edu.utexas.tacc.tapis.systems.gen.jooq.Tables.*;
 import static edu.utexas.tacc.tapis.systems.gen.jooq.Tables.SYSTEMS;
 
-import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
 import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.search.SearchUtils.SearchOperator;
@@ -89,12 +89,12 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public boolean createSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
+  public boolean createSystem(ResourceRequestUser rUser, TSystem system, String createJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "createSystem";
     // ------------------------- Check Input -------------------------
     if (system == null) LibUtils.logAndThrowNullParmException(opName, "system");
-    if (authenticatedUser == null) LibUtils.logAndThrowNullParmException(opName, "authenticatedUser");
+    if (rUser == null) LibUtils.logAndThrowNullParmException(opName, "resourceRequestUser");
     if (StringUtils.isBlank(createJsonStr)) LibUtils.logAndThrowNullParmException(opName, "createJson");
     if (StringUtils.isBlank(system.getTenant())) LibUtils.logAndThrowNullParmException(opName, "tenant");
     if (StringUtils.isBlank(system.getId())) LibUtils.logAndThrowNullParmException(opName, "systemId");
@@ -125,7 +125,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // Check to see if system exists (even if deleted). If yes then throw IllegalStateException
       boolean doesExist = checkForSystem(db, system.getTenant(), system.getId(), true);
-      if (doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", authenticatedUser, system.getId()));
+      if (doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_SYS_EXISTS", rUser, system.getId()));
 
       // Generate uuid for the new resource
       system.setUuid(UUID.randomUUID());
@@ -178,7 +178,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       persistJobCapabilities(db, system, seqId);
 
       // Persist update record
-      addUpdate(db, authenticatedUser, system.getTenant(), system.getId(), seqId, SystemOperation.create,
+      addUpdate(db, rUser, system.getTenant(), system.getId(), seqId, SystemOperation.create,
                 createJsonStr, scrubbedText, system.getUuid());
 
       // Close out and commit
@@ -208,14 +208,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public void updateSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
+  public void updateSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
                            String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "updateSystem";
     // ------------------------- Check Input -------------------------
     if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
     if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
-    if (authenticatedUser == null) LibUtils.logAndThrowNullParmException(opName, "authenticatedUser");
+    if (rUser == null) LibUtils.logAndThrowNullParmException(opName, "resourceRequestUser");
     // Pull out some values for convenience
     String tenant = patchedSystem.getTenant();
     String systemId = patchedSystem.getId();
@@ -250,7 +250,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 
       // Make sure system exists and has not been deleted.
       boolean doesExist = checkForSystem(db, tenant, systemId, false);
-      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", rUser, systemId));
 
 
       int seqId = db.update(SYSTEMS)
@@ -298,7 +298,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       }
 
       // Persist update record
-      addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
+      addUpdate(db, rUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
                 patchedSystem.getUuid());
 
       // Close out and commit
@@ -327,14 +327,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public void putSystem(AuthenticatedUser authenticatedUser, TSystem putSystem, String updateJsonStr,
+  public void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr,
                         String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "putSystem";
 //    // ------------------------- Check Input -------------------------
 //    if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
 //    if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
-//    if (authenticatedUser == null) LibUtils.logAndThrowNullParmException(opName, "authenticatedUser");
+//    if (resourceRequestUser == null) LibUtils.logAndThrowNullParmException(opName, "resourceRequestUser");
 //    // Pull out some values for convenience
 //    String tenant = patchedSystem.getTenant();
 //    String systemId = patchedSystem.getId();
@@ -369,7 +369,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 //
 //      // Make sure system exists and has not been deleted.
 //      boolean doesExist = checkForSystem(db, tenant, systemId, false);
-//      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", authenticatedUser, systemId));
+//      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", resourceRequestUser, systemId));
 //
 //
 //      int seqId = db.update(SYSTEMS)
@@ -417,7 +417,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
 //      }
 //
 //      // Persist update record
-//      addUpdate(db, authenticatedUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
+//      addUpdate(db, rUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
 //              patchedSystem.getUuid());
 //
 //      // Close out and commit
@@ -439,7 +439,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Update attribute enabled for a system given system Id and value
    */
   @Override
-  public void updateEnabled(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean enabled)
+  public void updateEnabled(ResourceRequestUser rUser, String tenantId, String id, boolean enabled)
           throws TapisException
   {
     String opName = "updateEnabled";
@@ -462,7 +462,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = "{\"enabled\":" +  enabled + "}";
-      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+      addUpdate(db, rUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
                 getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -483,7 +483,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * Update attribute deleted for a system given system Id and value
    */
   @Override
-  public void updateDeleted(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean deleted)
+  public void updateDeleted(ResourceRequestUser rUser, String tenantId, String id, boolean deleted)
           throws TapisException
   {
     String opName = "updateDeleted";
@@ -506,7 +506,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = "{\"deleted\":" +  deleted + "}";
-      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
+      addUpdate(db, rUser, tenantId, id, INVALID_SEQ_ID, systemOp, updateJsonStr , null,
               getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -528,7 +528,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *
    */
   @Override
-  public void updateSystemOwner(AuthenticatedUser authenticatedUser, String tenantId, String id, String newOwnerName)
+  public void updateSystemOwner(ResourceRequestUser rUser, String tenantId, String id, String newOwnerName)
           throws TapisException
   {
     String opName = "changeOwner";
@@ -549,7 +549,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(id)).execute();
       // Persist update record
       String updateJsonStr = TapisGsonUtils.getGson().toJson(newOwnerName);
-      addUpdate(db, authenticatedUser, tenantId, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
+      addUpdate(db, rUser, tenantId, id, INVALID_SEQ_ID, SystemOperation.changeOwner, updateJsonStr , null,
                 getUUIDUsingDb(db, tenantId, id));
       // Close out and commit
       LibUtils.closeAndCommitDB(conn, null, null);
@@ -1263,7 +1263,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *
    */
   @Override
-  public void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenant, String id, SystemOperation op,
+  public void addUpdateRecord(ResourceRequestUser rUser, String tenant, String id, SystemOperation op,
                               String upd_json, String upd_text) throws TapisException
   {
     // ------------------------- Call SQL ----------------------------
@@ -1273,7 +1273,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Get a database connection.
       conn = getConnection();
       DSLContext db = DSL.using(conn);
-      addUpdate(db, authenticatedUser, tenant, id, INVALID_SEQ_ID, op, upd_json, upd_text,
+      addUpdate(db, rUser, tenant, id, INVALID_SEQ_ID, op, upd_json, upd_text,
                 getUUIDUsingDb(db, tenant, id));
 
       // Close out and commit
@@ -1302,7 +1302,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    *       the tenants will differ.
    *
    * @param db - Database connection
-   * @param authenticatedUser - User who requested the update
+   * @param rUser - ResourceRequestUser containing tenant, user and request info
    * @param tenantId - Tenant of the system being updated
    * @param id - Id of the system being updated
    * @param seqId - Sequence Id of system being updated
@@ -1310,7 +1310,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @param upd_json - JSON representing the update - with secrets scrubbed
    * @param upd_text - Text data supplied by client - secrets should be scrubbed
    */
-  private void addUpdate(DSLContext db, AuthenticatedUser authenticatedUser, String tenantId, String id, int seqId,
+  private void addUpdate(DSLContext db, ResourceRequestUser rUser, String tenantId, String id, int seqId,
                          SystemOperation op, String upd_json, String upd_text, UUID uuid)
   {
     String updJsonStr = (StringUtils.isBlank(upd_json)) ? EMPTY_JSON : upd_json;
@@ -1323,8 +1323,8 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
             .set(SYSTEM_UPDATES.SYSTEM_SEQ_ID, seqId)
             .set(SYSTEM_UPDATES.SYSTEM_TENANT, tenantId)
             .set(SYSTEM_UPDATES.SYSTEM_ID, id)
-            .set(SYSTEM_UPDATES.USER_TENANT, authenticatedUser.getOboTenantId())
-            .set(SYSTEM_UPDATES.USER_NAME, authenticatedUser.getOboUser())
+            .set(SYSTEM_UPDATES.USER_TENANT, rUser.getApiUserId())
+            .set(SYSTEM_UPDATES.USER_NAME, rUser.getApiUserId())
             .set(SYSTEM_UPDATES.OPERATION, op)
             .set(SYSTEM_UPDATES.UPD_JSON, TapisGsonUtils.getGson().fromJson(updJsonStr, JsonElement.class))
             .set(SYSTEM_UPDATES.UPD_TEXT, upd_text)

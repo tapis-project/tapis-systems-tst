@@ -3,8 +3,8 @@ package edu.utexas.tacc.tapis.systems.dao;
 import edu.utexas.tacc.tapis.search.parser.ASTNode;
 import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.threadlocal.OrderBy;
-import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemOperation;
@@ -14,23 +14,23 @@ import java.util.Set;
 
 public interface SystemsDao
 {
-  boolean createSystem(AuthenticatedUser authenticatedUser, TSystem system, String createJsonStr, String scrubbedText)
+  boolean createSystem(ResourceRequestUser rUser, TSystem system, String createJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void putSystem(AuthenticatedUser authenticatedUser, TSystem putSystem, String updateJsonStr, String scrubbedText)
+  void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void updateSystem(AuthenticatedUser authenticatedUser, TSystem patchedSystem, PatchSystem patchSystem,
+  void updateSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
                     String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void updateSystemOwner(AuthenticatedUser authenticatedUser, String tenantId, String id, String newOwnerName) throws TapisException;
+  void updateSystemOwner(ResourceRequestUser rUser, String tenantId, String id, String newOwnerName) throws TapisException;
 
-  void updateEnabled(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean enabled) throws TapisException;
+  void updateEnabled(ResourceRequestUser rUser, String tenantId, String id, boolean enabled) throws TapisException;
 
-  void updateDeleted(AuthenticatedUser authenticatedUser, String tenantId, String id, boolean deleted) throws TapisException;
+  void updateDeleted(ResourceRequestUser rUser, String tenantId, String id, boolean deleted) throws TapisException;
 
-  void addUpdateRecord(AuthenticatedUser authenticatedUser, String tenantId, String id, SystemOperation op,
+  void addUpdateRecord(ResourceRequestUser rUser, String tenantId, String id, SystemOperation op,
                        String upd_json, String upd_text) throws TapisException;
 
   int hardDeleteSystem(String tenantId, String id) throws TapisException;

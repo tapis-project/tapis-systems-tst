@@ -6,6 +6,7 @@ import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
@@ -20,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.apiUser;
-import static edu.utexas.tacc.tapis.systems.IntegrationUtils.dtnSystem1;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.getSysName;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.gson;
 import static edu.utexas.tacc.tapis.systems.IntegrationUtils.logicalQueueList2;
@@ -40,7 +40,7 @@ import static org.testng.Assert.assertEquals;
 public class MatchConstraintsDaoTest
 {
   private SystemsDaoImpl dao;
-  private AuthenticatedUser authenticatedUser;
+  private ResourceRequestUser rUser;
 
   // Test data
   private static final String testKey = "MatchAST";
@@ -73,7 +73,8 @@ public class MatchConstraintsDaoTest
     System.out.println("Executing BeforeSuite setup method: " + MatchConstraintsDaoTest.class.getSimpleName());
     dao = new SystemsDaoImpl();
     // Initialize authenticated user
-    authenticatedUser = new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(), null, apiUser, tenantName, null, null, null);
+    rUser = new ResourceRequestUser(new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                          null, apiUser, tenantName, null, null, null));
 
     // Cleanup anything leftover from previous failed run
     teardown();
@@ -88,12 +89,12 @@ public class MatchConstraintsDaoTest
     // Create all the systems in the dB using the in-memory objects, recording start and end times
     createBegin = TapisUtils.getUTCTimeNow();
     Thread.sleep(500);
-    boolean itemCreated = dao.createSystem(authenticatedUser, dtnSystem1, gson.toJson(dtnSystem1), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, dtnSystem1, gson.toJson(dtnSystem1), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + dtnSystem1.getId());
     allowedIDs.add(dtnSystem1.getId());
     for (TSystem sys : systems)
     {
-      itemCreated = dao.createSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      itemCreated = dao.createSystem(rUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
       allowedIDs.add(sys.getId());
     }

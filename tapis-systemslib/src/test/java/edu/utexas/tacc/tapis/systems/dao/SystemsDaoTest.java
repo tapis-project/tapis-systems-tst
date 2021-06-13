@@ -7,6 +7,7 @@ import edu.utexas.tacc.tapis.systems.IntegrationUtils;
 import edu.utexas.tacc.tapis.systems.model.Capability;
 import edu.utexas.tacc.tapis.systems.model.JobRuntime;
 import edu.utexas.tacc.tapis.systems.model.PatchSystem;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
@@ -16,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import edu.utexas.tacc.tapis.systems.model.TSystem.SystemType;
@@ -31,7 +31,7 @@ import static edu.utexas.tacc.tapis.systems.IntegrationUtils.*;
 public class SystemsDaoTest
 {
   private SystemsDaoImpl dao;
-  private AuthenticatedUser authenticatedUser;
+  private ResourceRequestUser rUser;
 
   // Create test system definitions in memory
   int numSystems = 12;
@@ -46,7 +46,8 @@ public class SystemsDaoTest
     System.out.println("Executing BeforeSuite setup method: " + SystemsDaoTest.class.getSimpleName());
     dao = new SystemsDaoImpl();
     // Initialize authenticated user
-    authenticatedUser = new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(), null, apiUser, tenantName, null, null, null);
+    rUser = new ResourceRequestUser(new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                          null, apiUser, tenantName, null, null, null));
     // Cleanup anything leftover from previous failed run
     teardown();
   }
@@ -69,7 +70,7 @@ public class SystemsDaoTest
   public void testCreate() throws Exception
   {
     TSystem sys0 = systems[0];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
   }
 
@@ -77,7 +78,7 @@ public class SystemsDaoTest
   @Test
   public void testGet() throws Exception {
     TSystem sys0 = systems[1];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertNotNull(tmpSys, "Failed to create item: " + sys0.getId());
@@ -172,7 +173,7 @@ public class SystemsDaoTest
   @Test
   public void testGetSystems() throws Exception {
     TSystem sys0 = systems[4];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     List<TSystem> systems = dao.getSystems(tenantName, null, null, null, DEFAULT_LIMIT, orderByListNull,
                                             DEFAULT_SKIP, startAfterNull, showDeletedFalse);
@@ -187,11 +188,11 @@ public class SystemsDaoTest
     var sysIdList = new HashSet<String>();
     // Create 2 systems
     TSystem sys0 = systems[5];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     sysIdList.add(sys0.getId());
     sys0 = systems[6];
-    itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     sysIdList.add(sys0.getId());
     // Get all systems in list of seqIDs
@@ -208,26 +209,26 @@ public class SystemsDaoTest
   @Test
   public void testEnableDisableDeleteUndelete() throws Exception {
     TSystem sys0 = systems[11];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     System.out.println("Created item, id: " + sys0.getId() + " enabled: " + sys0.isEnabled());
     // Enabled should start off true, then become false and finally true again.
     TSystem tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
-    dao.updateEnabled(authenticatedUser, tenantName, sys0.getId(), false);
+    dao.updateEnabled(rUser, tenantName, sys0.getId(), false);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isEnabled());
-    dao.updateEnabled(authenticatedUser, tenantName, sys0.getId(), true);
+    dao.updateEnabled(rUser, tenantName, sys0.getId(), true);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertTrue(tmpSys.isEnabled());
 
     // Deleted should start off false, then become true and finally false again.
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isDeleted());
-    dao.updateDeleted(authenticatedUser, tenantName, sys0.getId(), true);
+    dao.updateDeleted(rUser, tenantName, sys0.getId(), true);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId(), true);
     Assert.assertTrue(tmpSys.isDeleted());
-    dao.updateDeleted(authenticatedUser, tenantName, sys0.getId(), false);
+    dao.updateDeleted(rUser, tenantName, sys0.getId(), false);
     tmpSys = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertFalse(tmpSys.isDeleted());
   }
@@ -236,10 +237,10 @@ public class SystemsDaoTest
   @Test
   public void testChangeSystemOwner() throws Exception {
     TSystem sys0 = systems[7];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId());
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
-    dao.updateSystemOwner(authenticatedUser, tenantName, sys0.getId(), "newOwner");
+    dao.updateSystemOwner(rUser, tenantName, sys0.getId(), "newOwner");
     TSystem tmpSystem = dao.getSystem(sys0.getTenant(), sys0.getId());
     Assert.assertEquals(tmpSystem.getOwner(), "newOwner");
   }
@@ -248,7 +249,7 @@ public class SystemsDaoTest
   @Test
   public void testHardDelete() throws Exception {
     TSystem sys0 = systems[9];
-    boolean itemCreated = dao.createSystem(authenticatedUser, sys0, gson.toJson(sys0), scrubbedJson);
+    boolean itemCreated = dao.createSystem(rUser, sys0, gson.toJson(sys0), scrubbedJson);
     System.out.println("Created item with systemId: " + sys0.getId());
     Assert.assertTrue(itemCreated, "Item not created, id: " + sys0.getId());
     dao.hardDeleteSystem(sys0.getTenant(), sys0.getId());
@@ -279,7 +280,7 @@ public class SystemsDaoTest
     Assert.assertFalse(dao.checkForSystem(tenantName, fakeSystemName, false));
     // update should throw not found exception
     boolean pass = false;
-    try { dao.updateSystem(authenticatedUser, patchedSystem, patchSys, scrubbedJson, null); }
+    try { dao.updateSystem(rUser, patchedSystem, patchSys, scrubbedJson, null); }
     catch (IllegalStateException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_NOT_FOUND"));

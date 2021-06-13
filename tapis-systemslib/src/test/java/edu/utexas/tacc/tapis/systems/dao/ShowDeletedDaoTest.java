@@ -4,6 +4,7 @@ import edu.utexas.tacc.tapis.search.SearchUtils;
 import edu.utexas.tacc.tapis.shared.threadlocal.TapisThreadContext;
 import edu.utexas.tacc.tapis.sharedapi.security.AuthenticatedUser;
 import edu.utexas.tacc.tapis.systems.IntegrationUtils;
+import edu.utexas.tacc.tapis.systems.model.ResourceRequestUser;
 import edu.utexas.tacc.tapis.systems.model.TSystem;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
@@ -34,7 +35,7 @@ import static org.testng.Assert.assertEquals;
 public class ShowDeletedDaoTest
 {
   private SystemsDaoImpl dao;
-  private AuthenticatedUser authenticatedUser;
+  private ResourceRequestUser rUser;
 
   // Test data
   private static final String testKey = "SrchDel";
@@ -51,14 +52,15 @@ public class ShowDeletedDaoTest
     System.out.println("Executing BeforeSuite setup method: " + ShowDeletedDaoTest.class.getSimpleName());
     dao = new SystemsDaoImpl();
     // Initialize authenticated user
-    authenticatedUser = new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(), null, apiUser, tenantName, null, null, null);
+    rUser = new ResourceRequestUser(new AuthenticatedUser(apiUser, tenantName, TapisThreadContext.AccountType.user.name(),
+                                                          null, apiUser, tenantName, null, null, null));
 
     // Cleanup anything leftover from previous failed run
     teardown();
 
     for (TSystem sys : systems)
     {
-      boolean itemCreated = dao.createSystem(authenticatedUser, sys, gson.toJson(sys), scrubbedJson);
+      boolean itemCreated = dao.createSystem(rUser, sys, gson.toJson(sys), scrubbedJson);
       Assert.assertTrue(itemCreated, "Item not created, id: " + sys.getId());
     }
   }
@@ -107,7 +109,7 @@ public class ShowDeletedDaoTest
     assertEquals(searchResults.size(), numSystems, "Incorrect result count for getSystems/showDel=true");
 
     // Now delete a system
-    dao.updateDeleted(authenticatedUser, tenantName, sys0Id, true);
+    dao.updateDeleted(rUser, tenantName, sys0Id, true);
 
     // First check counts. showDeleted = false should return 1 less than total.
     count = dao.getSystemsCount(tenantName, searchListAll, searchASTNull, setOfIDsNull, orderByListNull,
