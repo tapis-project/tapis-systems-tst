@@ -698,7 +698,6 @@ public class SystemsServiceTest
     // In this case for owner1 and testUser3
     svc.createUserCredential(rOwner1, sys0.getId(), owner1, cred1, scrubbedJson);
     svc.createUserCredential(rOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
-?
     // Get system as owner1 using files service and should get cred for owner1
     TSystem tmpSys = svc.getSystem(authenticatedFilesSvcOwner1, sys0.getId(), true, AuthnMethod.PASSWORD, false);
     Credential cred0 = tmpSys.getAuthnCredential();

@@ -120,7 +120,8 @@ public class SystemsServiceImpl implements SystemsService
   private static String siteId;
   public static String getSiteId() {return siteId;}
   private static String siteAdminTenantId;
-  public static String getSiteAdminTenantId() {return siteAdminTenantId;}
+  public static String getServiceTenantId() {return siteAdminTenantId;}
+  public static String getServiceUserId() {return SERVICE_NAME;}
 
   // ************************************************************************
   // *********************** Public Methods *********************************
@@ -1307,19 +1308,42 @@ public class SystemsServiceImpl implements SystemsService
       authnMethod = defaultAuthnMethod;
     }
 
+    /*
+     * When the Systems services calls SK to read secrets it calls with a JWT as itself,
+     *   jwtTenantId = admin tenant (Site Tenant Admin)
+     *   jwtUserId = TapisConstants.SERVICE_NAME_SYSTEMS ("systems")
+     *   and AccountType = TapisThreadContext.AccountType.service
+     * Hence the use of getServiceTenantId() and getServiceUserId() in TODO/TBD: ???the calls to skClient. E.g.:
+     *   TODO/TBD ???skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms)
+     *
+     * For Systems the secret needs to be scoped by the tenant associated with the system,
+     *   the system id and the target user (i.e. the user associated with the secret).
+     * Secrets for a system follow the format
+     *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1 TODO: confirm with Rich
+     * where tenant_id, system_id, user_id and key_type are filled in at runtime.
+     *   key_type is sshkey, password, accesskey or cert and S1 is the reserved SecretName associated with the Systems.
+     * Hence the following code
+     *     new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME)
+     *     sParms.setSysId(systemId).setSysUser(targetUserId);
+     * TODO/TBD: how to set tenant for system? tenant for request (i.e. svc tenant)?
+     *          sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName)
+     *
+     */
     Credential credential = null;
     try
     {
       // Get the Security Kernel client
       var skClient = getSKClient();
       // Construct basic SK secret parameters
+      // Establish secret type ("system") and secret name ("S1")
       var sParms = new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
-      // Set tenant and user associated with the request
+
+      // TODO??? Set tenant and user associated with the request
       // These are the obo tenant and user which of course are the same for user request but might differ for a service
       //   request. NOTE: Currently only service requests are authorized to get credentials.
-      sParms.setTenant(resourceTenantId);
-      sParms.setUser(rUser.getApiUserId());
-      // Set system and user associated with the secret.
+      // TODO/TBD check with Rich. Is this the correct way to to requesting tenant and user?
+      sParms.setTenant(getServiceTenantId()).setUser(getServiceUserId());
+      // Set system and user associated with the secret. TODO/TBD: how to set tenant associated with system?
       sParms.setSysId(systemId).setSysUser(targetUserId);
       // Set key type based on authn method
       if (authnMethod.equals(AuthnMethod.PASSWORD))sParms.setKeyType(KeyType.password);
@@ -1440,8 +1464,8 @@ public class SystemsServiceImpl implements SystemsService
   private SKClient getSKClient() throws TapisException
   {
     SKClient skClient;
-    String tenantId = siteAdminTenantId;
-    String userName = SERVICE_NAME;
+    String tenantId = getServiceTenantId();
+    String userName = getServiceUserId();
     try
     {
       skClient = serviceClients.getClient(userName, tenantId, SKClient.class);
@@ -1903,19 +1927,42 @@ public class SystemsServiceImpl implements SystemsService
     return true;
   }
 
-  /**
+  /*
    * Create or update a credential
    * No checks are done for incoming arguments and the system must exist
+   *
+   * When the Systems services calls SK to create secrets it calls with a JWT as itself,
+   *   jwtTenantId = admin tenant (Site Tenant Admin)
+   *   jwtUserId = TapisConstants.SERVICE_NAME_SYSTEMS ("systems")
+   *   and AccountType = TapisThreadContext.AccountType.service
+   * Hence the use of getServiceTenantId() and getServiceUserId() in the calls to skClient. E.g.:
+   *   skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms)
+   *
+   * For Systems the secret needs to be scoped by the tenant associated with the system,
+   *   the system id and the target user (i.e. the user associated with the secret).
+   * Secrets for a system follow the format
+   *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1 TODO: confirm with Rich
+   * where tenant_id, system_id, user_id and key_type are filled in at runtime.
+   *   key_type is sshkey, password, accesskey or cert and S1 is the reserved SecretName associated with the Systems.
+   * Hence the following code
+   *     new SKSecretWriteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME)
+   *     sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName)
+   *
+   * TODO: Confirm with Rich that SK is using the tenant info in sParms. In the SKClient code it appears that it
+   *       might be ignored, see method writeSecret(String tenant, String user, SKSecretWriteParms parms)
+   *       line 1144 in SKClient.java
+   *
    */
   private static void createCredential(SKClient skClient, ResourceRequestUser rUser, Credential credential,
                                        String systemId, String userName)
           throws TapisClientException
   {
     String apiTenantId = rUser.getApiTenantId();
-    String apiUserId = rUser.getApiUserId();
 
     // Construct basic SK secret parameters including tenant, system and user for credential
+    // Establish secret type ("system") and secret name ("S1")
     var sParms = new SKSecretWriteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
+    // Fill in tenantId, systemId and userId for the path to the secret.
     sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName);
     Map<String, String> dataMap;
     // Check for each secret type and write values if they are present
@@ -1926,7 +1973,7 @@ public class SystemsServiceImpl implements SystemsService
       sParms.setKeyType(KeyType.password);
       dataMap.put(SK_KEY_PASSWORD, credential.getPassword());
       sParms.setData(dataMap);
-      skClient.writeSecret(apiTenantId, apiUserId, sParms);
+      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
     }
     // Store PKI keys if both present
     if (!StringUtils.isBlank(credential.getPublicKey()) && !StringUtils.isBlank(credential.getPublicKey())) {
@@ -1935,7 +1982,7 @@ public class SystemsServiceImpl implements SystemsService
       dataMap.put(SK_KEY_PUBLIC_KEY, credential.getPublicKey());
       dataMap.put(SK_KEY_PRIVATE_KEY, credential.getPrivateKey());
       sParms.setData(dataMap);
-      skClient.writeSecret(apiTenantId, apiUserId, sParms);
+      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
     }
     // Store Access key and secret if both present
     if (!StringUtils.isBlank(credential.getAccessKey()) && !StringUtils.isBlank(credential.getAccessSecret())) {
@@ -1944,7 +1991,7 @@ public class SystemsServiceImpl implements SystemsService
       dataMap.put(SK_KEY_ACCESS_KEY, credential.getAccessKey());
       dataMap.put(SK_KEY_ACCESS_SECRET, credential.getAccessSecret());
       sParms.setData(dataMap);
-      skClient.writeSecret(apiTenantId, apiUserId, sParms);
+      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
     }
     // TODO if necessary handle ssh certificate when supported
   }
