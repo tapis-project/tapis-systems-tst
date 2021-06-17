@@ -12,7 +12,6 @@ import static edu.utexas.tacc.tapis.systems.model.TSystem.DEFAULT_EFFECTIVEUSERI
 import static edu.utexas.tacc.tapis.systems.model.TSystem.OWNER_VAR;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +42,6 @@ import edu.utexas.tacc.tapis.security.client.SKClient;
 import edu.utexas.tacc.tapis.security.client.gen.model.SkSecret;
 import edu.utexas.tacc.tapis.security.client.gen.model.SkSecretVersionMetadata;
 import edu.utexas.tacc.tapis.security.client.model.KeyType;
-import edu.utexas.tacc.tapis.security.client.model.SKSecretDeleteParms;
 import edu.utexas.tacc.tapis.security.client.model.SKSecretMetaParms;
 import edu.utexas.tacc.tapis.security.client.model.SKSecretReadParms;
 import edu.utexas.tacc.tapis.security.client.model.SKSecretWriteParms;
@@ -201,7 +199,7 @@ public class SystemsServiceImpl implements SystemsService
     system.resolveVariables(rUser.getApiUserId());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, system.getId(), system.getOwner(), null);
+    checkAuth(rUser, op, system.getId(), system.getOwner(), null, null);
 
     // ---------------- Check for reserved names ------------------------
     checkReservedIds(rUser, system.getId());
@@ -329,7 +327,7 @@ public class SystemsServiceImpl implements SystemsService
     TSystem patchedTSystem = createPatchedTSystem(origTSystem, patchSystem);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null);
+    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
     patchedTSystem = TSystem.setDefaults(patchedTSystem);
@@ -385,7 +383,7 @@ public class SystemsServiceImpl implements SystemsService
     TSystem updatedTSystem = createUpdatedTSystem(origTSystem, putSystem);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null);
+    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
     validateTSystem(rUser, updatedTSystem);
@@ -509,7 +507,7 @@ public class SystemsServiceImpl implements SystemsService
     String oldOwnerName = dao.getSystemOwner(resourceTenantId, systemId);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, oldOwnerName, null);
+    checkAuth(rUser, op, systemId, oldOwnerName, null, null);
 
     // If new owner same as old owner then this is a no-op
     if (newOwnerName.equals(oldOwnerName)) return 0;
@@ -577,7 +575,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, true)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null);
+    checkAuth(rUser, op, systemId, null, null, null);
 
     // Remove SK artifacts
     removeSKArtifacts(rUser, resourceTenantId, systemId);
@@ -621,7 +619,7 @@ public class SystemsServiceImpl implements SystemsService
     // We need owner to check auth and if system not there cannot find owner, so cannot do auth check if no system
     if (dao.checkForSystem(rUser.getApiTenantId(), systemId, includeDeleted)) {
       // ------------------------- Check service level authorization -------------------------
-      checkAuth(rUser, op, systemId, null, null);
+      checkAuth(rUser, op, systemId, null, null, null);
       return true;
     }
     return false;
@@ -652,7 +650,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null);
+    checkAuth(rUser, op, systemId, null, null, null);
     return dao.isEnabled(resourceTenantId, systemId);
   }
 
@@ -683,7 +681,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null);
+    checkAuth(rUser, op, systemId, null, null, null);
     // If flag is set to also require EXECUTE perm then make a special auth call
     if (requireExecPerm)
     {
@@ -941,7 +939,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(rUser.getApiTenantId(), systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null);
+    checkAuth(rUser, op, systemId, null, null, null);
 
     return dao.getSystemOwner(rUser.getApiTenantId(), systemId);
   }
@@ -984,7 +982,7 @@ public class SystemsServiceImpl implements SystemsService
     String owner = checkForOwnerPermUpdate(rUser, systemId, userName, op.name());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, owner, null);
+    checkAuth(rUser, op, systemId, owner, null, null);
 
     // Check inputs. If anything null or empty throw an exception
     if (permissions == null || permissions.isEmpty())
@@ -1070,7 +1068,7 @@ public class SystemsServiceImpl implements SystemsService
     String owner = checkForOwnerPermUpdate(rUser, systemId, userName, op.name());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, owner, null);
+    checkAuth(rUser, op, systemId, owner, userName, permissions);
 
     // Check inputs. If anything null or empty throw an exception
     if (permissions == null || permissions.isEmpty())
@@ -1144,7 +1142,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(rUser.getApiTenantId(), systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName);
+    checkAuth(rUser, op, systemId, null, userName, null);
 
     // Use Security Kernel client to check for each permission in the enum list
     var skClient = getSKClient();
@@ -1184,7 +1182,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName);
+    checkAuth(rUser, op, systemId, null, userName, null);
 
     // If private SSH key is set check that we have a compatible key.
     if (!StringUtils.isBlank(credential.getPrivateKey()) && !credential.isValidPrivateSshKey())
@@ -1243,7 +1241,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, false)) return changeCount;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName);
+    checkAuth(rUser, op, systemId, null, userName, null);
 
     // Get the Security Kernel client
     var skClient = getSKClient();
@@ -1298,7 +1296,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // ------------------------- Check service level authorization -------------------------
     // NOTE: No need to pass in an owner or userIdToCheck since only services are authorized.
-    checkAuth(rUser, op, systemId, null, null);
+    checkAuth(rUser, op, systemId, null, null, null);
 
     // If authnMethod not passed in fill in with default from system
     if (authnMethod == null)
@@ -1403,7 +1401,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, sysOp, systemId, null, null);
+    checkAuth(rUser, sysOp, systemId, null, null, null);
 
     // ----------------- Make update --------------------
     if (sysOp == SystemOperation.enable)
@@ -1442,7 +1440,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, sysOp, systemId, null, null);
+    checkAuth(rUser, sysOp, systemId, null, null, null);
 
     // ----------------- Make update --------------------
     if (sysOp == SystemOperation.delete)
@@ -1668,10 +1666,11 @@ public class SystemsServiceImpl implements SystemsService
    * @param systemId - name of the system
    * @param owner - system owner
    * @param userIdToCheck - optional name of the user to check. Default is to use rUser.getJwtUserId().
+   * @param perms - List of permissions for the revokePerm case
    * @throws NotAuthorizedException - apiUserId not authorized to perform operation
    */
   private void checkAuth(ResourceRequestUser rUser, SystemOperation op, String systemId,
-                         String owner, String userIdToCheck)
+                         String owner, String userIdToCheck, Set<Permission> perms)
       throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException
   {
     // Check service and user requests separately to avoid confusing a service name with a user name
@@ -1694,7 +1693,7 @@ public class SystemsServiceImpl implements SystemsService
     else
     {
       // This is a user check
-      checkAuthUser(rUser, op, null, null, systemId, owner, userIdToCheck, null);
+      checkAuthUser(rUser, op, null, null, systemId, owner, userIdToCheck, perms);
       return;
     }
     // Not authorized, throw an exception
@@ -1736,8 +1735,7 @@ public class SystemsServiceImpl implements SystemsService
                              String systemId, String owner, String targetUser, Set<Permission> perms)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException
   {
-    // TODO review this, still need to pass in tenant and user to check since authUser replaced with rUser?
-    //    Use tenant and user from authenticatedUser or optional provided values
+    // Use JWT tenant and user from resourceRequestUser or optional provided values
     String tenantName = (StringUtils.isBlank(tenantIdToCheck) ? rUser.getJwtTenantId() : tenantIdToCheck);
     String userName = (StringUtils.isBlank(userIdToCheck) ? rUser.getJwtUserId() : userIdToCheck);
 
@@ -1841,12 +1839,11 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Check to see if a user has the service admin role
-   * TODO By default use tenant and user from authenticatedUser, allow for optional tenant or user.
+   * By default use JWT tenant and user from resourceRequestUser, allow for optional tenant or user.
    */
   private boolean hasAdminRole(ResourceRequestUser rUser, String tenantToCheck, String userToCheck)
           throws TapisException, TapisClientException
   {
-    // TODO review this in light of rUser in place of authUser
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? rUser.getJwtTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? rUser.getJwtUserId() : userToCheck);
@@ -1855,7 +1852,7 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Check to see if a user has the specified permission
-   * TODO By default use tenant and user from authenticatedUser, allow for optional tenant or user.
+   * By default use JWT tenant and user from authenticatedUser, allow for optional tenant or user.
    */
   private boolean isPermitted(ResourceRequestUser rUser, String tenantToCheck, String userToCheck,
                               String systemId, Permission perm)
@@ -1896,7 +1893,8 @@ public class SystemsServiceImpl implements SystemsService
                                       String systemId, Set<Permission> perms)
           throws TapisException, TapisClientException
   {
-    // TODO looks like incoming perms is always null? not right, this will always throw NPE.
+    // Perms should never be null. Fall back to deny as best security practice.
+    if (perms == null) return false;
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? rUser.getJwtTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? rUser.getJwtUserId() : userToCheck);
