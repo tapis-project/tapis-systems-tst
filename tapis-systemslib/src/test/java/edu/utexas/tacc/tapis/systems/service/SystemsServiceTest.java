@@ -694,6 +694,35 @@ public class SystemsServiceTest
             "fakeAccessKey1", "fakeAccessSecret1", "fakeCert1");
     Credential cred3 = new Credential("fakePassword3", "fakePrivateKey3", "fakePublicKey3",
             "fakeAccessKey3", "fakeAccessSecret3", "fakeCert3");
+    Credential cred3a = new Credential(null, null, null, "fakeAccessKey3a", "fakeAccessSecret3a", null);
+
+//    // TODO/TBD: for now, first test create/delete/create/delete sequence first to troubleshoot a certain issue
+//    //           keep this?
+//    // create
+//    svc.createUserCredential(rOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
+//    Credential cred00 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+//    Assert.assertNotNull(cred00, "AuthnCredential should not be null for user: " + testUser3);
+//    Assert.assertNotNull(cred00.getPassword(), "AuthnCredential password should not be null for user: " + testUser3);
+//    Assert.assertEquals(cred00.getPassword(), cred3.getPassword());
+//    // delete
+//    int changeCount0 = svc.deleteUserCredential(rOwner1, sys0.getId(), testUser3);
+//    Assert.assertEquals(changeCount0, 1, "Change count incorrect when removing credential for user: " + testUser3);
+//    cred00 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+//    Assert.assertNull(cred00, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
+//    // re-create
+//    svc.createUserCredential(rOwner1, sys0.getId(), testUser3, cred3a, scrubbedJson);
+//    cred00 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
+//    Assert.assertNotNull(cred00, "AuthnCredential should not be null for user: " + testUser3);
+//    Assert.assertNotNull(cred00.getAccessKey(), "AuthnCredential accessKey should not be null for user: " + testUser3);
+//    Assert.assertNotNull(cred00.getAccessSecret(), "AuthnCredential accessSecret should not be null for user: " + testUser3);
+//    Assert.assertEquals(cred00.getAccessKey(), cred3a.getAccessKey());
+//    Assert.assertEquals(cred00.getAccessSecret(), cred3a.getAccessSecret());
+//    // delete again
+//    changeCount0 = svc.deleteUserCredential(rOwner1, sys0.getId(), testUser3);
+//    Assert.assertEquals(changeCount0, 1, "Change count incorrect when removing credential for user: " + testUser3);
+//    cred00 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PASSWORD);
+//    Assert.assertNull(cred00, "Credential not deleted. System name: " + sys0.getId() + " User name: " + testUser3);
+
     // Make the separate calls required to store credentials for each user.
     // In this case for owner1 and testUser3
     svc.createUserCredential(rOwner1, sys0.getId(), owner1, cred1, scrubbedJson);
@@ -740,12 +769,14 @@ public class SystemsServiceTest
     Assert.assertEquals(changeCount, 0, "Change count incorrect when removing a credential already removed.");
 
     // Set just ACCESS_KEY only and test
-    cred3 = new Credential(null, null, null, "fakeAccessKey3a", "fakeAccessSecret3a", null);
-    svc.createUserCredential(rOwner1, sys0.getId(), testUser3, cred3, scrubbedJson);
+    svc.createUserCredential(rOwner1, sys0.getId(), testUser3, cred3a, scrubbedJson);
     cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.ACCESS_KEY);
-    Assert.assertEquals(cred0.getAccessKey(), cred3.getAccessKey());
-    Assert.assertEquals(cred0.getAccessSecret(), cred3.getAccessSecret());
+    Assert.assertEquals(cred0.getAccessKey(), cred3a.getAccessKey());
+    Assert.assertEquals(cred0.getAccessSecret(), cred3a.getAccessSecret());
     // Attempt to retrieve secret that has not been set
+    // TODO: not passing, pki_keys are still set to previous values (fakePrivateKey3, fakePublicKey3)
+    //     NOTE: After updating to use destroySecretMeta instead of destroySecret the following 2 lines test OK
+    //           but then the following delete fails.
     cred0 = svc.getUserCredential(authenticatedFilesSvcOwner1, sys0.getId(), testUser3, AuthnMethod.PKI_KEYS);
     Assert.assertNull(cred0, "Credential was non-null for missing secret. System name: " + sys0.getId() + " User name: " + testUser3);
     // Delete credentials and verify they were destroyed

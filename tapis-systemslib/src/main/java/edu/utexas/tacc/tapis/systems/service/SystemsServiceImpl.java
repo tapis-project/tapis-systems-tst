@@ -201,7 +201,7 @@ public class SystemsServiceImpl implements SystemsService
     system.resolveVariables(rUser.getApiUserId());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, system.getId(), system.getOwner(), null, null);
+    checkAuth(rUser, op, system.getId(), system.getOwner(), null);
 
     // ---------------- Check for reserved names ------------------------
     checkReservedIds(rUser, system.getId());
@@ -329,7 +329,7 @@ public class SystemsServiceImpl implements SystemsService
     TSystem patchedTSystem = createPatchedTSystem(origTSystem, patchSystem);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null, null);
+    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
     patchedTSystem = TSystem.setDefaults(patchedTSystem);
@@ -385,7 +385,7 @@ public class SystemsServiceImpl implements SystemsService
     TSystem updatedTSystem = createUpdatedTSystem(origTSystem, putSystem);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null, null);
+    checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
     validateTSystem(rUser, updatedTSystem);
@@ -509,7 +509,7 @@ public class SystemsServiceImpl implements SystemsService
     String oldOwnerName = dao.getSystemOwner(resourceTenantId, systemId);
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, oldOwnerName, null, null);
+    checkAuth(rUser, op, systemId, oldOwnerName, null);
 
     // If new owner same as old owner then this is a no-op
     if (newOwnerName.equals(oldOwnerName)) return 0;
@@ -577,7 +577,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, true)) return 0;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null, null);
+    checkAuth(rUser, op, systemId, null, null);
 
     // Remove SK artifacts
     removeSKArtifacts(rUser, resourceTenantId, systemId);
@@ -621,7 +621,7 @@ public class SystemsServiceImpl implements SystemsService
     // We need owner to check auth and if system not there cannot find owner, so cannot do auth check if no system
     if (dao.checkForSystem(rUser.getApiTenantId(), systemId, includeDeleted)) {
       // ------------------------- Check service level authorization -------------------------
-      checkAuth(rUser, op, systemId, null, null, null);
+      checkAuth(rUser, op, systemId, null, null);
       return true;
     }
     return false;
@@ -652,7 +652,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null, null);
+    checkAuth(rUser, op, systemId, null, null);
     return dao.isEnabled(resourceTenantId, systemId);
   }
 
@@ -683,7 +683,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null, null);
+    checkAuth(rUser, op, systemId, null, null);
     // If flag is set to also require EXECUTE perm then make a special auth call
     if (requireExecPerm)
     {
@@ -941,7 +941,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(rUser.getApiTenantId(), systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, null, null);
+    checkAuth(rUser, op, systemId, null, null);
 
     return dao.getSystemOwner(rUser.getApiTenantId(), systemId);
   }
@@ -984,7 +984,7 @@ public class SystemsServiceImpl implements SystemsService
     String owner = checkForOwnerPermUpdate(rUser, systemId, userName, op.name());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, owner, null, null);
+    checkAuth(rUser, op, systemId, owner, null);
 
     // Check inputs. If anything null or empty throw an exception
     if (permissions == null || permissions.isEmpty())
@@ -1070,7 +1070,7 @@ public class SystemsServiceImpl implements SystemsService
     String owner = checkForOwnerPermUpdate(rUser, systemId, userName, op.name());
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, owner, null, null);
+    checkAuth(rUser, op, systemId, owner, null);
 
     // Check inputs. If anything null or empty throw an exception
     if (permissions == null || permissions.isEmpty())
@@ -1144,7 +1144,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(rUser.getApiTenantId(), systemId, false)) return null;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName, null);
+    checkAuth(rUser, op, systemId, null, userName);
 
     // Use Security Kernel client to check for each permission in the enum list
     var skClient = getSKClient();
@@ -1184,7 +1184,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName, null);
+    checkAuth(rUser, op, systemId, null, userName);
 
     // If private SSH key is set check that we have a compatible key.
     if (!StringUtils.isBlank(credential.getPrivateKey()) && !credential.isValidPrivateSshKey())
@@ -1243,7 +1243,7 @@ public class SystemsServiceImpl implements SystemsService
     if (!dao.checkForSystem(resourceTenantId, systemId, false)) return changeCount;
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, op, systemId, null, userName, null);
+    checkAuth(rUser, op, systemId, null, userName);
 
     // Get the Security Kernel client
     var skClient = getSKClient();
@@ -1298,7 +1298,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // ------------------------- Check service level authorization -------------------------
     // NOTE: No need to pass in an owner or userIdToCheck since only services are authorized.
-    checkAuth(rUser, op, systemId, null, null, null);
+    checkAuth(rUser, op, systemId, null, null);
 
     // If authnMethod not passed in fill in with default from system
     if (authnMethod == null)
@@ -1313,20 +1313,16 @@ public class SystemsServiceImpl implements SystemsService
      *   jwtTenantId = admin tenant (Site Tenant Admin)
      *   jwtUserId = TapisConstants.SERVICE_NAME_SYSTEMS ("systems")
      *   and AccountType = TapisThreadContext.AccountType.service
-     * Hence the use of getServiceTenantId() and getServiceUserId() in TODO/TBD: ???the calls to skClient. E.g.:
-     *   TODO/TBD ???skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms)
      *
      * For Systems the secret needs to be scoped by the tenant associated with the system,
      *   the system id and the target user (i.e. the user associated with the secret).
      * Secrets for a system follow the format
-     *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1 TODO: confirm with Rich
+     *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1
      * where tenant_id, system_id, user_id and key_type are filled in at runtime.
      *   key_type is sshkey, password, accesskey or cert and S1 is the reserved SecretName associated with the Systems.
      * Hence the following code
      *     new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME)
-     *     sParms.setSysId(systemId).setSysUser(targetUserId);
-     * TODO/TBD: how to set tenant for system? tenant for request (i.e. svc tenant)?
-     *          sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName)
+     *     sParms.setTenant(rUser.getApiTenantId()).setSysId(systemId).setSysUser(targetUserId);
      *
      */
     Credential credential = null;
@@ -1338,13 +1334,14 @@ public class SystemsServiceImpl implements SystemsService
       // Establish secret type ("system") and secret name ("S1")
       var sParms = new SKSecretReadParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
 
-      // TODO??? Set tenant and user associated with the request
-      // These are the obo tenant and user which of course are the same for user request but might differ for a service
-      //   request. NOTE: Currently only service requests are authorized to get credentials.
-      // TODO/TBD check with Rich. Is this the correct way to to requesting tenant and user?
-      sParms.setTenant(getServiceTenantId()).setUser(getServiceUserId());
-      // Set system and user associated with the secret. TODO/TBD: how to set tenant associated with system?
-      sParms.setSysId(systemId).setSysUser(targetUserId);
+      // Set tenant, system and user associated with the secret.
+      // These values are used to build the vault path to the secret.
+      sParms.setTenant(rUser.getApiTenantId()).setSysId(systemId).setSysUser(targetUserId);
+
+      // NOTE: This is needed for the SK call. Not clear if it should be targetUserId, serviceUserId, apiUserId.
+      //       If not set then the first getAuthnCred in SystemsServiceTest.testUserCredentials
+      //          fails. But it appears the value does not matter. Even an invalid userId appears to be OK.
+      sParms.setUser(rUser.getApiUserId());
       // Set key type based on authn method
       if (authnMethod.equals(AuthnMethod.PASSWORD))sParms.setKeyType(KeyType.password);
       else if (authnMethod.equals(AuthnMethod.PKI_KEYS))sParms.setKeyType(KeyType.sshkey);
@@ -1406,7 +1403,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, sysOp, systemId, null, null, null);
+    checkAuth(rUser, sysOp, systemId, null, null);
 
     // ----------------- Make update --------------------
     if (sysOp == SystemOperation.enable)
@@ -1445,7 +1442,7 @@ public class SystemsServiceImpl implements SystemsService
       throw new NotFoundException(LibUtils.getMsgAuth(NOT_FOUND, rUser, systemId));
 
     // ------------------------- Check service level authorization -------------------------
-    checkAuth(rUser, sysOp, systemId, null, null, null);
+    checkAuth(rUser, sysOp, systemId, null, null);
 
     // ----------------- Make update --------------------
     if (sysOp == SystemOperation.delete)
@@ -1670,12 +1667,11 @@ public class SystemsServiceImpl implements SystemsService
    * @param op - operation name
    * @param systemId - name of the system
    * @param owner - system owner
-   * @param userIdToCheck - optional name of the user to check. Default is to use rUser.
-   * @param perms - List of permissions for the revokePerm case
+   * @param userIdToCheck - optional name of the user to check. Default is to use rUser.getJwtUserId().
    * @throws NotAuthorizedException - apiUserId not authorized to perform operation
    */
   private void checkAuth(ResourceRequestUser rUser, SystemOperation op, String systemId,
-                         String owner, String userIdToCheck, Set<Permission> perms)
+                         String owner, String userIdToCheck)
       throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException
   {
     // Check service and user requests separately to avoid confusing a service name with a user name
@@ -1698,7 +1694,7 @@ public class SystemsServiceImpl implements SystemsService
     else
     {
       // This is a user check
-      checkAuthUser(rUser, op, null, null, systemId, owner, userIdToCheck, perms);
+      checkAuthUser(rUser, op, null, null, systemId, owner, userIdToCheck, null);
       return;
     }
     // Not authorized, throw an exception
@@ -1728,8 +1724,8 @@ public class SystemsServiceImpl implements SystemsService
    *
    * @param rUser - ResourceRequestUser containing tenant, user and request info
    * @param op - operation name
-   * @param tenantIdToCheck - optional name of the tenant to use. Default is to use rUser.
-   * @param userIdToCheck - optional name of the user to check. Default is to use rUser.
+   * @param tenantIdToCheck - optional name of the tenant to use. Default is to use rUser.getJwtTenantId().
+   * @param userIdToCheck - optional name of the user to check. Default is to use rUser.getJwtUserId().
    * @param systemId - name of the system
    * @param owner - system owner
    * @param perms - List of permissions for the revokePerm case
@@ -1875,7 +1871,7 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Check to see if a user has any of the set of permissions
-   * TODO By default use tenant and user from authenticatedUser, allow for optional tenant or user.
+   * By default use JWT tenant and user from rUser, allow for optional tenant or user.
    */
   private boolean isPermittedAny(ResourceRequestUser rUser, String tenantToCheck, String userToCheck,
                                  String systemId, Set<Permission> perms)
@@ -1894,12 +1890,13 @@ public class SystemsServiceImpl implements SystemsService
 
   /**
    * Check to see if a user who is not owner or admin is authorized to revoke permissions
-   * TODO By default use tenant and user from authenticatedUser, allow for optional tenant or user.
+   * By default use JWT tenant and user from rUser, allow for optional tenant or user.
    */
   private boolean allowUserRevokePerm(ResourceRequestUser rUser, String tenantToCheck, String userToCheck,
                                       String systemId, Set<Permission> perms)
           throws TapisException, TapisClientException
   {
+    // TODO looks like incoming perms is always null? not right, this will always throw NPE.
     // Use tenant and user from authenticatedUsr or optional provided values
     String tenantName = (StringUtils.isBlank(tenantToCheck) ? rUser.getJwtTenantId() : tenantToCheck);
     String userName = (StringUtils.isBlank(userToCheck) ? rUser.getJwtUserId() : userToCheck);
@@ -1935,35 +1932,31 @@ public class SystemsServiceImpl implements SystemsService
    *   jwtTenantId = admin tenant (Site Tenant Admin)
    *   jwtUserId = TapisConstants.SERVICE_NAME_SYSTEMS ("systems")
    *   and AccountType = TapisThreadContext.AccountType.service
-   * Hence the use of getServiceTenantId() and getServiceUserId() in the calls to skClient. E.g.:
-   *   skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms)
    *
    * For Systems the secret needs to be scoped by the tenant associated with the system,
    *   the system id and the target user (i.e. the user associated with the secret).
    * Secrets for a system follow the format
-   *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1 TODO: confirm with Rich
+   *   secret/tapis/tenant/tenant_id/system_id/user/user_id/key_type/S1
    * where tenant_id, system_id, user_id and key_type are filled in at runtime.
-   *   key_type is sshkey, password, accesskey or cert and S1 is the reserved SecretName associated with the Systems.
+   *   key_type is sshkey, password, accesskey or cert
+   *   and S1 is the reserved SecretName associated with the Systems.
    * Hence the following code
    *     new SKSecretWriteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME)
-   *     sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName)
-   *
-   * TODO: Confirm with Rich that SK is using the tenant info in sParms. In the SKClient code it appears that it
-   *       might be ignored, see method writeSecret(String tenant, String user, SKSecretWriteParms parms)
-   *       line 1144 in SKClient.java
-   *
+   *     sParms.setSysId(systemId).setSysUser(userName)
+   *     skClient.writeSecret(reqPayloadTenant, getServiceUserId(), sParms);
+   * In the SKClient code the tenant value in SKSecretWriteParms is ignored.
+   * See method writeSecret(String tenant, String user, SKSecretWriteParms parms) in SKClient.java
+   * SK uses tenant from payload when constructing the full path for the secret. User from payload not used.
    */
   private static void createCredential(SKClient skClient, ResourceRequestUser rUser, Credential credential,
                                        String systemId, String userName)
           throws TapisClientException
   {
-    String apiTenantId = rUser.getApiTenantId();
-
     // Construct basic SK secret parameters including tenant, system and user for credential
     // Establish secret type ("system") and secret name ("S1")
     var sParms = new SKSecretWriteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
-    // Fill in tenantId, systemId and userId for the path to the secret.
-    sParms.setTenant(apiTenantId).setSysId(systemId).setSysUser(userName);
+    // Fill in systemId and userId for the path to the secret.
+    sParms.setSysId(systemId).setSysUser(userName);
     Map<String, String> dataMap;
     // Check for each secret type and write values if they are present
     // Note that multiple secrets may be present.
@@ -1973,7 +1966,9 @@ public class SystemsServiceImpl implements SystemsService
       sParms.setKeyType(KeyType.password);
       dataMap.put(SK_KEY_PASSWORD, credential.getPassword());
       sParms.setData(dataMap);
-      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
+      // First 2 parameters correspond to tenant and user from request payload
+      // Tenant is used in constructing full path for secret, user is not used.
+      skClient.writeSecret(rUser.getApiTenantId(), rUser.getApiUserId(), sParms);
     }
     // Store PKI keys if both present
     if (!StringUtils.isBlank(credential.getPublicKey()) && !StringUtils.isBlank(credential.getPublicKey())) {
@@ -1982,7 +1977,7 @@ public class SystemsServiceImpl implements SystemsService
       dataMap.put(SK_KEY_PUBLIC_KEY, credential.getPublicKey());
       dataMap.put(SK_KEY_PRIVATE_KEY, credential.getPrivateKey());
       sParms.setData(dataMap);
-      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
+      skClient.writeSecret(rUser.getApiTenantId(), rUser.getApiUserId(), sParms);
     }
     // Store Access key and secret if both present
     if (!StringUtils.isBlank(credential.getAccessKey()) && !StringUtils.isBlank(credential.getAccessSecret())) {
@@ -1991,7 +1986,7 @@ public class SystemsServiceImpl implements SystemsService
       dataMap.put(SK_KEY_ACCESS_KEY, credential.getAccessKey());
       dataMap.put(SK_KEY_ACCESS_SECRET, credential.getAccessSecret());
       sParms.setData(dataMap);
-      skClient.writeSecret(getServiceTenantId(), getServiceUserId(), sParms);
+      skClient.writeSecret(rUser.getApiTenantId(), rUser.getApiUserId(), sParms);
     }
     // TODO if necessary handle ssh certificate when supported
   }
@@ -2003,8 +1998,6 @@ public class SystemsServiceImpl implements SystemsService
   private static int deleteCredential(SKClient skClient, ResourceRequestUser rUser, String systemId, String userName)
           throws TapisClientException
   {
-    int changeCount = 0;
-
     String apiTenantId = rUser.getApiTenantId();
     String apiUserId = rUser.getApiUserId();
 
@@ -2013,33 +2006,32 @@ public class SystemsServiceImpl implements SystemsService
     sMetaParms.setTenant(apiTenantId).setUser(apiUserId);
     sMetaParms.setSysId(systemId).setSysUser(userName);
     SkSecretVersionMetadata skMetaSecret;
-    try { skMetaSecret = skClient.readSecretMeta(sMetaParms); }
-    catch (Exception e) { _log.trace(e.getMessage()); skMetaSecret = null; }
-    if (skMetaSecret == null) return changeCount;
+    // NOTE: To be sure we know that the secret does not exist we need to check each key type
+    //       By default keyType is sshkey which may not exist
+    boolean secretNotFound = true;
+    sMetaParms.setKeyType(KeyType.password);
+    try { skClient.readSecretMeta(sMetaParms); secretNotFound = false; }
+    catch (Exception e) { _log.trace(e.getMessage()); }
+    sMetaParms.setKeyType(KeyType.sshkey);
+    try { skClient.readSecretMeta(sMetaParms); secretNotFound = false; }
+    catch (Exception e) { _log.trace(e.getMessage()); }
+    sMetaParms.setKeyType(KeyType.accesskey);
+    try { skClient.readSecretMeta(sMetaParms); secretNotFound = false; }
+    catch (Exception e) { _log.trace(e.getMessage()); }
+    if (secretNotFound) return 0;
 
     // Construct basic SK secret parameters and attempt to destroy each type of secret.
     // If destroy attempt throws an exception then log a message and continue.
-    var sParms = new SKSecretDeleteParms(SecretType.System).setSecretName(TOP_LEVEL_SECRET_NAME);
-    sParms.setTenant(apiTenantId).setUser(apiUserId);
-    sParms.setSysId(systemId).setSysUser(userName);
-    sParms.setVersions(Collections.emptyList());
-    sParms.setKeyType(KeyType.password);
-    List<Integer> intList = null;
-    try { intList = skClient.destroySecret(apiTenantId, apiUserId, sParms); }
+    sMetaParms.setKeyType(KeyType.password);
+    try { skClient.destroySecretMeta(sMetaParms); }
     catch (Exception e) { _log.trace(e.getMessage()); }
-    // Return value is a list of destroyed versions. If any destroyed increment changeCount by 1
-    if (intList != null && !intList.isEmpty()) changeCount++;
-    sParms.setKeyType(KeyType.sshkey);
-    try { intList = skClient.destroySecret(apiUserId, apiUserId, sParms); }
+    sMetaParms.setKeyType(KeyType.sshkey);
+    try { skClient.destroySecretMeta(sMetaParms); }
     catch (Exception e) { _log.trace(e.getMessage()); }
-    if (intList != null && !intList.isEmpty()) changeCount++;
-    sParms.setKeyType(KeyType.accesskey);
-    try { intList = skClient.destroySecret(apiTenantId, apiUserId, sParms); }
+    sMetaParms.setKeyType(KeyType.accesskey);
+    try { skClient.destroySecretMeta(sMetaParms); }
     catch (Exception e) { _log.trace(e.getMessage()); }
-    if (intList != null && !intList.isEmpty()) changeCount++;
-    // If anything destroyed we consider it the removal of a single credential
-    if (changeCount > 0) changeCount = 1;
-    return changeCount;
+    return 1;
   }
 
   /**
