@@ -288,7 +288,7 @@ public class SystemsServiceImpl implements SystemsService
    * Attributes that can be updated:
    *   description, host, effectiveUserId, defaultAuthnMethod,
    *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
-   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUser, jobIsBatch,
    *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
    * Attributes that cannot be updated:
    *   tenant, id, systemType, owner, authnCredential, bucketName, rootDir, canExec, isDtn
@@ -302,7 +302,7 @@ public class SystemsServiceImpl implements SystemsService
    * @throws NotFoundException - Resource not found
    */
   @Override
-  public void updateSystem(ResourceRequestUser rUser, PatchSystem patchSystem, String scrubbedText)
+  public void patchSystem(ResourceRequestUser rUser, PatchSystem patchSystem, String scrubbedText)
           throws TapisException, TapisClientException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException
   {
     SystemOperation op = SystemOperation.modify;
@@ -339,7 +339,7 @@ public class SystemsServiceImpl implements SystemsService
     // ----------------- Create all artifacts --------------------
     // No distributed transactions so no distributed rollback needed
     // ------------------- Make Dao call to persist the system -----------------------------------
-    dao.updateSystem(rUser, patchedTSystem, patchSystem, updateJsonStr, scrubbedText);
+    dao.patchSystem(rUser, patchedTSystem, patchSystem, updateJsonStr, scrubbedText);
   }
 
   /**
@@ -347,7 +347,7 @@ public class SystemsServiceImpl implements SystemsService
    * Incoming TSystem must contain the tenantId and systemId.
    * Secrets in the text should be masked.
    * Attributes that cannot be updated and so will be looked up and filled in:
-   *   tenant, id, systemType, owner, authnCredential, bucketName, rootDir, canExec, isDtn
+   *   tenant, id, systemType, owner, bucketName, rootDir, canExec, isDtn
    * @param rUser - ResourceRequestUser containing tenant, user and request info
    * @param putSystem - Pre-populated TSystem object (including tenantId and systemId)
    * @param scrubbedText - Text used to create the PatchSystem object - secrets should be scrubbed. Saved in update record.

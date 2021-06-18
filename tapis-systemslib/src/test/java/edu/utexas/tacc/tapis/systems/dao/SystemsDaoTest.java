@@ -280,7 +280,7 @@ public class SystemsDaoTest
     Assert.assertFalse(dao.checkForSystem(tenantName, fakeSystemName, false));
     // update should throw not found exception
     boolean pass = false;
-    try { dao.updateSystem(rUser, patchedSystem, patchSys, scrubbedJson, null); }
+    try { dao.patchSystem(rUser, patchedSystem, patchSys, scrubbedJson, null); }
     catch (IllegalStateException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_NOT_FOUND"));

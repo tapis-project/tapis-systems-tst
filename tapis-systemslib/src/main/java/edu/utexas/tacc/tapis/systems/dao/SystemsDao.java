@@ -20,8 +20,8 @@ public interface SystemsDao
   void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
-  void updateSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
-                    String updateJsonStr, String scrubbedText)
+  void patchSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
+                   String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException;
 
   void updateSystemOwner(ResourceRequestUser rUser, String tenantId, String id, String newOwnerName) throws TapisException;

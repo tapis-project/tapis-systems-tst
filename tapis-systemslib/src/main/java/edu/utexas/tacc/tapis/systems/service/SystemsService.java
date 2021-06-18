@@ -27,7 +27,7 @@ public interface SystemsService
   void createSystem(ResourceRequestUser rUser, TSystem system, String scrubbedText)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException, IllegalArgumentException;
 
-  void updateSystem(ResourceRequestUser rUser, PatchSystem patchSystem, String scrubbedText)
+  void patchSystem(ResourceRequestUser rUser, PatchSystem patchSystem, String scrubbedText)
           throws TapisException, TapisClientException, NotAuthorizedException, IllegalStateException, IllegalArgumentException, NotFoundException;
 
   void putSystem(ResourceRequestUser rUser, TSystem putSystem, String scrubbedText)

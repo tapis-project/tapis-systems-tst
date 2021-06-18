@@ -102,6 +102,7 @@ public class SystemResource
 
   // Json schema resource files.
   private static final String FILE_SYSTEM_CREATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemPostRequest.json";
+  private static final String FILE_SYSTEM_PUT_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemPutRequest.json";
   private static final String FILE_SYSTEM_UPDATE_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemPatchRequest.json";
   private static final String FILE_SYSTEM_SEARCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/SystemSearchRequest.json";
   private static final String FILE_SYSTEM_MATCH_REQUEST = "/edu/utexas/tacc/tapis/systems/api/jsonschema/MatchConstraintsRequest.json";
@@ -183,7 +184,7 @@ public class SystemResource
 
     // ------------------------- Retrieve and validate thread context -------------------------
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
@@ -316,7 +317,7 @@ public class SystemResource
 
     // ------------------------- Retrieve and validate thread context -------------------------
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
@@ -371,7 +372,7 @@ public class SystemResource
     // ---------------------------- Make service call to update the system -------------------------------
     try
     {
-      systemsService.updateSystem(rUser, patchSystem, rawJson);
+      systemsService.patchSystem(rUser, patchSystem, rawJson);
     }
     catch (NotFoundException e)
     {
@@ -439,7 +440,7 @@ public class SystemResource
 
     // ------------------------- Retrieve and validate thread context -------------------------
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;
@@ -459,8 +460,9 @@ public class SystemResource
       return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();
     }
     // Create validator specification and validate the json against the schema
-    // NOTE that CREATE and PUT use same request body.
-    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_CREATE_REQUEST);
+    // NOTE that CREATE and PUT are very similar schemas.
+    // Only difference should be for PUT there are no required properties.
+    JsonValidatorSpec spec = new JsonValidatorSpec(rawJson, FILE_SYSTEM_PUT_REQUEST);
     try { JsonValidator.validate(spec); }
     catch (TapisJSONException e)
     {
@@ -652,7 +654,7 @@ public class SystemResource
     String opName = "getSystem";
     if (_log.isTraceEnabled()) logRequest(opName);
 
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -715,7 +717,7 @@ public class SystemResource
     String opName = "isEnabled";
     if (_log.isTraceEnabled()) logRequest(opName);
 
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get(); // Local thread context
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -769,7 +771,7 @@ public class SystemResource
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -814,7 +816,7 @@ public class SystemResource
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -880,7 +882,7 @@ public class SystemResource
     // Trace this request.
     if (_log.isTraceEnabled()) logRequest(opName);
 
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -964,7 +966,7 @@ public class SystemResource
 //    // Trace this request.
 //    if (_log.isTraceEnabled()) logRequest(opName);
 //
-//    // Check that we have all we need from the context, the tenant name and apiUserId
+//    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
 //    // Utility method returns null if all OK and appropriate error response if there was a problem.
 //    TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
 //    Response resp = ApiUtils.checkContext(threadContext, PRETTY);
@@ -1050,7 +1052,7 @@ public class SystemResource
 
     // ------------------------- Retrieve and validate thread context -------------------------
     TapisThreadContext threadContext = TapisThreadLocal.tapisThreadContext.get();
-    // Check that we have all we need from the context, the tenant name and apiUserId
+    // Check that we have all we need from the context, the jwtTenantId and jwtUserId
     // Utility method returns null if all OK and appropriate error response if there was a problem.
     Response resp = ApiUtils.checkContext(threadContext, PRETTY);
     if (resp != null) return resp;

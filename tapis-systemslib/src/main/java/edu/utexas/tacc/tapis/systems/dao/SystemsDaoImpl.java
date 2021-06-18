@@ -100,11 +100,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (StringUtils.isBlank(system.getId())) LibUtils.logAndThrowNullParmException(opName, "systemId");
     if (system.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
     if (system.getDefaultAuthnMethod() == null) LibUtils.logAndThrowNullParmException(opName, "defaultAuthnMethod");
-
-    // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
-    String proxyHost = TSystem.DEFAULT_PROXYHOST;
-    if (system.getProxyHost() != null) proxyHost = system.getProxyHost();
-
+    
     // Make sure owner, effectiveUserId, notes and tags are all set
     String owner = TSystem.DEFAULT_OWNER;
     if (StringUtils.isNotBlank(system.getOwner())) owner = system.getOwner();
@@ -144,7 +140,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.ROOT_DIR, system.getRootDir())
               .set(SYSTEMS.PORT, system.getPort())
               .set(SYSTEMS.USE_PROXY, system.isUseProxy())
-              .set(SYSTEMS.PROXY_HOST, proxyHost)
+              .set(SYSTEMS.PROXY_HOST, system.getProxyHost())
               .set(SYSTEMS.PROXY_PORT, system.getProxyPort())
               .set(SYSTEMS.DTN_SYSTEM_ID, system.getDtnSystemId())
               .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, system.getDtnMountSourcePath())
@@ -198,6 +194,113 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
   }
 
   /**
+   * Update all updatable attributes of an existing system.
+   * Following columns will be updated:
+   *   description, host, effectiveUserId, defaultAuthnMethod,
+   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
+   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
+   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
+   * @throws TapisException - on error
+   * @throws IllegalStateException - if system already exists
+   */
+  @Override
+  public void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr,
+                        String scrubbedText)
+          throws TapisException, IllegalStateException {
+    String opName = "putSystem";
+    // ------------------------- Check Input -------------------------
+    if (putSystem == null) LibUtils.logAndThrowNullParmException(opName, "putSystem");
+    if (rUser == null) LibUtils.logAndThrowNullParmException(opName, "resourceRequestUser");
+    // Pull out some values for convenience
+    String tenantId = putSystem.getTenant();
+    String systemId = putSystem.getId();
+    if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
+    if (StringUtils.isBlank(tenantId)) LibUtils.logAndThrowNullParmException(opName, "tenantId");
+    if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
+    if (putSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
+
+    // Make effectiveUserId, notes and tags are all set
+    String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
+    if (StringUtils.isNotBlank(putSystem.getEffectiveUserId())) effectiveUserId = putSystem.getEffectiveUserId();
+    String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
+    if (putSystem.getTags() != null) tagsStrArray = putSystem.getTags();
+    JsonObject notesObj =  TSystem.DEFAULT_NOTES;
+    if (putSystem.getNotes() != null) notesObj = (JsonObject) putSystem.getNotes();
+
+    // ------------------------- Call SQL ----------------------------
+    Connection conn = null;
+    try
+    {
+      // Get a database connection.
+      conn = getConnection();
+      DSLContext db = DSL.using(conn);
+
+      // Make sure system exists and has not been deleted.
+      boolean doesExist = checkForSystem(db, tenantId, systemId, false);
+      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", rUser, systemId));
+
+      // Make sure UUID filled in, needed for update record. Pre-populated putSystem may not have it.
+      UUID uuid = putSystem.getUuid();
+      if (uuid == null) uuid = getUUIDUsingDb(db, tenantId, systemId);
+
+      int seqId = db.update(SYSTEMS)
+              .set(SYSTEMS.DESCRIPTION, putSystem.getDescription())
+              .set(SYSTEMS.HOST, putSystem.getHost())
+              .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
+              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, putSystem.getDefaultAuthnMethod())
+              .set(SYSTEMS.PORT, putSystem.getPort())
+              .set(SYSTEMS.USE_PROXY, putSystem.isUseProxy())
+              .set(SYSTEMS.PROXY_HOST, putSystem.getProxyHost())
+              .set(SYSTEMS.PROXY_PORT, putSystem.getProxyPort())
+              .set(SYSTEMS.DTN_SYSTEM_ID, putSystem.getDtnSystemId())
+              .set(SYSTEMS.DTN_MOUNT_POINT, putSystem.getDtnMountPoint())
+              .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, putSystem.getDtnMountSourcePath())
+              .set(SYSTEMS.JOB_WORKING_DIR, putSystem.getJobWorkingDir())
+              .set(SYSTEMS.JOB_ENV_VARIABLES, putSystem.getJobEnvVariables())
+              .set(SYSTEMS.JOB_MAX_JOBS, putSystem.getJobMaxJobs())
+              .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, putSystem.getJobMaxJobsPerUser())
+              .set(SYSTEMS.JOB_IS_BATCH, putSystem.getJobIsBatch())
+              .set(SYSTEMS.BATCH_SCHEDULER, putSystem.getBatchScheduler())
+              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, putSystem.getBatchDefaultLogicalQueue())
+              .set(SYSTEMS.TAGS, tagsStrArray)
+              .set(SYSTEMS.NOTES, notesObj)
+              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
+              .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(systemId))
+              .returningResult(SYSTEMS.SEQ_ID)
+              .fetchOne().getValue(SYSTEMS.SEQ_ID);
+
+      // Persist new job runtimes
+      db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+      persistJobRuntimes(db, putSystem, seqId);
+
+      // Persist new batch logical queues
+      db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+      persistLogicalQueues(db, putSystem, seqId);
+
+      // Persist new job capabilities
+      db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
+      persistJobCapabilities(db, putSystem, seqId);
+
+      // Persist update record
+      addUpdate(db, rUser, putSystem.getTenant(), putSystem.getId(), seqId, SystemOperation.modify,
+              updateJsonStr, scrubbedText, uuid);
+
+      // Close out and commit
+      LibUtils.closeAndCommitDB(conn, null, null);
+    }
+    catch (Exception e)
+    {
+      // Rollback transaction and throw an exception
+      LibUtils.rollbackDB(conn, e,"DB_INSERT_FAILURE", "systems");
+    }
+    finally
+    {
+      // Always return the connection back to the connection pool.
+      LibUtils.finalCloseDB(conn);
+    }
+  }
+
+  /**
    * Update selected attributes of an existing system.
    * Following columns will be updated:
    *   description, host, effectiveUserId, defaultAuthnMethod,
@@ -208,10 +311,10 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public void updateSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
-                           String updateJsonStr, String scrubbedText)
+  public void patchSystem(ResourceRequestUser rUser, TSystem patchedSystem, PatchSystem patchSystem,
+                          String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
-    String opName = "updateSystem";
+    String opName = "patchSystem";
     // ------------------------- Check Input -------------------------
     if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
     if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
@@ -223,11 +326,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
     if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
     if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
-
-    // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
-    String proxyHost = TSystem.DEFAULT_PROXYHOST;
-    if (patchedSystem.getProxyHost() != null) proxyHost = patchedSystem.getProxyHost();
-
+    
     // Make sure effectiveUserId, jobEnvVariables, notes and tags are all set
     String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
     if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
@@ -260,7 +359,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
               .set(SYSTEMS.PORT, patchedSystem.getPort())
               .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
-              .set(SYSTEMS.PROXY_HOST, proxyHost)
+              .set(SYSTEMS.PROXY_HOST, patchedSystem.getProxyHost())
               .set(SYSTEMS.PROXY_PORT, patchedSystem.getProxyPort())
               .set(SYSTEMS.DTN_SYSTEM_ID, patchedSystem.getDtnSystemId())
               .set(SYSTEMS.DTN_MOUNT_POINT, patchedSystem.getDtnMountPoint())
@@ -314,125 +413,6 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       // Always return the connection back to the connection pool.
       LibUtils.finalCloseDB(conn);
     }
-  }
-
-  /**
-   * Update all updatable attributes of an existing system.
-   * Following columns will be updated:
-   *   description, host, effectiveUserId, defaultAuthnMethod,
-   *   port, useProxy, proxyHost, proxyPort, dtnSystemId, dtnMountPoint, dtnMountSourcePath,
-   *   jobRuntimes, jobWorkingDir, jobEnvVariables, jobMaxJobs, jobMaxJobsPerUers, jobIsBatch,
-   *   batchScheduler, batchLogicalQueues, batchDefaultLogicalQueue, jobCapabilities, tags, notes.
-   * @throws TapisException - on error
-   * @throws IllegalStateException - if system already exists
-   */
-  @Override
-  public void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr,
-                        String scrubbedText)
-          throws TapisException, IllegalStateException {
-    String opName = "putSystem";
-//    // ------------------------- Check Input -------------------------
-//    if (patchedSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchedSystem");
-//    if (patchSystem == null) LibUtils.logAndThrowNullParmException(opName, "patchSystem");
-//    if (resourceRequestUser == null) LibUtils.logAndThrowNullParmException(opName, "resourceRequestUser");
-//    // Pull out some values for convenience
-//    String tenant = patchedSystem.getTenant();
-//    String systemId = patchedSystem.getId();
-//    if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
-//    if (StringUtils.isBlank(tenant)) LibUtils.logAndThrowNullParmException(opName, "tenant");
-//    if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
-//    if (patchedSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
-//
-//    // Convert nulls to default values. Postgres adheres to sql standard of <col> = null is not the same as <col> is null
-//    String proxyHost = TSystem.DEFAULT_PROXYHOST;
-//    if (patchedSystem.getProxyHost() != null) proxyHost = patchedSystem.getProxyHost();
-//
-//    // Make sure effectiveUserId, jobEnvVariables, notes and tags are all set
-//    String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
-//    if (StringUtils.isNotBlank(patchedSystem.getEffectiveUserId())) effectiveUserId = patchedSystem.getEffectiveUserId();
-//
-//    String[] jobEnvVariablesStrArray = TSystem.EMPTY_STR_ARRAY;
-//    if (patchedSystem.getJobEnvVariables() != null) jobEnvVariablesStrArray = patchedSystem.getJobEnvVariables();
-//
-//    String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
-//    if (patchedSystem.getTags() != null) tagsStrArray = patchedSystem.getTags();
-//    JsonObject notesObj =  TSystem.DEFAULT_NOTES;
-//    if (patchedSystem.getNotes() != null) notesObj = (JsonObject) patchedSystem.getNotes();
-//
-//    // ------------------------- Call SQL ----------------------------
-//    Connection conn = null;
-//    try
-//    {
-//      // Get a database connection.
-//      conn = getConnection();
-//      DSLContext db = DSL.using(conn);
-//
-//      // Make sure system exists and has not been deleted.
-//      boolean doesExist = checkForSystem(db, tenant, systemId, false);
-//      if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", resourceRequestUser, systemId));
-//
-//
-//      int seqId = db.update(SYSTEMS)
-//              .set(SYSTEMS.DESCRIPTION, patchedSystem.getDescription())
-//              .set(SYSTEMS.HOST, patchedSystem.getHost())
-//              .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
-//              .set(SYSTEMS.DEFAULT_AUTHN_METHOD, patchedSystem.getDefaultAuthnMethod())
-//              .set(SYSTEMS.PORT, patchedSystem.getPort())
-//              .set(SYSTEMS.USE_PROXY, patchedSystem.isUseProxy())
-//              .set(SYSTEMS.PROXY_HOST, proxyHost)
-//              .set(SYSTEMS.PROXY_PORT, patchedSystem.getProxyPort())
-//              .set(SYSTEMS.DTN_SYSTEM_ID, patchedSystem.getDtnSystemId())
-//              .set(SYSTEMS.DTN_MOUNT_POINT, patchedSystem.getDtnMountPoint())
-//              .set(SYSTEMS.DTN_MOUNT_SOURCE_PATH, patchedSystem.getDtnMountSourcePath())
-//              .set(SYSTEMS.JOB_WORKING_DIR, patchedSystem.getJobWorkingDir())
-//              .set(SYSTEMS.JOB_ENV_VARIABLES, jobEnvVariablesStrArray)
-//              .set(SYSTEMS.JOB_MAX_JOBS, patchedSystem.getJobMaxJobs())
-//              .set(SYSTEMS.JOB_MAX_JOBS_PER_USER, patchedSystem.getJobMaxJobsPerUser())
-//              .set(SYSTEMS.JOB_IS_BATCH, patchedSystem.getJobIsBatch())
-//              .set(SYSTEMS.BATCH_SCHEDULER, patchedSystem.getBatchScheduler())
-//              .set(SYSTEMS.BATCH_DEFAULT_LOGICAL_QUEUE, patchedSystem.getBatchDefaultLogicalQueue())
-//              .set(SYSTEMS.TAGS, tagsStrArray)
-//              .set(SYSTEMS.NOTES, notesObj)
-//              .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
-//              .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
-//              .returningResult(SYSTEMS.SEQ_ID)
-//              .fetchOne().getValue(SYSTEMS.SEQ_ID);
-//
-//      // If jobRuntimes updated then replace them
-//      if (patchSystem.getJobRuntimes() != null) {
-//        db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistJobRuntimes(db, patchedSystem, seqId);
-//      }
-//
-//      // If batchLogicalQueues updated then replace them
-//      if (patchSystem.getBatchLogicalQueues() != null) {
-//        db.deleteFrom(LOGICAL_QUEUES).where(LOGICAL_QUEUES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistLogicalQueues(db, patchedSystem, seqId);
-//      }
-//
-//      // If jobCapabilities updated then replace them
-//      if (patchSystem.getJobCapabilities() != null) {
-//        db.deleteFrom(CAPABILITIES).where(CAPABILITIES.SYSTEM_SEQ_ID.eq(seqId)).execute();
-//        persistJobCapabilities(db, patchedSystem, seqId);
-//      }
-//
-//      // Persist update record
-//      addUpdate(db, rUser, tenant, systemId, seqId, SystemOperation.modify, updateJsonStr, scrubbedText,
-//              patchedSystem.getUuid());
-//
-//      // Close out and commit
-//      LibUtils.closeAndCommitDB(conn, null, null);
-//    }
-//    catch (Exception e)
-//    {
-//      // Rollback transaction and throw an exception
-//      LibUtils.rollbackDB(conn, e,"DB_INSERT_FAILURE", "systems");
-//    }
-//    finally
-//    {
-//      // Always return the connection back to the connection pool.
-//      LibUtils.finalCloseDB(conn);
-//    }
   }
 
   /**

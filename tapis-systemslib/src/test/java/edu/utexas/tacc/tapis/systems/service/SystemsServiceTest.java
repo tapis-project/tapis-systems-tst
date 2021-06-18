@@ -1,7 +1,6 @@
 package edu.utexas.tacc.tapis.systems.service;
 
 import com.google.gson.JsonObject;
-import edu.utexas.tacc.tapis.shared.exceptions.TapisException;
 import edu.utexas.tacc.tapis.shared.security.ServiceClients;
 import edu.utexas.tacc.tapis.shared.security.ServiceContext;
 import edu.utexas.tacc.tapis.shared.security.TenantManager;
@@ -60,7 +59,7 @@ public class SystemsServiceTest
           rFilesSvcOwner1, rFilesSvcTestUser3, rFilesSvcTestUser4;
 
   // Create test system definitions in memory
-  int numSystems = 25;
+  int numSystems = 26;
   String testKey = "Svc";
   TSystem dtnSystem1 = IntegrationUtils.makeDtnSystem1(testKey);
   TSystem dtnSystem2 = IntegrationUtils.makeDtnSystem2(testKey);
@@ -213,10 +212,70 @@ public class SystemsServiceTest
     Assert.assertNull(cred.getCertificate(), "AuthnCredential certificate should be null");
   }
 
-  // Test updating a system
+  // Test updating a system using put
   // Both update of all possible attributes and only some attributes
   @Test
-  public void testUpdateSystem() throws Exception
+  public void testPutSystem() throws Exception
+  {
+    TSystem sys0 = systems[25];
+    String systemId = sys0.getId();
+    sys0.setJobRuntimes(runtimeList1);
+    sys0.setBatchLogicalQueues(logicalQueueList1);
+    sys0.setJobCapabilities(capList1);
+    String createText = "{\"testPut\": \"0-create1\"}";
+    svc.createSystem(rOwner1, sys0, createText);
+    TSystem tmpSys = svc.getSystem(rOwner1, systemId, false, null, false);
+    // Get last updated timestamp
+    LocalDateTime updated = LocalDateTime.ofInstant(tmpSys.getUpdated(), ZoneOffset.UTC);
+    String updatedStr1 = TapisUtils.getSQLStringFromUTCTime(updated);
+    Thread.sleep(300);
+
+    // Create putSystem where all updatable attributes are changed
+    String patch1Text = "{\"testUpdate\": \"1-put1\"}";
+    TSystem putSystemFull = IntegrationUtils.makePutSystemFull(testKey, tmpSys);
+
+    // Update using PUT
+    svc.putSystem(rOwner1, putSystemFull, patch1Text);
+    TSystem tmpSysFull = svc.getSystem(rOwner1, sys0.getId(), false, null, false);
+
+    // Get last updated timestamp
+    updated = LocalDateTime.ofInstant(tmpSysFull.getUpdated(), ZoneOffset.UTC);
+    String updatedStr2 = TapisUtils.getSQLStringFromUTCTime(updated);
+    // Make sure update timestamp has been modified
+    System.out.println("Updated timestamp before: " + updatedStr1 + " after: " + updatedStr2);
+    Assert.assertNotEquals(updatedStr1, updatedStr2, "Update timestamp was not updated. Both are: " + updatedStr1);
+
+    // Update original definition with modified values so we can use the checkCommon method.
+    sys0.setDescription(description2);
+    sys0.setHost(hostname2);
+    sys0.setEffectiveUserId(effectiveUserId2);
+    sys0.setDefaultAuthnMethod(prot2.getAuthnMethod());
+    sys0.setPort(prot2.getPort());
+    sys0.setUseProxy(prot2.isUseProxy());
+    sys0.setProxyHost(prot2.getProxyHost());
+    sys0.setProxyPort(prot2.getProxyPort());
+    sys0.setDtnSystemId(sysNamePrefix+ testKey +dtnSystemId2);
+    sys0.setDtnMountPoint(dtnMountPoint2);
+    sys0.setDtnMountSourcePath(dtnMountSourcePath2);
+    sys0.setJobWorkingDir(jobWorkingDir2);
+    sys0.setJobEnvVariables(jobEnvVariables2);
+    sys0.setJobMaxJobs(jobMaxJobs2);
+    sys0.setJobMaxJobsPerUser(jobMaxJobsPerUser2);
+    sys0.setBatchScheduler(batchScheduler2);
+    sys0.setBatchDefaultLogicalQueue(batchDefaultLogicalQueue2);
+    sys0.setTags(tags2);
+    sys0.setNotes(notes2);
+    sys0.setJobRuntimes(runtimeList2);
+    sys0.setBatchLogicalQueues(logicalQueueList2);
+    sys0.setJobCapabilities(capList2);
+    // Check common system attributes:
+    checkCommonSysAttrs(sys0, tmpSysFull);
+  }
+
+  // Test updating a system using patch
+  // Both update of all possible attributes and only some attributes
+  @Test
+  public void testPatchSystem() throws Exception
   {
     TSystem sys0 = systems[13];
     String systemId = sys0.getId();
@@ -236,7 +295,7 @@ public class SystemsServiceTest
     PatchSystem patchSystemFull = IntegrationUtils.makePatchSystemFull(testKey, systemId);
 
     // Update using patchSys
-    svc.updateSystem(rOwner1, patchSystemFull, patch1Text);
+    svc.patchSystem(rOwner1, patchSystemFull, patch1Text);
     TSystem tmpSysFull = svc.getSystem(rOwner1, sys0.getId(), false, null, false);
 
     // Get last updated timestamp
@@ -286,7 +345,7 @@ public class SystemsServiceTest
     PatchSystem patchSystemPartial = IntegrationUtils.makePatchSystemPartial(testKey, systemId);
 
     // Update using patchSys
-    svc.updateSystem(rOwner1, patchSystemPartial, patch2Text);
+    svc.patchSystem(rOwner1, patchSystemPartial, patch2Text);
     TSystem tmpSysPartial = svc.getSystem(rOwner1, sys0.getId(), false, null, false);
 
     // Update original definition with patched values so we can use the checkCommon method.
@@ -922,7 +981,7 @@ public class SystemsServiceTest
 
     // MODIFY Deny user with no READ or MODIFY, deny user with only READ, deny service
     pass = false;
-    try { svc.updateSystem(rTestUser0, patchSys, scrubbedJson); }
+    try { svc.patchSystem(rTestUser0, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
@@ -930,7 +989,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.updateSystem(rTestUser3, patchSys, scrubbedJson); }
+    try { svc.patchSystem(rTestUser3, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));
@@ -938,7 +997,7 @@ public class SystemsServiceTest
     }
     Assert.assertTrue(pass);
     pass = false;
-    try { svc.updateSystem(rFilesSvcOwner1, patchSys, scrubbedJson); }
+    try { svc.patchSystem(rFilesSvcOwner1, patchSys, scrubbedJson); }
     catch (NotAuthorizedException e)
     {
       Assert.assertTrue(e.getMessage().startsWith("SYSLIB_UNAUTH"));

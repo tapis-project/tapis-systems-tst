@@ -320,6 +320,28 @@ public final class IntegrationUtils
   }
 
   /**  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, 22, false, "", 0);
+   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, 0, true, "localhost",2222);
+
+   * Create a TSystem in memory for use in testing the PUT operation.
+   * All updatable attributes are modified.
+   */
+  public static TSystem makePutSystemFull(String key, TSystem system)
+  {
+    TSystem putSys = new TSystem(system.getSeqId(), tenantName, system.getId(), description2, system.getSystemType(),
+                       system.getOwner(), hostname2, system.isEnabled(), effectiveUserId2,
+                       prot2.getAuthnMethod(), system.getBucketName(), system.getRootDir(), prot2.getPort(),
+                       prot2.isUseProxy(), prot2.getProxyHost(), prot2.getProxyPort(),
+                       sysNamePrefix+key+dtnSystemId2, dtnMountPoint2, dtnMountSourcePath2, system.isDtn(),
+                       system.getCanExec(), jobWorkingDir2, jobEnvVariables2,
+                       jobMaxJobs2, jobMaxJobsPerUser2, jobIsBatchTrue, batchScheduler2, batchDefaultLogicalQueue2,
+                       tags2, notes2, null, false, null, null);
+    putSys.setBatchLogicalQueues(logicalQueueList2);
+    putSys.setJobRuntimes(runtimeList2);
+    putSys.setJobCapabilities(capList2);
+    return putSys;
+  }
+
+  /**  public static final Protocol prot1 = new Protocol(AuthnMethod.PKI_KEYS, 22, false, "", 0);
   public static final Protocol prot2 = new Protocol(AuthnMethod.PASSWORD, 0, true, "localhost",2222);
 
    * Create a PatchSystem in memory for use in testing.
