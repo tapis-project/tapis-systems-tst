@@ -138,9 +138,9 @@ public final class TSystem
   // NOTE: In order to use jersey's SelectableEntityFilteringFeature fields cannot be final.
   private int seqId;         // Unique database sequence number
   private String tenant;     // Name of the tenant for which the system is defined
-  private String id;       // Name of the system
+  private final String id;       // Name of the system
   private String description; // Full description of the system
-  private SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
+  private final SystemType systemType; // Type of system, e.g. LINUX, OBJECT_STORE
   private String owner;      // User who owns the system and has full privileges
   private String host;       // Host name or IP address
   private boolean enabled; // Indicates if systems is currently enabled
@@ -157,7 +157,7 @@ public final class TSystem
   private String dtnMountPoint;
   private String dtnMountSourcePath;
   private boolean isDtn;
-  private boolean canExec; // Indicates if system will be used to execute jobs
+  private final boolean canExec; // Indicates if system will be used to execute jobs
   private List<JobRuntime> jobRuntimes;
   private String jobWorkingDir; // Parent directory from which a job is run. Relative to effective root dir.
   private String[] jobEnvVariables;
@@ -344,24 +344,19 @@ public final class TSystem
   // ************************************************************************
 
   /**
-   * Set defaults for a TSystem and return the same TSystem
-   * @param system - TSystem to be updated.
-   * @return TSystem passed in
+   * Set defaults for a TSystem
    */
-  public static TSystem setDefaults(TSystem system)
+  public void setDefaults()
   {
-    if (system==null) throw new IllegalArgumentException(LibUtils.getMsg("SYSLIB_NULL_INPUT"));
-    if (StringUtils.isBlank(system.getOwner())) system.setOwner(DEFAULT_OWNER);
-    if (StringUtils.isBlank(system.getEffectiveUserId())) system.setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
-    if (system.getTags() == null) system.setTags(EMPTY_STR_ARRAY);
-    if (system.getNotes() == null) system.setNotes(DEFAULT_NOTES);
+    if (StringUtils.isBlank(getOwner())) setOwner(DEFAULT_OWNER);
+    if (StringUtils.isBlank(getEffectiveUserId())) setEffectiveUserId(DEFAULT_EFFECTIVEUSERID);
+    if (getTags() == null) setTags(EMPTY_STR_ARRAY);
+    if (getNotes() == null) setNotes(DEFAULT_NOTES);
     // If jobIsBatch and qlist has one value then set default q to that value
-    if (system.getJobIsBatch() &&
-        system.getBatchLogicalQueues() != null && system.getBatchLogicalQueues().size() == 1)
+    if (getJobIsBatch() && getBatchLogicalQueues() != null && getBatchLogicalQueues().size() == 1)
     {
-      system.setBatchDefaultLogicalQueue(system.getBatchLogicalQueues().get(0).getName());
+      setBatchDefaultLogicalQueue(getBatchLogicalQueues().get(0).getName());
     }
-    return system;
   }
   /**
    * Resolve variables for TSystem attributes
@@ -651,15 +646,13 @@ public final class TSystem
   public Instant getUpdated() { return updated; }
 
   public String getTenant() { return tenant; }
-//  public TSystem setTenant(String s) { tenant = s; return this; }
+
+  public SystemType getSystemType() { return systemType; }
 
   public String getId() { return id; }
-//  public TSystem setId(String s) { id = s; return this; }
 
   public String getDescription() { return description; }
   public TSystem setDescription(String d) { description = d; return this; }
-
-  public SystemType getSystemType() { return systemType; }
 
   public String getOwner() { return owner; }
   public TSystem setOwner(String s) { owner = s;  return this;}

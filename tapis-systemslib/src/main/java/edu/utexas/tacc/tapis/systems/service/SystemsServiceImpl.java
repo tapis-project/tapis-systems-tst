@@ -192,7 +192,7 @@ public class SystemsServiceImpl implements SystemsService
 
     // Make sure owner, effectiveUserId, notes and tags are all set
     // Note that this is done before auth so owner can get resolved and used during auth check.
-    system = TSystem.setDefaults(system);
+    system.setDefaults();
     String effectiveUserId = system.getEffectiveUserId();
 
     // ----------------- Resolve variables for any attributes that might contain them --------------------
@@ -330,7 +330,7 @@ public class SystemsServiceImpl implements SystemsService
     checkAuth(rUser, op, resourceId, origTSystem.getOwner(), null, null);
 
     // ---------------- Check constraints on TSystem attributes ------------------------
-    patchedTSystem = TSystem.setDefaults(patchedTSystem);
+    patchedTSystem.setDefaults();
     validateTSystem(rUser, patchedTSystem);
 
     // Construct Json string representing the PatchSystem about to be used to update the system
@@ -1386,8 +1386,7 @@ public class SystemsServiceImpl implements SystemsService
    * @throws NotAuthorizedException - unauthorized
    * @throws NotFoundException - resource not found
    */
-  private int updateEnabled(ResourceRequestUser rUser, String systemId,
-                            SystemOperation sysOp)
+  private int updateEnabled(ResourceRequestUser rUser, String systemId, SystemOperation sysOp)
           throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
   {
     // ---------------------------- Check inputs ------------------------------------
@@ -1425,8 +1424,7 @@ public class SystemsServiceImpl implements SystemsService
    * @throws NotAuthorizedException - unauthorized
    * @throws NotFoundException - resource not found
    */
-  private int updateDeleted(ResourceRequestUser rUser, String systemId,
-                            SystemOperation sysOp)
+  private int updateDeleted(ResourceRequestUser rUser, String systemId, SystemOperation sysOp)
           throws TapisException, IllegalStateException, IllegalArgumentException, NotAuthorizedException, NotFoundException, TapisClientException
   {
     // ---------------------------- Check inputs ------------------------------------

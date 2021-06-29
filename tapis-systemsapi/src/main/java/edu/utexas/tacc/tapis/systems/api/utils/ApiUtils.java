@@ -120,6 +120,12 @@ public class ApiUtils
     return msgValue;
   }
 
+  /**
+   * Return single json element as a string
+   * @param jelem Json element
+   * @param defaultVal string value to use as a default if element is null
+   * @return json element as string
+   */
   public static String getValS(JsonElement jelem, String defaultVal)
   {
     if (jelem == null) return defaultVal;
