@@ -1,6 +1,7 @@
 package edu.utexas.tacc.tapis.systems.model;
 
 import edu.utexas.tacc.tapis.shared.utils.TapisUtils;
+import edu.utexas.tacc.tapis.systems.model.TSystem.AuthnMethod;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -39,6 +40,7 @@ public final class Credential
   /*                                 Fields                                 */
   /* ********************************************************************** */
 
+  private final AuthnMethod authnMethod; // Authentication method associated with a retrieved credential
   private final String password; // Password for when authnMethod is PASSWORD
   private final String privateKey; // Private key for when authnMethod is PKI_KEYS or CERT
   private final String publicKey; // Public key for when authnMethod is PKI_KEYS or CERT
@@ -53,8 +55,10 @@ public final class Credential
   /**
    * Simple constructor to populate all attributes
    */
-  public Credential(String password1, String privateKey1, String publicKey1, String accessKey1, String accessSecret1, String cert1)
+  public Credential(AuthnMethod authnMethod1, String password1, String privateKey1, String publicKey1,
+                    String accessKey1, String accessSecret1, String cert1)
   {
+    authnMethod = authnMethod1;
     password = password1;
     privateKey = privateKey1;
     publicKey = publicKey1;
@@ -71,6 +75,7 @@ public final class Credential
    */
   public static Credential createMaskedCredential(Credential credential)
   {
+    if (credential == null) return null;
     String accessKey, accessSecret, password, privateKey, publicKey, cert;
     accessKey = (!StringUtils.isBlank(credential.getAccessKey())) ? SECRETS_MASK : credential.getAccessKey();
     accessSecret = (!StringUtils.isBlank(credential.getAccessSecret())) ? SECRETS_MASK : credential.getAccessSecret();
@@ -78,7 +83,7 @@ public final class Credential
     privateKey = (!StringUtils.isBlank(credential.getPrivateKey())) ? SECRETS_MASK : credential.getPrivateKey();
     publicKey = (!StringUtils.isBlank(credential.getPublicKey())) ? SECRETS_MASK : credential.getPublicKey();
     cert = (!StringUtils.isBlank(credential.getCertificate())) ? SECRETS_MASK : credential.getCertificate();
-    return new Credential(password, privateKey, publicKey, accessKey, accessSecret, cert);
+    return new Credential(credential.getAuthnMethod(), password, privateKey, publicKey, accessKey, accessSecret, cert);
   }
 
   /**
@@ -99,9 +104,10 @@ public final class Credential
     return true;
   }
 
-    /* ********************************************************************** */
+  /* ********************************************************************** */
   /*                               Accessors                                */
   /* ********************************************************************** */
+  public AuthnMethod getAuthnMethod() { return authnMethod; }
   public String getPassword() { return password; }
   public String getPrivateKey() { return privateKey; }
   public String getPublicKey() { return publicKey; }

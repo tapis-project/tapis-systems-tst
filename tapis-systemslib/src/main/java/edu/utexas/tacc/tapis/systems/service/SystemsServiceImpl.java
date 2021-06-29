@@ -1353,7 +1353,8 @@ public class SystemsServiceImpl implements SystemsService
       if (dataMap == null) return null;
 
       // Create a credential
-      credential = new Credential(dataMap.get(SK_KEY_PASSWORD),
+      credential = new Credential(authnMethod,
+              dataMap.get(SK_KEY_PASSWORD),
               dataMap.get(SK_KEY_PRIVATE_KEY),
               dataMap.get(SK_KEY_PUBLIC_KEY),
               dataMap.get(SK_KEY_ACCESS_KEY),

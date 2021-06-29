@@ -162,7 +162,8 @@ public class CredentialResource
 
     // Populate credential from payload
     ReqPostCredential req = TapisGsonUtils.getGson().fromJson(json, ReqPostCredential.class);
-    Credential credential = new Credential(req.password, req.privateKey, req.publicKey, req.accessKey, req.accessSecret, req.certificate);
+    Credential credential = new Credential(null, req.password, req.privateKey, req.publicKey, req.accessKey,
+                                           req.accessSecret, req.certificate);
 
     // If one of PKI keys is missing then reject
     resp = ApiUtils.checkSecrets(rUser, systemName, userName, PRETTY, AuthnMethod.PKI_KEYS.name(), PRIVATE_KEY_FIELD, PUBLIC_KEY_FIELD,
