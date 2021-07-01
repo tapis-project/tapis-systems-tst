@@ -522,8 +522,7 @@ public class SystemResource
       }
       else
       {
-// TODO still needed? this is not patch
-        // IllegalStateException indicates an Invalid PatchSystem was passed in
+        // IllegalStateException indicates an Invalid PutSystem was passed in
         msg = ApiUtils.getMsgAuth(UPDATE_ERR, rUser, systemId, opName, e.getMessage());
         _log.error(msg);
         return Response.status(Status.BAD_REQUEST).entity(TapisRestUtils.createErrorResponse(msg, PRETTY)).build();

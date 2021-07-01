@@ -233,15 +233,15 @@ public class SystemsServiceTest
     Thread.sleep(300);
 
     // Create putSystem where all updatable attributes are changed
-    String patch1Text = "{\"testUpdate\": \"1-put1\"}";
-    TSystem putSystemFull = IntegrationUtils.makePutSystemFull(testKey, tmpSys);
+    String put1Text = "{\"testPut\": \"1-put1\"}";
+    TSystem putSystem = IntegrationUtils.makePutSystemFull(testKey, tmpSys);
 
     // Update using PUT
-    svc.putSystem(rOwner1, putSystemFull, patch1Text);
-    TSystem tmpSysFull = svc.getSystem(rOwner1, sys0.getId(), false, null, false);
+    svc.putSystem(rOwner1, putSystem, put1Text);
+    tmpSys = svc.getSystem(rOwner1, sys0.getId(), false, null, false);
 
     // Get last updated timestamp
-    updated = LocalDateTime.ofInstant(tmpSysFull.getUpdated(), ZoneOffset.UTC);
+    updated = LocalDateTime.ofInstant(tmpSys.getUpdated(), ZoneOffset.UTC);
     String updatedStr2 = TapisUtils.getSQLStringFromUTCTime(updated);
     // Make sure update timestamp has been modified
     System.out.println("Updated timestamp before: " + updatedStr1 + " after: " + updatedStr2);
@@ -271,7 +271,7 @@ public class SystemsServiceTest
     sys0.setBatchLogicalQueues(logicalQueueList2);
     sys0.setJobCapabilities(capList2);
     // Check common system attributes:
-    checkCommonSysAttrs(sys0, tmpSysFull);
+    checkCommonSysAttrs(sys0, tmpSys);
   }
 
   // Test updating a system using patch

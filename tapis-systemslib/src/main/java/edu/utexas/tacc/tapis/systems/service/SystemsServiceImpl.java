@@ -347,10 +347,10 @@ public class SystemsServiceImpl implements SystemsService
    * Incoming TSystem must contain the tenantId and systemId.
    * Secrets in the text should be masked.
    * Attributes that cannot be updated and so will be looked up and filled in:
-   *   tenant, id, systemType, owner, bucketName, rootDir, canExec, isDtn
+   *   tenant, id, systemType, owner, enabled, bucketName, rootDir, canExec, isDtn
    * @param rUser - ResourceRequestUser containing tenant, user and request info
    * @param putSystem - Pre-populated TSystem object (including tenantId and systemId)
-   * @param scrubbedText - Text used to create the PatchSystem object - secrets should be scrubbed. Saved in update record.
+   * @param scrubbedText - Text used to create the System object - secrets should be scrubbed. Saved in update record.
    * @throws TapisException - for Tapis related exceptions
    * @throws IllegalStateException - Resulting TSystem would be in an invalid state
    * @throws IllegalArgumentException - invalid parameter passed in

@@ -159,6 +159,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.UUID, system.getUuid())
               .returningResult(SYSTEMS.SEQ_ID)
               .fetchOne();
+
+      // If record is null it is an error
+      if (record == null)
+      {
+        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_DB_NULL_RESULT", rUser, system.getId(), opName));
+      }
+
       // Generated sequence id
       int seqId = record.getValue(SYSTEMS.SEQ_ID);
 
@@ -204,8 +211,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
    * @throws IllegalStateException - if system already exists
    */
   @Override
-  public void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr,
-                        String scrubbedText)
+  public void putSystem(ResourceRequestUser rUser, TSystem putSystem, String updateJsonStr, String scrubbedText)
           throws TapisException, IllegalStateException {
     String opName = "putSystem";
     // ------------------------- Check Input -------------------------
@@ -214,12 +220,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Pull out some values for convenience
     String tenantId = putSystem.getTenant();
     String systemId = putSystem.getId();
+    // Check required attributes have been provided
     if (StringUtils.isBlank(updateJsonStr)) LibUtils.logAndThrowNullParmException(opName, "updateJson");
     if (StringUtils.isBlank(tenantId)) LibUtils.logAndThrowNullParmException(opName, "tenantId");
     if (StringUtils.isBlank(systemId)) LibUtils.logAndThrowNullParmException(opName, "systemId");
     if (putSystem.getSystemType() == null) LibUtils.logAndThrowNullParmException(opName, "systemType");
 
-    // Make effectiveUserId, notes and tags are all set
+    // Make sure effectiveUserId, notes and tags are all set
     String effectiveUserId = TSystem.DEFAULT_EFFECTIVEUSERID;
     if (StringUtils.isNotBlank(putSystem.getEffectiveUserId())) effectiveUserId = putSystem.getEffectiveUserId();
     String[] tagsStrArray = TSystem.EMPTY_STR_ARRAY;
@@ -243,7 +250,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       UUID uuid = putSystem.getUuid();
       if (uuid == null) uuid = getUUIDUsingDb(db, tenantId, systemId);
 
-      int seqId = db.update(SYSTEMS)
+      var result = db.update(SYSTEMS)
               .set(SYSTEMS.DESCRIPTION, putSystem.getDescription())
               .set(SYSTEMS.HOST, putSystem.getHost())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
@@ -267,7 +274,15 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
               .where(SYSTEMS.TENANT.eq(tenantId),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
-              .fetchOne().getValue(SYSTEMS.SEQ_ID);
+              .fetchOne();
+
+      // If result is null it is an error
+      if (result == null)
+      {
+        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_DB_NULL_RESULT", rUser, systemId, opName));
+      }
+
+      int seqId = result.getValue(SYSTEMS.SEQ_ID);
 
       // Persist new job runtimes
       db.deleteFrom(JOB_RUNTIMES).where(JOB_RUNTIMES.SYSTEM_SEQ_ID.eq(seqId)).execute();
@@ -352,7 +367,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       if (!doesExist) throw new IllegalStateException(LibUtils.getMsgAuth("SYSLIB_NOT_FOUND", rUser, systemId));
 
 
-      int seqId = db.update(SYSTEMS)
+      var result = db.update(SYSTEMS)
               .set(SYSTEMS.DESCRIPTION, patchedSystem.getDescription())
               .set(SYSTEMS.HOST, patchedSystem.getHost())
               .set(SYSTEMS.EFFECTIVE_USER_ID, effectiveUserId)
@@ -376,7 +391,15 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
               .set(SYSTEMS.UPDATED, TapisUtils.getUTCTimeNow())
               .where(SYSTEMS.TENANT.eq(tenant),SYSTEMS.ID.eq(systemId))
               .returningResult(SYSTEMS.SEQ_ID)
-              .fetchOne().getValue(SYSTEMS.SEQ_ID);
+              .fetchOne();
+
+      // If result is null it is an error
+      if (result == null)
+      {
+        throw new TapisException(LibUtils.getMsgAuth("SYSLIB_DB_NULL_RESULT", rUser, systemId, opName));
+      }
+
+      int seqId = result.getValue(SYSTEMS.SEQ_ID);
 
       // If jobRuntimes updated then replace them
       if (patchSystem.getJobRuntimes() != null) {
@@ -814,8 +837,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName()));
     }
 
     // If no IDs in list then we are done.
@@ -937,8 +959,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If startAfter is given then orderBy is required
     if (!StringUtils.isBlank(startAfter) && StringUtils.isBlank(majorOrderBy))
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName());
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SORT_START", SYSTEMS.getName()));
     }
 
 // DEBUG Iterate over all columns and show the type
@@ -1511,8 +1532,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If we are given a null then something went very wrong.
     if (binaryNode == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST2");
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST2"));
     }
     // If operator is AND or OR then make recursive call for each side and join together
     // For other operators build the condition left.op.right and add it
@@ -1521,8 +1541,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     ASTNode rightNode = binaryNode.getRight();
     if (StringUtils.isBlank(op))
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST3", binaryNode.toString());
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST3", binaryNode.toString()));
     }
     else if (op.equalsIgnoreCase("AND"))
     {
@@ -1531,8 +1550,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       Condition cond2 = createConditionFromAst(rightNode);
       if (cond1 == null || cond2 == null)
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST4", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST4", binaryNode.toString()));
       }
       return cond1.and(cond2);
 
@@ -1544,8 +1562,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       Condition cond2 = createConditionFromAst(rightNode);
       if (cond1 == null || cond2 == null)
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST4", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST4", binaryNode.toString()));
       }
       return cond1.or(cond2);
 
@@ -1560,15 +1577,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       else if (leftNode instanceof ASTUnaryExpression) lValue =  ((ASTLeaf) ((ASTUnaryExpression) leftNode).getNode()).getValue();
       else
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST5", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST5", binaryNode.toString()));
       }
       if (rightNode instanceof ASTLeaf) rValue = ((ASTLeaf) rightNode).getValue();
       else if (rightNode instanceof ASTUnaryExpression) rValue =  ((ASTLeaf) ((ASTUnaryExpression) rightNode).getNode()).getValue();
       else
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST6", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_SEARCH_AST6", binaryNode.toString()));
       }
       // Build the string for the search condition, left.op.right
       String condStr = String.format("%s.%s.%s", lValue, binaryNode.getOp(), rValue);
@@ -1612,8 +1627,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If column not found then it is an error
     if (col == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_NO_COLUMN", SYSTEMS.getName(), DSL.name(column));
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_NO_COLUMN", SYSTEMS.getName(), DSL.name(column)));
     }
     // Validate and convert operator string
     String opStr = parsedStrArray[1].toUpperCase();
@@ -1760,8 +1774,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If we are given a null then something went very wrong.
     if (binaryNode == null)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST2");
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST2"));
     }
     // If operator is AND or OR then make recursive call for each side
     // Since we are just collecting capabilities we do not distinguish between AND, OR
@@ -1771,8 +1784,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     ASTNode rightNode = binaryNode.getRight();
     if (StringUtils.isBlank(op))
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST3", binaryNode.toString());
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST3", binaryNode.toString()));
     }
     else if (op.equalsIgnoreCase("AND") || op.equalsIgnoreCase("OR"))
     {
@@ -1792,15 +1804,13 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
       else if (leftNode instanceof ASTUnaryExpression) lValue =  ((ASTLeaf) ((ASTUnaryExpression) leftNode).getNode()).getValue();
       else
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST5", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST5", binaryNode.toString()));
       }
       if (rightNode instanceof ASTLeaf) rValue = ((ASTLeaf) rightNode).getValue();
       else if (rightNode instanceof ASTUnaryExpression) rValue =  ((ASTLeaf) ((ASTUnaryExpression) rightNode).getNode()).getValue();
       else
       {
-        String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST6", binaryNode.toString());
-        throw new TapisException(msg);
+        throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST6", binaryNode.toString()));
       }
       // Validate and create a capability using lValue, rValue from node
       Capability cap = getCapabilityFromNode(lValue, rValue, binaryNode);
@@ -1823,8 +1833,7 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // If lValue is empty it is an error
     if (StringUtils.isBlank(lValue))
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode));
     }
     // Validate and extract components from lValue
     // Parse lValue into category, and name
@@ -1833,16 +1842,14 @@ public class SystemsDaoImpl extends AbstractDao implements SystemsDao
     // Must have at least two items
     if (parsedStrArray.length < 2)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode));
     }
     String categoryStr = parsedStrArray[0];
     Capability.Category category = null;
     try { category = Capability.Category.valueOf(categoryStr.toUpperCase()); }
     catch (IllegalArgumentException e)
     {
-      String msg = LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode);
-      throw new TapisException(msg);
+      throw new TapisException(LibUtils.getMsg("SYSLIB_DB_INVALID_MATCH_AST7", binaryNode));
     }
     String name = parsedStrArray[1];
     Capability.Datatype datatype = null;
